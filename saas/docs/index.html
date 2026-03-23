@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AccessWidget — Documentation | التوثيق</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#2563EB;--blue-dark:#1d4ed8;--blue-light:#eff6ff;
+  --green:#16a34a;--green-light:#f0fdf4;
+  --amber:#d97706;--amber-light:#fffbeb;
+  --red:#dc2626;--red-light:#fef2f2;
+  --gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;
+  --gray-300:#d1d5db;--gray-500:#6b7280;--gray-600:#4b5563;
+  --gray-700:#374151;--gray-800:#1f2937;--gray-900:#111827;
+  --sidebar-w:280px;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--gray-50);color:var(--gray-800);line-height:1.6}
+body.ar{font-family:'Segoe UI',Tahoma,Arial,sans-serif;direction:rtl}
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 24px;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.topbar-logo{font-size:1.2rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.topbar-logo span{font-size:1.5rem}
+.lang-btn{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.4);color:#fff;padding:6px 18px;border-radius:20px;cursor:pointer;font-size:.9rem;font-weight:600;transition:background .2s}
+.lang-btn:hover{background:rgba(255,255,255,.3)}
+
+/* ── LAYOUT ── */
+.layout{display:flex;margin-top:56px;min-height:calc(100vh - 56px)}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:#fff;border-right:1px solid var(--gray-200);position:fixed;top:56px;bottom:0;overflow-y:auto;padding:16px 0}
+body.ar .sidebar{border-right:none;border-left:1px solid var(--gray-200);left:auto;right:0}
+.sidebar-section{padding:8px 16px 4px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-500)}
+.sidebar a{display:flex;align-items:center;gap:8px;padding:9px 20px;color:var(--gray-700);text-decoration:none;font-size:.9rem;transition:background .15s,color .15s;border-left:3px solid transparent}
+body.ar .sidebar a{border-left:none;border-right:3px solid transparent}
+.sidebar a:hover{background:var(--blue-light);color:var(--blue)}
+.sidebar a.active{background:var(--blue-light);color:var(--blue);border-left-color:var(--blue);font-weight:600}
+body.ar .sidebar a.active{border-left-color:transparent;border-right-color:var(--blue)}
+
+/* ── CONTENT ── */
+.content{margin-left:var(--sidebar-w);padding:40px 48px;max-width:900px}
+body.ar .content{margin-left:0;margin-right:var(--sidebar-w)}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .content{margin:0;padding:24px 16px}
+}
+
+/* ── TYPOGRAPHY ── */
+h1{font-size:2rem;font-weight:800;color:var(--gray-900);margin-bottom:8px}
+h2{font-size:1.45rem;font-weight:700;color:var(--gray-900);margin:48px 0 16px;padding-bottom:10px;border-bottom:2px solid var(--gray-200)}
+h3{font-size:1.1rem;font-weight:700;color:var(--gray-800);margin:28px 0 10px}
+h4{font-size:.95rem;font-weight:600;color:var(--gray-700);margin:18px 0 8px}
+p{margin-bottom:14px;color:var(--gray-700)}
+ul,ol{margin:0 0 14px 20px}
+body.ar ul,body.ar ol{margin:0 20px 14px 0}
+li{margin-bottom:6px;color:var(--gray-700)}
+strong{color:var(--gray-900)}
+
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,var(--blue) 0%,#1d4ed8 100%);color:#fff;border-radius:16px;padding:40px;margin-bottom:40px}
+.hero h1{color:#fff;font-size:2.2rem}
+.hero p{color:rgba(255,255,255,.85);font-size:1.05rem;margin-bottom:0}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);padding:4px 14px;border-radius:20px;font-size:.82rem;font-weight:600}
+
+/* ── CALLOUTS ── */
+.callout{border-radius:10px;padding:16px 20px;margin:20px 0;display:flex;gap:14px;align-items:flex-start}
+.callout-icon{font-size:1.3rem;flex-shrink:0;margin-top:2px}
+.callout.info{background:var(--blue-light);border:1px solid #bfdbfe}
+.callout.success{background:var(--green-light);border:1px solid #bbf7d0}
+.callout.warning{background:var(--amber-light);border:1px solid #fde68a}
+.callout.danger{background:var(--red-light);border:1px solid #fecaca}
+.callout p{margin:0;font-size:.9rem}
+
+/* ── CODE ── */
+pre{background:var(--gray-900);color:#e2e8f0;border-radius:10px;padding:20px;overflow-x:auto;margin:16px 0;font-size:.85rem;line-height:1.7}
+code{font-family:'Cascadia Code','Fira Code','Consolas',monospace}
+pre code{background:none;padding:0;color:inherit}
+.inline-code{background:var(--gray-100);border:1px solid var(--gray-200);border-radius:4px;padding:1px 7px;font-size:.85em;font-family:monospace;color:var(--blue-dark)}
+
+/* ── STEPS ── */
+.steps{counter-reset:step;margin:20px 0}
+.step{display:flex;gap:16px;margin-bottom:20px;align-items:flex-start}
+.step-num{background:var(--blue);color:#fff;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;flex-shrink:0}
+.step-body{flex:1}
+.step-body h4{margin-top:4px}
+
+/* ── CARDS ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:20px 0}
+.card{background:#fff;border:1px solid var(--gray-200);border-radius:12px;padding:20px}
+.card-icon{font-size:2rem;margin-bottom:10px}
+.card h4{margin:0 0 6px;font-size:1rem}
+.card p{font-size:.85rem;color:var(--gray-500);margin:0}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;margin:16px 0}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{background:var(--gray-100);padding:10px 14px;text-align:left;font-weight:600;color:var(--gray-700);border-bottom:2px solid var(--gray-200)}
+body.ar th{text-align:right}
+td{padding:10px 14px;border-bottom:1px solid var(--gray-200)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--gray-50)}
+
+/* ── PLAN PILLS ── */
+.pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:.78rem;font-weight:700}
+.pill.starter{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.pill.pro{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.pill.ent{background:#faf5ff;color:#7e22ce;border:1px solid #e9d5ff}
+
+/* ── TOC ANCHOR ── */
+.section-anchor{display:block;height:72px;margin-top:-72px;visibility:hidden}
+
+/* ── DIVIDER ── */
+hr{border:none;border-top:1px solid var(--gray-200);margin:40px 0}
+
+/* ── LANG TOGGLE ── */
+[data-en],[data-ar]{display:none}
+body:not(.ar) [data-en]{display:revert}
+body.ar [data-ar]{display:revert}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-logo"><span>♿</span> <span data-en>AccessWidget Docs</span><span data-ar>توثيق AccessWidget</span></div>
+  <button class="lang-btn" onclick="toggleLang()" id="langBtn">العربية</button>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <!-- EN -->
+  <div data-en>
+    <div class="sidebar-section">Getting Started</div>
+    <a href="#overview">📖 Overview</a>
+    <a href="#plans">💳 Plans & Limits</a>
+    <div class="sidebar-section">Admin Guide</div>
+    <a href="#admin-setup">⚙️ Server Setup</a>
+    <a href="#admin-login">🔐 Admin Login</a>
+    <a href="#admin-customers">👥 Manage Customers</a>
+    <a href="#admin-subscriptions">📋 Subscriptions</a>
+    <a href="#admin-licenses">🔑 Licenses</a>
+    <a href="#admin-analytics">📊 Analytics</a>
+    <a href="#admin-billing">💰 Billing</a>
+    <div class="sidebar-section">Customer Guide</div>
+    <a href="#cust-register">📝 Register & Login</a>
+    <a href="#cust-dashboard">🏠 Dashboard</a>
+    <a href="#cust-licenses">🔑 License Keys</a>
+    <a href="#cust-embed">🌐 Embed Widget</a>
+    <a href="#cust-branding">🎨 Branding</a>
+    <a href="#cust-features">✅ Feature Control</a>
+    <a href="#cust-profiles">👤 Profiles</a>
+    <a href="#cust-devmode">🛠️ Dev Mode</a>
+    <div class="sidebar-section">Reference</div>
+    <a href="#api-ref">🔌 API Reference</a>
+    <a href="#troubleshoot">🐛 Troubleshooting</a>
+  </div>
+  <!-- AR -->
+  <div data-ar>
+    <div class="sidebar-section">البداية</div>
+    <a href="#overview">📖 نظرة عامة</a>
+    <a href="#plans">💳 الخطط والحدود</a>
+    <div class="sidebar-section">دليل المسؤول</div>
+    <a href="#admin-setup">⚙️ إعداد الخادم</a>
+    <a href="#admin-login">🔐 تسجيل الدخول</a>
+    <a href="#admin-customers">👥 إدارة العملاء</a>
+    <a href="#admin-subscriptions">📋 الاشتراكات</a>
+    <a href="#admin-licenses">🔑 تراخيص المواقع</a>
+    <a href="#admin-analytics">📊 التحليلات</a>
+    <a href="#admin-billing">💰 الفواتير</a>
+    <div class="sidebar-section">دليل العميل</div>
+    <a href="#cust-register">📝 التسجيل والدخول</a>
+    <a href="#cust-dashboard">🏠 لوحة التحكم</a>
+    <a href="#cust-licenses">🔑 مفاتيح الترخيص</a>
+    <a href="#cust-embed">🌐 تضمين الودجت</a>
+    <a href="#cust-branding">🎨 الهوية البصرية</a>
+    <a href="#cust-features">✅ التحكم بالميزات</a>
+    <a href="#cust-profiles">👤 ملفات المستخدم</a>
+    <a href="#cust-devmode">🛠️ وضع التطوير</a>
+    <div class="sidebar-section">مرجع تقني</div>
+    <a href="#api-ref">🔌 مرجع API</a>
+    <a href="#troubleshoot">🐛 استكشاف الأخطاء</a>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ════════════════════════════════ HERO ════════════════════════════════ -->
+<div class="hero">
+  <div data-en>
+    <h1>♿ AccessWidget Documentation</h1>
+    <p>Complete guide for administrators and customers — server setup, embedding the widget, managing licenses, and customizing branding.</p>
+    <div class="badge-row">
+      <span class="badge">v2.0</span>
+      <span class="badge">MySQL</span>
+      <span class="badge">Node.js API</span>
+      <span class="badge">Arabic + English</span>
+      <span class="badge">WCAG 2.1</span>
+    </div>
+  </div>
+  <div data-ar>
+    <h1>♿ توثيق AccessWidget</h1>
+    <p>الدليل الشامل للمسؤولين والعملاء — إعداد الخادم، تضمين الودجت، إدارة التراخيص، وتخصيص الهوية البصرية.</p>
+    <div class="badge-row">
+      <span class="badge">v2.0</span>
+      <span class="badge">MySQL</span>
+      <span class="badge">Node.js API</span>
+      <span class="badge">عربي + إنجليزي</span>
+      <span class="badge">WCAG 2.1</span>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════ OVERVIEW ════════════════ -->
+<a class="section-anchor" id="overview"></a>
+<div data-en>
+<h2>📖 Overview</h2>
+<p>AccessWidget is a SaaS accessibility solution that lets website owners embed a fully-featured accessibility toolbar on any website using a single <code>&lt;script&gt;</code> tag. The platform consists of three parts:</p>
+<div class="card-grid">
+  <div class="card"><div class="card-icon">⚙️</div><h4>API Server</h4><p>Node.js + Express backend. Handles auth, license validation, analytics, and widget config storage.</p></div>
+  <div class="card"><div class="card-icon">🛡️</div><h4>Admin Panel</h4><p>Internal dashboard for the platform operator to manage customers, subscriptions, and licenses.</p></div>
+  <div class="card"><div class="card-icon">🏠</div><h4>Customer Dashboard</h4><p>Self-service portal where customers create license keys, embed the widget, and customize branding.</p></div>
+  <div class="card"><div class="card-icon">♿</div><h4>Widget Script</h4><p>Tiny self-contained JS file that customers paste into their websites. No external dependencies.</p></div>
+</div>
+</div>
+<div data-ar>
+<h2>📖 نظرة عامة</h2>
+<p>AccessWidget هو حل SaaS لإمكانية الوصول يتيح لأصحاب المواقع تضمين شريط أدوات إمكانية وصول متكامل في أي موقع باستخدام وسم <code>&lt;script&gt;</code> واحد فقط. تتكون المنصة من ثلاثة أجزاء:</p>
+<div class="card-grid">
+  <div class="card"><div class="card-icon">⚙️</div><h4>خادم API</h4><p>خلفية Node.js + Express تتولى المصادقة والتحقق من التراخيص وتخزين التحليلات وإعدادات الودجت.</p></div>
+  <div class="card"><div class="card-icon">🛡️</div><h4>لوحة الإدارة</h4><p>لوحة تحكم داخلية لمشغّل المنصة لإدارة العملاء والاشتراكات والتراخيص.</p></div>
+  <div class="card"><div class="card-icon">🏠</div><h4>لوحة تحكم العميل</h4><p>بوابة خدمة ذاتية يمكن للعملاء من خلالها إنشاء مفاتيح الترخيص وتضمين الودجت وتخصيص الهوية البصرية.</p></div>
+  <div class="card"><div class="card-icon">♿</div><h4>سكريبت الودجت</h4><p>ملف JS صغير يلصقه العملاء في مواقعهم. لا يحتاج إلى مكتبات خارجية.</p></div>
+</div>
+</div>
+
+<!-- ════════════════ PLANS ════════════════ -->
+<a class="section-anchor" id="plans"></a>
+<div data-en>
+<h2>💳 Plans &amp; Limits</h2>
+<div class="table-wrap"><table>
+  <tr><th>Plan</th><th>Website Licenses</th><th>Features</th><th>Price (example)</th></tr>
+  <tr><td><span class="pill starter">Starter</span></td><td>Up to 3 sites</td><td>Core accessibility tools</td><td>$29/mo</td></tr>
+  <tr><td><span class="pill pro">Professional</span></td><td>Up to 10 sites</td><td>All features + branding</td><td>$79/mo</td></tr>
+  <tr><td><span class="pill ent">Enterprise</span></td><td>Unlimited</td><td>All features + priority support</td><td>Custom</td></tr>
+</table></div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>The website limit is enforced when a customer tries to add a new license key. If they have reached their plan's limit, the API returns an error and they must upgrade.</p></div>
+</div>
+<div data-ar>
+<h2>💳 الخطط والحدود</h2>
+<div class="table-wrap"><table>
+  <tr><th>الخطة</th><th>تراخيص المواقع</th><th>الميزات</th><th>السعر (مثال)</th></tr>
+  <tr><td><span class="pill starter">Starter</span></td><td>حتى 3 مواقع</td><td>أدوات إمكانية الوصول الأساسية</td><td>29$/شهر</td></tr>
+  <tr><td><span class="pill pro">Professional</span></td><td>حتى 10 مواقع</td><td>جميع الميزات + الهوية البصرية</td><td>79$/شهر</td></tr>
+  <tr><td><span class="pill ent">Enterprise</span></td><td>غير محدود</td><td>جميع الميزات + دعم أولوي</td><td>حسب الاتفاق</td></tr>
+</table></div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>يُطبَّق حد المواقع عند محاولة العميل إضافة مفتاح ترخيص جديد. إذا بلغ الحد الأقصى لخطته، تُعيد API خطأ ويجب عليه الترقية.</p></div>
+</div>
+
+<hr/>
+
+<!-- ════════════════════════════════════════════
+     ADMIN GUIDE
+════════════════════════════════════════════ -->
+<div data-en><h2 style="color:var(--blue);border-color:var(--blue)">🛡️ Admin Guide</h2></div>
+<div data-ar><h2 style="color:var(--blue);border-color:var(--blue)">🛡️ دليل المسؤول</h2></div>
+
+<!-- ADMIN SETUP -->
+<a class="section-anchor" id="admin-setup"></a>
+<div data-en>
+<h2>⚙️ Server Setup</h2>
+<h3>Prerequisites</h3>
+<ul>
+  <li>Node.js 18 or later</li>
+  <li>MySQL 8.0 or later (or MariaDB 10.6+)</li>
+</ul>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <h4>Create the MySQL database &amp; schema</h4>
+    <pre><code>mysql -u root -p &lt; saas/api/schema.sql</code></pre>
+    <p>This creates the <code>accesswidget</code> database with all tables and inserts demo seed data.</p>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <h4>Configure environment variables</h4>
+    <pre><code>cd saas/api
+cp .env.example .env</code></pre>
+    <p>Edit <code>.env</code> and fill in your values:</p>
+    <pre><code>DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=your_mysql_password
+DB_NAME=accesswidget
+PORT=3001
+ADMIN_SECRET=choose_a_strong_secret_here
+ALLOWED_ORIGINS=https://yourdomain.com</code></pre>
+    <div class="callout danger"><div class="callout-icon">🚨</div><p>Change <strong>ADMIN_SECRET</strong> to a long random string before going to production. Anyone with this key has full admin access.</p></div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <h4>Install dependencies &amp; start</h4>
+    <pre><code>npm install
+npm start          # production
+# OR
+npm run dev        # development (auto-restart on changes)</code></pre>
+    <p>The server starts on <strong>http://localhost:3001</strong></p>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <h4>Verify it's running</h4>
+    <pre><code>curl http://localhost:3001/api/v1/health</code></pre>
+    <p>Expected response: <code>{"status":"ok"}</code></p>
+  </div></div>
+</div>
+</div>
+<div data-ar>
+<h2>⚙️ إعداد الخادم</h2>
+<h3>المتطلبات</h3>
+<ul>
+  <li>Node.js 18 أو أحدث</li>
+  <li>MySQL 8.0 أو أحدث (أو MariaDB 10.6+)</li>
+</ul>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <h4>إنشاء قاعدة بيانات MySQL والجداول</h4>
+    <pre><code>mysql -u root -p &lt; saas/api/schema.sql</code></pre>
+    <p>ينشئ هذا قاعدة البيانات <code>accesswidget</code> بجميع الجداول مع بيانات تجريبية.</p>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <h4>ضبط متغيرات البيئة</h4>
+    <pre><code>cd saas/api
+cp .env.example .env</code></pre>
+    <p>افتح ملف <code>.env</code> وأدخل قيمك:</p>
+    <pre><code>DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASS=كلمة_مرور_MySQL
+DB_NAME=accesswidget
+PORT=3001
+ADMIN_SECRET=اختر_مفتاحاً_قوياً_هنا
+ALLOWED_ORIGINS=https://yourdomain.com</code></pre>
+    <div class="callout danger"><div class="callout-icon">🚨</div><p>غيّر <strong>ADMIN_SECRET</strong> إلى سلسلة عشوائية طويلة قبل الإطلاق. أي شخص يملك هذا المفتاح يحصل على صلاحية مسؤول كاملة.</p></div>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <h4>تثبيت الحزم وتشغيل الخادم</h4>
+    <pre><code>npm install
+npm start          # إنتاج
+# أو
+npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></pre>
+    <p>يعمل الخادم على <strong>http://localhost:3001</strong></p>
+  </div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body">
+    <h4>التحقق من التشغيل</h4>
+    <pre><code>curl http://localhost:3001/api/v1/health</code></pre>
+    <p>الاستجابة المتوقعة: <code>{"status":"ok"}</code></p>
+  </div></div>
+</div>
+</div>
+
+<!-- ADMIN LOGIN -->
+<a class="section-anchor" id="admin-login"></a>
+<div data-en>
+<h2>🔐 Admin Login</h2>
+<p>Open <strong>http://localhost:3001/admin</strong> in your browser.</p>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <h4>Enter the Server URL</h4>
+    <p>Default: <code>http://localhost:3001</code>. On a production server, use your domain (e.g. <code>https://api.yourdomain.com</code>).</p>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <h4>Enter the Admin Secret Key</h4>
+    <p>This is the value of <code>ADMIN_SECRET</code> from your <code>.env</code> file.</p>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <h4>Click "Login"</h4>
+    <p>The panel verifies the key by calling <code>GET /api/v1/admin/stats</code>. On success you see the admin dashboard.</p>
+  </div></div>
+</div>
+<div class="callout warning"><div class="callout-icon">⚠️</div><p>The admin key is stored only in <strong>sessionStorage</strong> — it is cleared when you close the browser tab. You will need to log in again next session.</p></div>
+</div>
+<div data-ar>
+<h2>🔐 تسجيل دخول المسؤول</h2>
+<p>افتح <strong>http://localhost:3001/admin</strong> في متصفحك.</p>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body">
+    <h4>أدخل رابط الخادم</h4>
+    <p>الافتراضي: <code>http://localhost:3001</code>. على خادم الإنتاج، استخدم نطاقك (مثال: <code>https://api.yourdomain.com</code>).</p>
+  </div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body">
+    <h4>أدخل مفتاح المسؤول السري</h4>
+    <p>هو القيمة التي وضعتها في <code>ADMIN_SECRET</code> من ملف <code>.env</code>.</p>
+  </div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body">
+    <h4>انقر "تسجيل الدخول"</h4>
+    <p>تتحقق اللوحة من المفتاح عبر <code>GET /api/v1/admin/stats</code>. عند النجاح تظهر لوحة الإدارة.</p>
+  </div></div>
+</div>
+<div class="callout warning"><div class="callout-icon">⚠️</div><p>يُخزَّن مفتاح الإدارة في <strong>sessionStorage</strong> فقط — يُحذف عند إغلاق تبويب المتصفح. ستحتاج لتسجيل الدخول في كل جلسة جديدة.</p></div>
+</div>
+
+<!-- ADMIN CUSTOMERS -->
+<a class="section-anchor" id="admin-customers"></a>
+<div data-en>
+<h2>👥 Managing Customers (Organizations)</h2>
+<p>The <strong>Organizations</strong> tab shows all registered customers. From here you can:</p>
+<div class="table-wrap"><table>
+  <tr><th>Action</th><th>How</th><th>Effect</th></tr>
+  <tr><td>View all customers</td><td>Open Organizations tab</td><td>Shows name, email, org, plan, license count, join date</td></tr>
+  <tr><td>Add a customer</td><td>Click <strong>+ Add Customer</strong></td><td>Creates account with a generated API key</td></tr>
+  <tr><td>Edit name/org</td><td>Click ✏️ on any row</td><td>Updates display name and organization</td></tr>
+  <tr><td>Suspend account</td><td>Click ⏸ on any row</td><td>Sets status=suspended; customer cannot log in</td></tr>
+  <tr><td>Delete account</td><td>Click 🗑 on any row</td><td>Permanently deletes customer + all licenses (CASCADE)</td></tr>
+</table></div>
+<div class="callout danger"><div class="callout-icon">🚨</div><p>Deleting a customer is <strong>irreversible</strong>. All their licenses, subscriptions, and billing records are permanently removed.</p></div>
+</div>
+<div data-ar>
+<h2>👥 إدارة العملاء (المؤسسات)</h2>
+<p>يعرض تبويب <strong>المؤسسات</strong> جميع العملاء المسجلين. يمكنك من هنا:</p>
+<div class="table-wrap"><table>
+  <tr><th>الإجراء</th><th>الطريقة</th><th>التأثير</th></tr>
+  <tr><td>عرض جميع العملاء</td><td>فتح تبويب المؤسسات</td><td>يعرض الاسم والبريد والمؤسسة والخطة وعدد التراخيص وتاريخ الانضمام</td></tr>
+  <tr><td>إضافة عميل</td><td>انقر <strong>+ إضافة عميل</strong></td><td>ينشئ حساباً بمفتاح API مُولَّد تلقائياً</td></tr>
+  <tr><td>تعديل الاسم/المؤسسة</td><td>انقر ✏️ في الصف</td><td>يحدث اسم العرض واسم المؤسسة</td></tr>
+  <tr><td>تعليق الحساب</td><td>انقر ⏸ في الصف</td><td>يضبط status=suspended؛ لا يستطيع العميل تسجيل الدخول</td></tr>
+  <tr><td>حذف الحساب</td><td>انقر 🗑 في الصف</td><td>يحذف العميل وجميع تراخيصه نهائياً (CASCADE)</td></tr>
+</table></div>
+<div class="callout danger"><div class="callout-icon">🚨</div><p>حذف العميل <strong>لا يمكن التراجع عنه</strong>. تُحذف جميع تراخيصه واشتراكاته وسجلات الفواتير نهائياً.</p></div>
+</div>
+
+<!-- ADMIN SUBSCRIPTIONS -->
+<a class="section-anchor" id="admin-subscriptions"></a>
+<div data-en>
+<h2>📋 Managing Subscriptions</h2>
+<p>Each customer has exactly one subscription record. The <strong>Subscriptions</strong> tab lets you change plan, status, website limit, and expiry date.</p>
+<h3>Subscription Statuses</h3>
+<div class="table-wrap"><table>
+  <tr><th>Status</th><th>Meaning</th><th>Widget Behavior</th></tr>
+  <tr><td><strong>trial</strong></td><td>New account, not yet paid</td><td>Widget works normally (within license limits)</td></tr>
+  <tr><td><strong>active</strong></td><td>Paid and current</td><td>Widget works normally</td></tr>
+  <tr><td><strong>expired</strong></td><td>Past expiry date</td><td>Widget validation will fail — widget shows error</td></tr>
+  <tr><td><strong>suspended</strong></td><td>Manually suspended</td><td>Widget validation will fail — widget shows error</td></tr>
+</table></div>
+<h3>How to Edit a Subscription</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Find the customer</h4><p>In the Subscriptions tab, find the row by customer name or email.</p></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Click the Edit (✏️) button</h4><p>A form opens with current values pre-filled.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Change values and Save</h4><p>You can change: <strong>Plan</strong> (starter/professional/enterprise), <strong>Status</strong>, <strong>Website Limit</strong> (number), and <strong>Expiry Date</strong>.</p></div></div>
+</div>
+<div class="callout success"><div class="callout-icon">✅</div><p>Changing the plan also automatically updates the <strong>plan field on all existing licenses</strong> belonging to that customer.</p></div>
+</div>
+<div data-ar>
+<h2>📋 إدارة الاشتراكات</h2>
+<p>لكل عميل سجل اشتراك واحد. يتيح تبويب <strong>الاشتراكات</strong> تغيير الخطة والحالة وحد المواقع وتاريخ الانتهاء.</p>
+<h3>حالات الاشتراك</h3>
+<div class="table-wrap"><table>
+  <tr><th>الحالة</th><th>المعنى</th><th>سلوك الودجت</th></tr>
+  <tr><td><strong>trial</strong></td><td>حساب جديد لم يدفع بعد</td><td>يعمل الودجت بشكل طبيعي</td></tr>
+  <tr><td><strong>active</strong></td><td>مدفوع وجارٍ</td><td>يعمل الودجت بشكل طبيعي</td></tr>
+  <tr><td><strong>expired</strong></td><td>تجاوز تاريخ الانتهاء</td><td>يفشل التحقق — يعرض الودجت خطأ</td></tr>
+  <tr><td><strong>suspended</strong></td><td>موقوف يدوياً</td><td>يفشل التحقق — يعرض الودجت خطأ</td></tr>
+</table></div>
+<h3>كيفية تعديل اشتراك</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>ابحث عن العميل</h4><p>في تبويب الاشتراكات، ابحث عن الصف باسم العميل أو بريده الإلكتروني.</p></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>انقر زر التعديل (✏️)</h4><p>يفتح نموذج بالقيم الحالية مملوءة مسبقاً.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>غيّر القيم واحفظ</h4><p>يمكنك تغيير: <strong>الخطة</strong> (starter/professional/enterprise)، <strong>الحالة</strong>، <strong>حد المواقع</strong> (رقم)، و<strong>تاريخ الانتهاء</strong>.</p></div></div>
+</div>
+<div class="callout success"><div class="callout-icon">✅</div><p>تغيير الخطة يحدّث تلقائياً <strong>حقل الخطة في جميع التراخيص الموجودة</strong> لذلك العميل.</p></div>
+</div>
+
+<!-- ADMIN LICENSES -->
+<a class="section-anchor" id="admin-licenses"></a>
+<div data-en>
+<h2>🔑 Managing Licenses</h2>
+<p>Each license key is tied to one customer and one domain. The <strong>Licenses</strong> tab shows all keys across all customers.</p>
+<div class="table-wrap"><table>
+  <tr><th>Action</th><th>Effect on Widget</th></tr>
+  <tr><td>Set status = <strong>active</strong></td><td>Widget on that domain works normally</td></tr>
+  <tr><td>Set status = <strong>suspended</strong></td><td>Widget immediately stops working — shows "service suspended" error</td></tr>
+  <tr><td>Set status = <strong>expired</strong></td><td>Widget shows "license expired" error</td></tr>
+  <tr><td><strong>Delete</strong> license</td><td>Widget shows "invalid license key" error on next page load</td></tr>
+</table></div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>License status changes take effect <strong>immediately</strong> because the widget re-validates on every page load (result is cached in sessionStorage per tab, not across tabs).</p></div>
+</div>
+<div data-ar>
+<h2>🔑 إدارة التراخيص</h2>
+<p>كل مفتاح ترخيص مرتبط بعميل واحد ونطاق واحد. يعرض تبويب <strong>التراخيص</strong> جميع المفاتيح عبر كل العملاء.</p>
+<div class="table-wrap"><table>
+  <tr><th>الإجراء</th><th>التأثير على الودجت</th></tr>
+  <tr><td>ضبط الحالة = <strong>active</strong></td><td>يعمل الودجت على ذلك النطاق بشكل طبيعي</td></tr>
+  <tr><td>ضبط الحالة = <strong>suspended</strong></td><td>يتوقف الودجت فوراً — يعرض خطأ "الخدمة موقوفة"</td></tr>
+  <tr><td>ضبط الحالة = <strong>expired</strong></td><td>يعرض الودجت خطأ "انتهت صلاحية الترخيص"</td></tr>
+  <tr><td><strong>حذف</strong> الترخيص</td><td>يعرض الودجت خطأ "مفتاح ترخيص غير صالح" عند التحميل التالي</td></tr>
+</table></div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>تأثيرات تغيير حالة الترخيص <strong>فورية</strong> لأن الودجت يعيد التحقق عند كل تحميل صفحة (النتيجة مخزنة في sessionStorage لكل تبويب، وليس عبر التبويبات).</p></div>
+</div>
+
+<!-- ADMIN ANALYTICS -->
+<a class="section-anchor" id="admin-analytics"></a>
+<div data-en>
+<h2>📊 Analytics</h2>
+<p>The Analytics tab shows platform-wide usage. Data is recorded automatically every time the widget loads and validates a license.</p>
+<div class="table-wrap"><table>
+  <tr><th>Metric</th><th>Description</th></tr>
+  <tr><td>Total Events</td><td>All analytics rows in the database</td></tr>
+  <tr><td>Activations</td><td>Widget load events (type = "activation")</td></tr>
+  <tr><td>Validations</td><td>License check API calls (type = "validate")</td></tr>
+  <tr><td>Top Domains</td><td>The 20 most active domains by activation count</td></tr>
+  <tr><td>Recent Events</td><td>Last 100 events with timestamp, domain, plan, and feature used</td></tr>
+</table></div>
+</div>
+<div data-ar>
+<h2>📊 التحليلات</h2>
+<p>يعرض تبويب التحليلات الاستخدام على مستوى المنصة. تُسجَّل البيانات تلقائياً في كل مرة يحمّل فيها الودجت ويتحقق من الترخيص.</p>
+<div class="table-wrap"><table>
+  <tr><th>المقياس</th><th>الوصف</th></tr>
+  <tr><td>إجمالي الأحداث</td><td>جميع صفوف التحليلات في قاعدة البيانات</td></tr>
+  <tr><td>التنشيطات</td><td>أحداث تحميل الودجت (النوع = "activation")</td></tr>
+  <tr><td>التحققات</td><td>استدعاءات API للتحقق من الترخيص (النوع = "validate")</td></tr>
+  <tr><td>أعلى النطاقات</td><td>أكثر 20 نطاقاً نشاطاً حسب عدد التنشيطات</td></tr>
+  <tr><td>الأحداث الأخيرة</td><td>آخر 100 حدث مع الوقت والنطاق والخطة والميزة المستخدمة</td></tr>
+</table></div>
+</div>
+
+<!-- ADMIN BILLING -->
+<a class="section-anchor" id="admin-billing"></a>
+<div data-en>
+<h2>💰 Billing</h2>
+<p>The Billing tab shows all payment records. Billing records are created manually or by your payment integration (e.g. Stripe webhook). Each record contains:</p>
+<ul>
+  <li><strong>Customer</strong> — who paid</li>
+  <li><strong>Invoice ID</strong> — your reference (e.g. <code>INV-2026-001</code>)</li>
+  <li><strong>Plan</strong> — what plan was purchased</li>
+  <li><strong>Amount</strong> — stored in cents (e.g. 7900 = $79.00)</li>
+  <li><strong>Status</strong> — paid / pending / failed</li>
+</ul>
+</div>
+<div data-ar>
+<h2>💰 الفواتير</h2>
+<p>يعرض تبويب الفواتير جميع سجلات المدفوعات. تُنشأ سجلات الفواتير يدوياً أو عبر تكامل الدفع (مثل Stripe webhook). يحتوي كل سجل على:</p>
+<ul>
+  <li><strong>العميل</strong> — من دفع</li>
+  <li><strong>رقم الفاتورة</strong> — مرجعك (مثال: <code>INV-2026-001</code>)</li>
+  <li><strong>الخطة</strong> — ما الخطة التي اشتُريت</li>
+  <li><strong>المبلغ</strong> — مخزون بالسنت (مثال: 7900 = 79.00$)</li>
+  <li><strong>الحالة</strong> — مدفوع / معلق / فاشل</li>
+</ul>
+</div>
+
+<hr/>
+
+<!-- ════════════════════════════════════════════
+     CUSTOMER GUIDE
+════════════════════════════════════════════ -->
+<div data-en><h2 style="color:var(--green);border-color:var(--green)">🏠 Customer Guide</h2></div>
+<div data-ar><h2 style="color:var(--green);border-color:var(--green)">🏠 دليل العميل</h2></div>
+
+<!-- REGISTER -->
+<a class="section-anchor" id="cust-register"></a>
+<div data-en>
+<h2>📝 Register &amp; Login</h2>
+<p>Open <strong>http://localhost:3001/dashboard/login.html</strong> (or your hosted URL).</p>
+<h3>Register a new account</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Click "Don't have an account? Register"</h4></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Fill in your details</h4><p>Full name, email, password, and optionally your organization name.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Click Register</h4><p>Your account is created immediately. You are logged in automatically and redirected to your dashboard.</p></div></div>
+</div>
+<h3>Login to existing account</h3>
+<p>Enter your email and password on the login form and click <strong>Sign In</strong>. Your session token is saved in <code>localStorage</code> so you stay logged in across page refreshes.</p>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>To log out, click the <strong>Logout</strong> button in the dashboard sidebar. This clears your session token.</p></div>
+</div>
+<div data-ar>
+<h2>📝 التسجيل وتسجيل الدخول</h2>
+<p>افتح <strong>http://localhost:3001/dashboard/login.html</strong> (أو رابطك المستضاف).</p>
+<h3>إنشاء حساب جديد</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>انقر "ليس لديك حساب؟ سجّل الآن"</h4></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>أدخل بياناتك</h4><p>الاسم الكامل والبريد الإلكتروني وكلمة المرور واسم مؤسستك اختيارياً.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>انقر تسجيل</h4><p>يُنشأ حسابك فوراً. تُسجَّل دخولك تلقائياً وتُحوَّل إلى لوحة تحكمك.</p></div></div>
+</div>
+<h3>الدخول لحساب موجود</h3>
+<p>أدخل بريدك الإلكتروني وكلمة مرورك في نموذج الدخول وانقر <strong>تسجيل الدخول</strong>. يُحفظ رمز الجلسة في <code>localStorage</code> حتى تبقى مسجلاً عبر تحديثات الصفحة.</p>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>لتسجيل الخروج، انقر زر <strong>تسجيل الخروج</strong> في الشريط الجانبي للوحة التحكم.</p></div>
+</div>
+
+<!-- DASHBOARD -->
+<a class="section-anchor" id="cust-dashboard"></a>
+<div data-en>
+<h2>🏠 Customer Dashboard</h2>
+<p>Your dashboard has 5 sections accessible from the left sidebar:</p>
+<div class="table-wrap"><table>
+  <tr><th>Section</th><th>Purpose</th></tr>
+  <tr><td>📊 Overview</td><td>Quick stats: active sites, plan, total activations, last activity</td></tr>
+  <tr><td>🌐 My Sites</td><td>Create and manage license keys for your websites</td></tr>
+  <tr><td>⚙️ Widget Settings</td><td>Customize widget appearance and behavior (saved to server)</td></tr>
+  <tr><td>💰 Billing</td><td>View payment history and invoices</td></tr>
+  <tr><td>👤 Account</td><td>Update name, organization, and change password</td></tr>
+</table></div>
+</div>
+<div data-ar>
+<h2>🏠 لوحة تحكم العميل</h2>
+<p>تحتوي لوحة تحكمك على 5 أقسام يمكن الوصول إليها من الشريط الجانبي:</p>
+<div class="table-wrap"><table>
+  <tr><th>القسم</th><th>الغرض</th></tr>
+  <tr><td>📊 نظرة عامة</td><td>إحصائيات سريعة: المواقع النشطة والخطة وإجمالي التنشيطات وآخر نشاط</td></tr>
+  <tr><td>🌐 مواقعي</td><td>إنشاء وإدارة مفاتيح الترخيص لمواقعك</td></tr>
+  <tr><td>⚙️ إعدادات الودجت</td><td>تخصيص مظهر الودجت وسلوكه (يُحفظ على الخادم)</td></tr>
+  <tr><td>💰 الفواتير</td><td>عرض سجل المدفوعات والفواتير</td></tr>
+  <tr><td>👤 الحساب</td><td>تحديث الاسم والمؤسسة وتغيير كلمة المرور</td></tr>
+</table></div>
+</div>
+
+<!-- LICENSES -->
+<a class="section-anchor" id="cust-licenses"></a>
+<div data-en>
+<h2>🔑 License Keys</h2>
+<p>Each website that uses your widget needs its own license key. License keys are generated automatically when you add a site.</p>
+<h3>Add a new site</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Go to "My Sites"</h4><p>Click the <strong>🌐 My Sites</strong> section in the sidebar.</p></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Click "Add Site"</h4><p>Enter the domain of your website (e.g. <code>mystore.com</code>) and an optional display name.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Copy your license key</h4><p>A key in the format <code>AW-XXXX-XXXX-XXXX-XXXX</code> is generated. Copy it — you will paste it into your website's HTML.</p></div></div>
+</div>
+<div class="callout warning"><div class="callout-icon">⚠️</div><p>Each license key is <strong>domain-specific</strong>. A key issued for <code>mystore.com</code> will only work on pages served from <code>mystore.com</code>. It will fail on a different domain.</p></div>
+<h3>Suspend / reactivate a site</h3>
+<p>Click the toggle button next to any site to suspend or reactivate it. Suspension takes effect immediately — the widget on that site stops working.</p>
+<h3>Delete a site</h3>
+<p>Click the 🗑 button. The license key is permanently deleted and the widget on that site will show an error on the next page load.</p>
+</div>
+<div data-ar>
+<h2>🔑 مفاتيح الترخيص</h2>
+<p>كل موقع يستخدم الودجت يحتاج إلى مفتاح ترخيص خاص به. تُولَّد مفاتيح الترخيص تلقائياً عند إضافة موقع.</p>
+<h3>إضافة موقع جديد</h3>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>اذهب إلى "مواقعي"</h4><p>انقر قسم <strong>🌐 مواقعي</strong> في الشريط الجانبي.</p></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>انقر "إضافة موقع"</h4><p>أدخل نطاق موقعك (مثال: <code>mystore.com</code>) واسم عرض اختيارياً.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>انسخ مفتاح الترخيص</h4><p>يُولَّد مفتاح بالتنسيق <code>AW-XXXX-XXXX-XXXX-XXXX</code>. انسخه — ستلصقه في HTML موقعك.</p></div></div>
+</div>
+<div class="callout warning"><div class="callout-icon">⚠️</div><p>كل مفتاح ترخيص <strong>خاص بنطاق معين</strong>. مفتاح صادر لـ <code>mystore.com</code> يعمل فقط على صفحات هذا النطاق. سيفشل على نطاق مختلف.</p></div>
+<h3>تعليق / إعادة تفعيل موقع</h3>
+<p>انقر زر التبديل بجانب أي موقع لتعليقه أو إعادة تفعيله. يسري التعليق فوراً — يتوقف الودجت في ذلك الموقع عن العمل.</p>
+<h3>حذف موقع</h3>
+<p>انقر زر 🗑. يُحذف مفتاح الترخيص نهائياً وسيعرض الودجت خطأ عند التحميل التالي.</p>
+</div>
+
+<!-- EMBED -->
+<a class="section-anchor" id="cust-embed"></a>
+<div data-en>
+<h2>🌐 Embedding the Widget</h2>
+<p>Add this snippet to <strong>every page</strong> of your website, just before the closing <code>&lt;/body&gt;</code> tag:</p>
+<pre><code>&lt;script&gt;
+  window.AccessibilityWidgetConfig = {
+    licenseKey: 'AW-YOUR-LICENSE-KEY-HERE',  // ← paste your key
+    lang:       'auto',                       // 'en', 'ar', or 'auto'
+    position:   'bottom-right',               // bottom-right, bottom-left, top-right, top-left
+  };
+&lt;/script&gt;
+&lt;script src="https://yourserver.com/widget/accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
+
+<h3>What happens on page load</h3>
+<ol>
+  <li>The widget calls <code>POST /api/v1/validate</code> with your license key and the current domain.</li>
+  <li>The server checks: Is the key valid? Is the domain correct? Is the subscription active?</li>
+  <li>If valid → widget loads, your branding settings are applied, and an analytics event is recorded.</li>
+  <li>If invalid → a small error notice appears at the bottom of the page; the widget does not load.</li>
+</ol>
+<div class="callout success"><div class="callout-icon">✅</div><p>The validation result is cached in <strong>sessionStorage</strong> so it only makes one API call per browser tab, not on every page navigation.</p></div>
+
+<h3>Full configuration options</h3>
+<div class="table-wrap"><table>
+  <tr><th>Option</th><th>Values</th><th>Default</th><th>Description</th></tr>
+  <tr><td><code>licenseKey</code></td><td>string</td><td>—</td><td>Required. Your license key from the dashboard.</td></tr>
+  <tr><td><code>lang</code></td><td>'en' | 'ar' | 'auto'</td><td>'auto'</td><td>'auto' detects browser language.</td></tr>
+  <tr><td><code>position</code></td><td>see values</td><td>'bottom-right'</td><td>Corner for the widget button.</td></tr>
+  <tr><td><code>primaryColor</code></td><td>CSS color</td><td>'#2563EB'</td><td>Overridden by server-saved branding.</td></tr>
+  <tr><td><code>buttonIcon</code></td><td>emoji / text</td><td>'♿'</td><td>Icon shown on the widget button.</td></tr>
+  <tr><td><code>showProfiles</code></td><td>boolean</td><td>true</td><td>Show/hide the presets section.</td></tr>
+  <tr><td><code>showTTS</code></td><td>boolean</td><td>true</td><td>Show/hide text-to-speech feature.</td></tr>
+  <tr><td><code>showReadingMask</code></td><td>boolean</td><td>true</td><td>Show/hide reading mask feature.</td></tr>
+  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>Skip license validation. For local development only.</td></tr>
+</table></div>
+</div>
+<div data-ar>
+<h2>🌐 تضمين الودجت</h2>
+<p>أضف هذا الكود إلى <strong>كل صفحة</strong> من موقعك، قبل وسم الإغلاق <code>&lt;/body&gt;</code> مباشرةً:</p>
+<pre><code>&lt;script&gt;
+  window.AccessibilityWidgetConfig = {
+    licenseKey: 'AW-مفتاح-الترخيص-هنا',   // ← الصق مفتاحك
+    lang:       'auto',                     // 'en' أو 'ar' أو 'auto'
+    position:   'bottom-right',             // زاوية الودجت
+  };
+&lt;/script&gt;
+&lt;script src="https://yourserver.com/widget/accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
+
+<h3>ما يحدث عند تحميل الصفحة</h3>
+<ol>
+  <li>يستدعي الودجت <code>POST /api/v1/validate</code> بمفتاح الترخيص والنطاق الحالي.</li>
+  <li>يتحقق الخادم: هل المفتاح صالح؟ هل النطاق صحيح؟ هل الاشتراك نشط؟</li>
+  <li>إذا كان صالحاً → يحمّل الودجت وتُطبَّق إعدادات هويتك البصرية ويُسجَّل حدث تحليلي.</li>
+  <li>إذا كان غير صالح → تظهر إشعار خطأ صغير في أسفل الصفحة ولا يحمّل الودجت.</li>
+</ol>
+<div class="callout success"><div class="callout-icon">✅</div><p>نتيجة التحقق مخزنة في <strong>sessionStorage</strong> فيُجري استدعاء API واحداً فقط لكل تبويب متصفح، وليس عند كل تنقل في الصفحة.</p></div>
+
+<h3>جميع خيارات الإعداد</h3>
+<div class="table-wrap"><table>
+  <tr><th>الخيار</th><th>القيم</th><th>الافتراضي</th><th>الوصف</th></tr>
+  <tr><td><code>licenseKey</code></td><td>نص</td><td>—</td><td>مطلوب. مفتاح ترخيصك من لوحة التحكم.</td></tr>
+  <tr><td><code>lang</code></td><td>'en' | 'ar' | 'auto'</td><td>'auto'</td><td>'auto' يكتشف لغة المتصفح تلقائياً.</td></tr>
+  <tr><td><code>position</code></td><td>انظر القيم</td><td>'bottom-right'</td><td>زاوية زر الودجت.</td></tr>
+  <tr><td><code>primaryColor</code></td><td>لون CSS</td><td>'#2563EB'</td><td>تُغطّى بالهوية البصرية المحفوظة على الخادم.</td></tr>
+  <tr><td><code>buttonIcon</code></td><td>emoji/نص</td><td>'♿'</td><td>الأيقونة على زر الودجت.</td></tr>
+  <tr><td><code>showProfiles</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء قسم الملفات المسبقة.</td></tr>
+  <tr><td><code>showTTS</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء ميزة تحويل النص لكلام.</td></tr>
+  <tr><td><code>showReadingMask</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء ميزة قناع القراءة.</td></tr>
+  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>تخطّي التحقق من الترخيص. للتطوير المحلي فقط.</td></tr>
+</table></div>
+</div>
+
+<!-- BRANDING -->
+<a class="section-anchor" id="cust-branding"></a>
+<div data-en>
+<h2>🎨 Widget Branding &amp; Customization</h2>
+<p>You can customize the widget's appearance from <strong>Widget Settings</strong> in your dashboard. Settings are saved to the server and applied automatically when your widget loads on any website.</p>
+<div class="table-wrap"><table>
+  <tr><th>Setting</th><th>Description</th><th>Example Values</th></tr>
+  <tr><td>Primary Color</td><td>Main accent color of the widget panel and button</td><td><code>#2563EB</code>, <code>#16a34a</code>, <code>#dc2626</code></td></tr>
+  <tr><td>Button Icon</td><td>The icon/emoji shown on the floating button</td><td>♿ ⚙️ 👁️ A</td></tr>
+  <tr><td>Position</td><td>Corner where the widget button appears</td><td>bottom-right, bottom-left, top-right, top-left</td></tr>
+  <tr><td>Language</td><td>Widget interface language</td><td>auto, en, ar</td></tr>
+  <tr><td>Show Profiles</td><td>Show/hide disability preset profiles</td><td>on / off</td></tr>
+  <tr><td>Show Text-to-Speech</td><td>Show/hide TTS feature</td><td>on / off</td></tr>
+  <tr><td>Show Reading Mask</td><td>Show/hide reading mask tool</td><td>on / off</td></tr>
+</table></div>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>Go to Widget Settings in your dashboard</h4></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>Adjust the settings</h4><p>Use the color picker, dropdowns, and toggles to set your preferences.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>Click Save</h4><p>Settings are saved to the server. The widget on all your websites will pick them up on the next page load.</p></div></div>
+</div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>Server-saved branding <strong>overrides</strong> any settings you may have in the <code>AccessibilityWidgetConfig</code> object on your pages. The server is the single source of truth for branding.</p></div>
+</div>
+<div data-ar>
+<h2>🎨 الهوية البصرية وتخصيص الودجت</h2>
+<p>يمكنك تخصيص مظهر الودجت من <strong>إعدادات الودجت</strong> في لوحة تحكمك. تُحفظ الإعدادات على الخادم وتُطبَّق تلقائياً عند تحميل ودجتك على أي موقع.</p>
+<div class="table-wrap"><table>
+  <tr><th>الإعداد</th><th>الوصف</th><th>قيم مثالية</th></tr>
+  <tr><td>اللون الأساسي</td><td>لون الإبراز الرئيسي للودجت والزر</td><td><code>#2563EB</code>، <code>#16a34a</code>، <code>#dc2626</code></td></tr>
+  <tr><td>أيقونة الزر</td><td>الأيقونة/الإيموجي على الزر العائم</td><td>♿ ⚙️ 👁️ A</td></tr>
+  <tr><td>الموقع</td><td>الزاوية التي يظهر فيها زر الودجت</td><td>bottom-right, bottom-left, top-right, top-left</td></tr>
+  <tr><td>اللغة</td><td>لغة واجهة الودجت</td><td>auto, en, ar</td></tr>
+  <tr><td>إظهار الملفات</td><td>إظهار/إخفاء ملفات الإعاقة المسبقة</td><td>تشغيل/إيقاف</td></tr>
+  <tr><td>إظهار تحويل النص لكلام</td><td>إظهار/إخفاء ميزة TTS</td><td>تشغيل/إيقاف</td></tr>
+  <tr><td>إظهار قناع القراءة</td><td>إظهار/إخفاء أداة قناع القراءة</td><td>تشغيل/إيقاف</td></tr>
+</table></div>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><h4>اذهب إلى إعدادات الودجت في لوحة تحكمك</h4></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><h4>اضبط الإعدادات</h4><p>استخدم منتقي الألوان والقوائم المنسدلة والمفاتيح لتحديد تفضيلاتك.</p></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><h4>انقر حفظ</h4><p>تُحفظ الإعدادات على الخادم. سيلتقطها الودجت على جميع مواقعك عند التحميل التالي.</p></div></div>
+</div>
+<div class="callout info"><div class="callout-icon">ℹ️</div><p>الهوية البصرية المحفوظة على الخادم <strong>تُغطّي</strong> أي إعدادات في كائن <code>AccessibilityWidgetConfig</code> على صفحاتك. الخادم هو المصدر الوحيد للحقيقة للهوية البصرية.</p></div>
+</div>
+
+<!-- FEATURES -->
+<a class="section-anchor" id="cust-features"></a>
+<div data-en>
+<h2>✅ Feature Control</h2>
+<p>You can enable or disable individual accessibility features to match your website's needs. Features are grouped into categories:</p>
+<div class="table-wrap"><table>
+  <tr><th>Category</th><th>Features</th></tr>
+  <tr><td>Visual</td><td>Font Size, Font Family, Line Height, Letter Spacing, Text Align, High Contrast, Dark Mode, Light Mode, Grayscale, Invert Colors, Mute Colors, Highlight Links, Highlight Headings</td></tr>
+  <tr><td>Reading</td><td>Reading Mask, Reading Guide, Focus Mode, Dyslexia Font, Pause Animations</td></tr>
+  <tr><td>Navigation</td><td>Big Cursor, Keyboard Navigation, Skip to Content</td></tr>
+  <tr><td>Audio</td><td>Text to Speech, Mute Sounds</td></tr>
+</table></div>
+<p>To disable a feature: go to <strong>Widget Settings → Feature Control</strong> and toggle the feature off, then save.</p>
+</div>
+<div data-ar>
+<h2>✅ التحكم بالميزات</h2>
+<p>يمكنك تفعيل أو تعطيل ميزات إمكانية الوصول الفردية لتناسب احتياجات موقعك. الميزات مجمّعة في فئات:</p>
+<div class="table-wrap"><table>
+  <tr><th>الفئة</th><th>الميزات</th></tr>
+  <tr><td>بصري</td><td>حجم الخط، نوع الخط، ارتفاع السطر، تباعد الأحرف، محاذاة النص، تباين عالٍ، الوضع الداكن، الوضع الفاتح، تدرج الرمادي، عكس الألوان، كتم الألوان، تمييز الروابط، تمييز العناوين</td></tr>
+  <tr><td>قراءة</td><td>قناع القراءة، دليل القراءة، وضع التركيز، خط عسر القراءة، إيقاف الرسوم المتحركة</td></tr>
+  <tr><td>تنقل</td><td>مؤشر كبير، التنقل بلوحة المفاتيح، تخطّي المحتوى</td></tr>
+  <tr><td>صوت</td><td>تحويل النص لكلام، كتم الأصوات</td></tr>
+</table></div>
+<p>لتعطيل ميزة: اذهب إلى <strong>إعدادات الودجت → التحكم بالميزات</strong> وأوقف تشغيل الميزة، ثم احفظ.</p>
+</div>
+
+<!-- PROFILES -->
+<a class="section-anchor" id="cust-profiles"></a>
+<div data-en>
+<h2>👤 Accessibility Profiles</h2>
+<p>The widget includes 6 pre-configured profiles that users can activate with one click. Each profile enables a combination of features optimized for a specific need:</p>
+<div class="table-wrap"><table>
+  <tr><th>Profile</th><th>Features Activated</th></tr>
+  <tr><td>👁️ Visually Impaired</td><td>High contrast, large font, highlight links</td></tr>
+  <tr><td>🔍 Low Vision</td><td>Largest font, high contrast, highlight headings + links</td></tr>
+  <tr><td>📖 Dyslexia</td><td>Dyslexia font, large letter spacing, large line height</td></tr>
+  <tr><td>⚡ Seizure Safe</td><td>No animations paused, mute colors, no flashing</td></tr>
+  <tr><td>🧠 Cognitive</td><td>Readable font, focus mode, reading mask</td></tr>
+  <tr><td>⌨️ Keyboard</td><td>Keyboard navigation, big cursor, skip content</td></tr>
+</table></div>
+<p>Users can customize further after applying a profile. Settings are saved in the user's browser (<code>localStorage</code>).</p>
+</div>
+<div data-ar>
+<h2>👤 ملفات إمكانية الوصول</h2>
+<p>يتضمن الودجت 6 ملفات مسبقة الإعداد يمكن للمستخدمين تفعيلها بنقرة واحدة. كل ملف يفعّل مجموعة من الميزات المُحسَّنة لحاجة محددة:</p>
+<div class="table-wrap"><table>
+  <tr><th>الملف</th><th>الميزات المفعَّلة</th></tr>
+  <tr><td>👁️ ضعف البصر</td><td>تباين عالٍ، خط كبير، تمييز الروابط</td></tr>
+  <tr><td>🔍 رؤية منخفضة</td><td>أكبر خط، تباين عالٍ، تمييز العناوين والروابط</td></tr>
+  <tr><td>📖 عسر القراءة</td><td>خط عسر القراءة، تباعد أحرف كبير، ارتفاع سطر كبير</td></tr>
+  <tr><td>⚡ آمن من النوبات</td><td>إيقاف الرسوم المتحركة، كتم الألوان</td></tr>
+  <tr><td>🧠 معرفي</td><td>خط مقروء، وضع التركيز، قناع القراءة</td></tr>
+  <tr><td>⌨️ لوحة المفاتيح</td><td>التنقل بلوحة المفاتيح، مؤشر كبير، تخطّي المحتوى</td></tr>
+</table></div>
+<p>يمكن للمستخدمين التخصيص أكثر بعد تطبيق الملف. تُحفظ الإعدادات في متصفح المستخدم (<code>localStorage</code>).</p>
+</div>
+
+<!-- DEVMODE -->
+<a class="section-anchor" id="cust-devmode"></a>
+<div data-en>
+<h2>🛠️ Development Mode</h2>
+<p>When building or testing your site locally (e.g. <code>http://localhost:8080</code>), the widget cannot validate against the server because your local domain is not registered. Use <code>devMode: true</code> to skip validation:</p>
+<pre><code>&lt;script&gt;
+  window.AccessibilityWidgetConfig = {
+    devMode: true,   // ← skips license check
+    lang: 'auto',
+  };
+&lt;/script&gt;
+&lt;script src="accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
+<div class="callout danger"><div class="callout-icon">🚨</div><p><strong>Never use <code>devMode: true</code> on a live website.</strong> It bypasses license validation entirely, meaning anyone can use your widget script without a key. Only use it during local development.</p></div>
+</div>
+<div data-ar>
+<h2>🛠️ وضع التطوير</h2>
+<p>عند بناء أو اختبار موقعك محلياً (مثال: <code>http://localhost:8080</code>)، لا يستطيع الودجت التحقق من الخادم لأن نطاقك المحلي غير مسجل. استخدم <code>devMode: true</code> لتخطّي التحقق:</p>
+<pre><code>&lt;script&gt;
+  window.AccessibilityWidgetConfig = {
+    devMode: true,   // ← يتخطى التحقق من الترخيص
+    lang: 'auto',
+  };
+&lt;/script&gt;
+&lt;script src="accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
+<div class="callout danger"><div class="callout-icon">🚨</div><p><strong>لا تستخدم <code>devMode: true</code> أبداً على موقع حي.</strong> يتخطى التحقق من الترخيص بالكامل، مما يعني أن أي شخص يمكنه استخدام سكريبت الودجت دون مفتاح. استخدمه فقط أثناء التطوير المحلي.</p></div>
+</div>
+
+<hr/>
+
+<!-- ════════════════ API REFERENCE ════════════════ -->
+<a class="section-anchor" id="api-ref"></a>
+<div data-en>
+<h2>🔌 API Reference</h2>
+<h3>Public Endpoints</h3>
+<div class="table-wrap"><table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>POST</td><td>/api/v1/auth/register</td><td>Create a new customer account</td></tr>
+  <tr><td>POST</td><td>/api/v1/auth/login</td><td>Login and receive API key (token)</td></tr>
+  <tr><td>POST</td><td>/api/v1/validate</td><td>Validate a license key (called by widget)</td></tr>
+  <tr><td>GET</td><td>/api/v1/health</td><td>Server health check</td></tr>
+</table></div>
+<h3>Customer Endpoints (requires: <span class="inline-code">Authorization: Bearer &lt;api_key&gt;</span>)</h3>
+<div class="table-wrap"><table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/v1/account</td><td>Get customer profile + subscription</td></tr>
+  <tr><td>PUT</td><td>/api/v1/account</td><td>Update name and org</td></tr>
+  <tr><td>PUT</td><td>/api/v1/account/password</td><td>Change password</td></tr>
+  <tr><td>GET</td><td>/api/v1/licenses</td><td>List all licenses for this customer</td></tr>
+  <tr><td>POST</td><td>/api/v1/licenses</td><td>Create a new license key</td></tr>
+  <tr><td>PUT</td><td>/api/v1/licenses/:key/status</td><td>Activate or suspend a license</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/licenses/:key</td><td>Delete a license key</td></tr>
+  <tr><td>GET</td><td>/api/v1/analytics</td><td>Get usage analytics for this customer</td></tr>
+  <tr><td>GET</td><td>/api/v1/billing</td><td>Get billing/invoice history</td></tr>
+  <tr><td>GET</td><td>/api/v1/widget-config</td><td>Get saved widget branding settings</td></tr>
+  <tr><td>PUT</td><td>/api/v1/widget-config</td><td>Save widget branding settings</td></tr>
+</table></div>
+<h3>Admin Endpoints (requires: <span class="inline-code">Authorization: AdminKey &lt;secret&gt;</span>)</h3>
+<div class="table-wrap"><table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td>/api/v1/admin/stats</td><td>Dashboard stats (customers, licenses, revenue)</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/customers</td><td>List all customers</td></tr>
+  <tr><td>POST</td><td>/api/v1/admin/customers</td><td>Create a customer</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/customers/:id</td><td>Update customer name/org</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/customers/:id/status</td><td>Suspend or reactivate a customer</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/admin/customers/:id</td><td>Delete a customer (cascade)</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/subscriptions</td><td>List all subscriptions</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/subscriptions/:customerId</td><td>Update a subscription</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/licenses</td><td>List all licenses</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/licenses/:key/status</td><td>Change license status</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/admin/licenses/:key</td><td>Delete a license</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/analytics</td><td>Platform-wide analytics</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/billing</td><td>All billing records</td></tr>
+</table></div>
+</div>
+<div data-ar>
+<h2>🔌 مرجع API</h2>
+<h3>النقاط العامة</h3>
+<div class="table-wrap"><table>
+  <tr><th>الطريقة</th><th>النقطة</th><th>الوصف</th></tr>
+  <tr><td>POST</td><td>/api/v1/auth/register</td><td>إنشاء حساب عميل جديد</td></tr>
+  <tr><td>POST</td><td>/api/v1/auth/login</td><td>تسجيل الدخول والحصول على مفتاح API</td></tr>
+  <tr><td>POST</td><td>/api/v1/validate</td><td>التحقق من مفتاح الترخيص (يستدعيه الودجت)</td></tr>
+  <tr><td>GET</td><td>/api/v1/health</td><td>فحص صحة الخادم</td></tr>
+</table></div>
+<h3>نقاط العميل (يتطلب: <span class="inline-code">Authorization: Bearer &lt;api_key&gt;</span>)</h3>
+<div class="table-wrap"><table>
+  <tr><th>الطريقة</th><th>النقطة</th><th>الوصف</th></tr>
+  <tr><td>GET</td><td>/api/v1/account</td><td>الحصول على ملف العميل + الاشتراك</td></tr>
+  <tr><td>PUT</td><td>/api/v1/account</td><td>تحديث الاسم والمؤسسة</td></tr>
+  <tr><td>PUT</td><td>/api/v1/account/password</td><td>تغيير كلمة المرور</td></tr>
+  <tr><td>GET</td><td>/api/v1/licenses</td><td>قائمة جميع تراخيص هذا العميل</td></tr>
+  <tr><td>POST</td><td>/api/v1/licenses</td><td>إنشاء مفتاح ترخيص جديد</td></tr>
+  <tr><td>PUT</td><td>/api/v1/licenses/:key/status</td><td>تفعيل أو تعليق ترخيص</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/licenses/:key</td><td>حذف مفتاح ترخيص</td></tr>
+  <tr><td>GET</td><td>/api/v1/analytics</td><td>تحليلات الاستخدام لهذا العميل</td></tr>
+  <tr><td>GET</td><td>/api/v1/billing</td><td>سجل الفواتير</td></tr>
+  <tr><td>GET</td><td>/api/v1/widget-config</td><td>الحصول على إعدادات الهوية البصرية المحفوظة</td></tr>
+  <tr><td>PUT</td><td>/api/v1/widget-config</td><td>حفظ إعدادات الهوية البصرية</td></tr>
+</table></div>
+<h3>نقاط الإدارة (يتطلب: <span class="inline-code">Authorization: AdminKey &lt;secret&gt;</span>)</h3>
+<div class="table-wrap"><table>
+  <tr><th>الطريقة</th><th>النقطة</th><th>الوصف</th></tr>
+  <tr><td>GET</td><td>/api/v1/admin/stats</td><td>إحصائيات لوحة التحكم</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/customers</td><td>قائمة جميع العملاء</td></tr>
+  <tr><td>POST</td><td>/api/v1/admin/customers</td><td>إنشاء عميل</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/customers/:id</td><td>تحديث الاسم/المؤسسة</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/customers/:id/status</td><td>تعليق أو إعادة تفعيل عميل</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/admin/customers/:id</td><td>حذف عميل (CASCADE)</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/subscriptions</td><td>قائمة جميع الاشتراكات</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/subscriptions/:customerId</td><td>تحديث اشتراك</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/licenses</td><td>قائمة جميع التراخيص</td></tr>
+  <tr><td>PUT</td><td>/api/v1/admin/licenses/:key/status</td><td>تغيير حالة ترخيص</td></tr>
+  <tr><td>DELETE</td><td>/api/v1/admin/licenses/:key</td><td>حذف ترخيص</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/analytics</td><td>تحليلات على مستوى المنصة</td></tr>
+  <tr><td>GET</td><td>/api/v1/admin/billing</td><td>جميع سجلات الفواتير</td></tr>
+</table></div>
+</div>
+
+<!-- ════════════════ TROUBLESHOOTING ════════════════ -->
+<a class="section-anchor" id="troubleshoot"></a>
+<div data-en>
+<h2>🐛 Troubleshooting</h2>
+<div class="table-wrap"><table>
+  <tr><th>Problem</th><th>Cause</th><th>Fix</th></tr>
+  <tr><td>Widget shows "Invalid license key"</td><td>Key doesn't exist or was deleted</td><td>Check the key in the dashboard. Generate a new one if needed.</td></tr>
+  <tr><td>Widget shows "Domain mismatch"</td><td>The license was issued for a different domain</td><td>Create a separate license for the current domain.</td></tr>
+  <tr><td>Widget shows "Service suspended"</td><td>License or subscription is suspended</td><td>Reactivate in dashboard, or contact admin.</td></tr>
+  <tr><td>Widget shows "License expired"</td><td>Subscription expiry date has passed</td><td>Renew subscription — admin updates expiry date.</td></tr>
+  <tr><td>Widget doesn't appear at all</td><td>No license key and <code>devMode</code> not set</td><td>Add your <code>licenseKey</code> or set <code>devMode: true</code> for local dev.</td></tr>
+  <tr><td>Admin login fails: "Cannot reach server"</td><td>API server not running or wrong URL</td><td>Start the server with <code>npm start</code>. Verify the URL.</td></tr>
+  <tr><td>Admin login fails: "Invalid admin key"</td><td>Wrong ADMIN_SECRET</td><td>Check the <code>ADMIN_SECRET</code> value in your <code>.env</code> file.</td></tr>
+  <tr><td>CORS error in browser console</td><td>Your domain is not in ALLOWED_ORIGINS</td><td>Add your domain to <code>ALLOWED_ORIGINS</code> in <code>.env</code>, then restart the server.</td></tr>
+  <tr><td>Dashboard shows no data</td><td>Not logged in or token expired</td><td>Log out and log back in. Check the network tab for API errors.</td></tr>
+  <tr><td>"Cannot add more sites"</td><td>Reached plan's website limit</td><td>Upgrade to a higher plan or ask admin to increase the limit.</td></tr>
+</table></div>
+</div>
+<div data-ar>
+<h2>🐛 استكشاف الأخطاء وإصلاحها</h2>
+<div class="table-wrap"><table>
+  <tr><th>المشكلة</th><th>السبب</th><th>الحل</th></tr>
+  <tr><td>الودجت يعرض "مفتاح ترخيص غير صالح"</td><td>المفتاح غير موجود أو محذوف</td><td>تحقق من المفتاح في لوحة التحكم. أنشئ مفتاحاً جديداً إذا لزم.</td></tr>
+  <tr><td>الودجت يعرض "عدم تطابق النطاق"</td><td>الترخيص صدر لنطاق مختلف</td><td>أنشئ ترخيصاً منفصلاً للنطاق الحالي.</td></tr>
+  <tr><td>الودجت يعرض "الخدمة موقوفة"</td><td>الترخيص أو الاشتراك موقوف</td><td>أعد التفعيل من لوحة التحكم أو تواصل مع المسؤول.</td></tr>
+  <tr><td>الودجت يعرض "انتهت صلاحية الترخيص"</td><td>مرّ تاريخ انتهاء الاشتراك</td><td>جدّد الاشتراك — يحدّث المسؤول تاريخ الانتهاء.</td></tr>
+  <tr><td>الودجت لا يظهر أصلاً</td><td>لا يوجد مفتاح ترخيص ولم يُضبط <code>devMode</code></td><td>أضف <code>licenseKey</code> أو اضبط <code>devMode: true</code> للتطوير المحلي.</td></tr>
+  <tr><td>تسجيل دخول الإدارة يفشل: "لا يمكن الوصول للخادم"</td><td>الخادم لا يعمل أو الرابط خاطئ</td><td>شغّل الخادم بـ <code>npm start</code>. تحقق من الرابط.</td></tr>
+  <tr><td>تسجيل دخول الإدارة يفشل: "مفتاح إداري غير صالح"</td><td>قيمة ADMIN_SECRET خاطئة</td><td>تحقق من قيمة <code>ADMIN_SECRET</code> في ملف <code>.env</code>.</td></tr>
+  <tr><td>خطأ CORS في وحدة تحكم المتصفح</td><td>نطاقك غير موجود في ALLOWED_ORIGINS</td><td>أضف نطاقك إلى <code>ALLOWED_ORIGINS</code> في <code>.env</code>، ثم أعد تشغيل الخادم.</td></tr>
+  <tr><td>لوحة التحكم لا تعرض بيانات</td><td>غير مسجّل الدخول أو انتهت الجلسة</td><td>سجّل الخروج وأعد تسجيل الدخول. تحقق من تبويب الشبكة لأخطاء API.</td></tr>
+  <tr><td>"لا يمكن إضافة مواقع أكثر"</td><td>بلغ حد مواقع الخطة</td><td>ارقَّ إلى خطة أعلى أو اطلب من المسؤول زيادة الحد.</td></tr>
+</table></div>
+</div>
+
+<hr/>
+<p style="text-align:center;color:var(--gray-500);font-size:.85rem;padding:20px 0">
+  <span data-en>AccessWidget v2.0 — Built with ♥ for web accessibility</span>
+  <span data-ar>AccessWidget v2.0 — مبني بـ ♥ من أجل إمكانية الوصول على الويب</span>
+</p>
+
+</div><!-- /content -->
+
+<script>
+function toggleLang(){
+  const isAr = document.body.classList.toggle('ar');
+  document.getElementById('langBtn').textContent = isAr ? 'English' : 'العربية';
+  document.documentElement.lang = isAr ? 'ar' : 'en';
+  document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+}
+
+// Sidebar active link highlight
+const links = document.querySelectorAll('.sidebar a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      links.forEach(l => l.classList.remove('active'));
+      const id = e.target.id;
+      links.forEach(l => { if(l.getAttribute('href') === '#'+id) l.classList.add('active'); });
+    }
+  });
+}, {rootMargin:'-20% 0px -70% 0px'});
+document.querySelectorAll('.section-anchor').forEach(a => observer.observe(a));
+</script>
+</body>
+</html>

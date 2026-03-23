@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Widget — Live Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #2563EB;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+
+    /* ── Navigation ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 48px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+    }
+    .nav-brand { font-size: 20px; font-weight: 800; color: var(--primary); }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-links a { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: color 0.15s; }
+    .nav-links a:hover { color: var(--primary); }
+    .nav-cta {
+      background: var(--primary);
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1e40af 0%, #2563EB 50%, #7c3aed 100%);
+      color: #fff;
+      padding: 96px 48px;
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    .hero h1 { font-size: 52px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
+    .hero p { font-size: 20px; opacity: 0.85; max-width: 640px; margin: 0 auto 36px; line-height: 1.6; }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .btn-white {
+      background: #fff;
+      color: var(--primary);
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+      display: inline-block;
+    }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .btn-ghost {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      display: inline-block;
+    }
+
+    /* ── Container ── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+
+    /* ── Section ── */
+    section { padding: 80px 0; }
+    .section-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 10px; }
+    h2 { font-size: 36px; font-weight: 800; color: var(--text); margin-bottom: 16px; line-height: 1.2; }
+    .section-lead { font-size: 18px; color: var(--muted); max-width: 640px; line-height: 1.6; margin-bottom: 48px; }
+
+    /* ── Feature Grid ── */
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .feature-icon { font-size: 32px; margin-bottom: 14px; display: block; }
+    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Profiles Section ── */
+    .profiles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .profile-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.15s;
+      cursor: default;
+    }
+    .profile-card:hover { border-color: var(--primary); box-shadow: 0 4px 20px rgba(37,99,235,0.12); }
+    .profile-card .p-icon { font-size: 40px; margin-bottom: 12px; display: block; }
+    .profile-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .profile-card p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+    .profile-card .p-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 12px; }
+    .p-tag { font-size: 10px; background: #eff6ff; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+
+    /* ── Content Article ── */
+    #main {
+      background: var(--surface);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 48px;
+      margin: 40px 0;
+    }
+    #main h1 { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
+    #main h2 { font-size: 24px; margin-bottom: 14px; margin-top: 32px; }
+    #main h3 { font-size: 18px; margin-bottom: 10px; margin-top: 24px; }
+    #main p { margin-bottom: 16px; font-size: 16px; line-height: 1.7; color: #374151; }
+    #main ul, #main ol { margin: 0 0 16px 24px; }
+    #main li { margin-bottom: 6px; font-size: 15px; line-height: 1.7; color: #374151; }
+    #main a { color: var(--primary); }
+    #main blockquote {
+      border-left: 4px solid var(--primary);
+      padding: 12px 20px;
+      background: #eff6ff;
+      border-radius: 0 10px 10px 0;
+      margin: 20px 0;
+      font-style: italic;
+    }
+
+    /* ── How it works ── */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .step {
+      text-align: center;
+      padding: 32px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .step-num {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+    /* ── Languages ── */
+    .lang-split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .lang-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .lang-card-header {
+      padding: 16px 24px;
+      font-weight: 700;
+      font-size: 15px;
+      border-bottom: 1px solid var(--border);
+    }
+    .lang-card-body { padding: 24px; font-size: 15px; line-height: 1.8; }
+    .lang-card.ar .lang-card-body { direction: rtl; text-align: right; }
+
+    /* ── CTA Section ── */
+    .cta-section {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+      padding: 80px 48px;
+      text-align: center;
+      color: #fff;
+    }
+    .cta-section h2 { font-size: 40px; margin-bottom: 16px; color: #fff; }
+    .cta-section p { font-size: 18px; opacity: 0.75; margin-bottom: 36px; }
+
+    /* ── Footer ── */
+    footer {
+      background: #0f172a;
+      color: #94a3b8;
+      padding: 40px 48px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    /* ── Demo Banner ── */
+    .demo-banner {
+      background: #fef3c7;
+      border-bottom: 1px solid #fde68a;
+      padding: 10px 48px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #92400e;
+    }
+    .demo-banner a { color: #1d4ed8; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .hero { padding: 64px 24px; }
+      .hero h1 { font-size: 32px; }
+      .hero p { font-size: 16px; }
+      .container { padding: 0 24px; }
+      section { padding: 56px 0; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .profiles-grid { grid-template-columns: 1fr 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .lang-split { grid-template-columns: 1fr; }
+      #main { padding: 28px; }
+    }
+
+    /* ── Language Toggle ── */
+    .lang-btn {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      color: var(--text); transition: all 0.15s;
+    }
+    .lang-btn:hover { background: #e2e8f0; }
+
+    /* ── RTL layout overrides ── */
+    html[dir="rtl"] nav { direction: rtl; }
+    html[dir="rtl"] .nav-links { flex-direction: row-reverse; }
+    html[dir="rtl"] .hero { direction: rtl; }
+    html[dir="rtl"] .container { direction: rtl; }
+    html[dir="rtl"] .section-tag,
+    html[dir="rtl"] h2,
+    html[dir="rtl"] .section-lead { text-align: right; }
+    html[dir="rtl"] .feature-card,
+    html[dir="rtl"] .profile-card { text-align: right; }
+    html[dir="rtl"] .step { direction: rtl; text-align: right; }
+    html[dir="rtl"] .cta-section { direction: rtl; }
+    html[dir="rtl"] footer { direction: rtl; }
+    html[dir="rtl"] .demo-banner { direction: rtl; }
+    html[dir="rtl"] #main { direction: rtl; text-align: right; }
+    html[dir="rtl"] #main ul,
+    html[dir="rtl"] #main ol { margin: 0 24px 16px 0; padding: 0; }
+    html[dir="rtl"] #main blockquote {
+      border-left: none; border-right: 4px solid var(--primary);
+      border-radius: 10px 0 0 10px;
+    }
+    html[dir="rtl"] .lang-split { direction: rtl; }
+    html[dir="rtl"] .lang-card-header { direction: rtl; text-align: right; }
+  </style>
+</head>
+<body>
+
+<div class="demo-banner" id="demo-banner">
+  🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="admin/index.html">Open Admin Panel →</a>
+</div>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-brand">♿ AccessWidget</div>
+  <div class="nav-links">
+    <a href="#features" id="nav-features">Features</a>
+    <a href="#profiles" id="nav-profiles">Profiles</a>
+    <a href="#content" id="nav-content">Sample Content</a>
+    <a href="#integration" id="nav-integration">Integration</a>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">🌐 AR</button>
+    <a href="admin/index.html" class="nav-cta" id="nav-cta">Admin Panel</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">🌍 Bilingual Arabic & English Support</div>
+  <h1>Make Every Website<br>Accessible to Everyone</h1>
+  <p>A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.</p>
+  <div class="hero-actions">
+    <a href="#content" class="btn-white">Try the Widget Below ↓</a>
+    <a href="admin/index.html" class="btn-ghost">Admin Dashboard</a>
+  </div>
+</div>
+
+<!-- Features -->
+<section id="features">
+  <div class="container">
+    <div class="section-tag">Core Features</div>
+    <h2>Every Accessibility Need, Covered</h2>
+    <p class="section-lead">23 built-in accessibility features organized into 4 categories, with 6 one-click profiles for the most common accessibility requirements.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">🔠</span>
+        <h3>Font & Text Controls</h3>
+        <p>Resize text from 110% to 170%, switch to readable or dyslexic-friendly fonts, adjust line height, letter spacing, and text alignment.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌓</span>
+        <h3>Contrast & Color Modes</h3>
+        <p>High contrast, dark mode, light mode, grayscale, inverted colors, and muted colors — applied instantly across the entire page.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔍</span>
+        <h3>Visual Enhancements</h3>
+        <p>Highlight links, highlight headings, large cursor, and visual indicators that make navigation easier for low-vision users.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📖</span>
+        <h3>Reading Aids</h3>
+        <p>Reading mask (spotlight band), reading guide (line cursor), focus mode to reduce distractions, and pause all page animations.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⌨️</span>
+        <h3>Keyboard & Navigation</h3>
+        <p>Enhanced keyboard focus indicators, skip-to-content button, and improved tab navigation for keyboard-only users.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔊</span>
+        <h3>Text-to-Speech</h3>
+        <p>Read the entire page aloud using the Web Speech API in Arabic or English. Supports stop, start, and browser-native voice selection.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h3>Arabic & English</h3>
+        <p>Full RTL and LTR support. Switch between Arabic and English widget interfaces with one click. Auto-detects page language.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">💾</span>
+        <h3>Persistent Settings</h3>
+        <p>User preferences are saved to localStorage and restored automatically on every future visit. No account needed.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3>Zero Dependencies</h3>
+        <p>Single JavaScript file, no external libraries, no frameworks required. Works on HTML, PHP, WordPress, React, Angular, Vue, Shopify, and more.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Profiles -->
+<section id="profiles" style="background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-tag">Accessibility Profiles</div>
+    <h2>One-Click Presets for Common Needs</h2>
+    <p class="section-lead">Profiles apply multiple accessibility settings at once, making it easy for users to get started without configuring every option individually.</p>
+
+    <div class="profiles-grid">
+      <div class="profile-card">
+        <span class="p-icon">👁️</span>
+        <h3>Visually Impaired</h3>
+        <p>Large text, high contrast, highlighted links, big cursor, and keyboard navigation enabled.</p>
+        <div class="p-tags">
+          <span class="p-tag">Large Font</span>
+          <span class="p-tag">High Contrast</span>
+          <span class="p-tag">Big Cursor</span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <span class="p-icon">🔍</span>
+        <h3>Low Vision</h3>
+        <p>Maximum font size, readable font, increased line height, high contrast, and heading highlights.</p>
+        <div class="p-tags">
+          <span class="p-tag">Max Font</span>
+          <span class="p-tag">Readable Font</span>
+          <span class="p-tag">Highlights</span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <span class="p-icon">📖</span>
+        <h3>Dyslexia Support</h3>
+        <p>OpenDyslexic font, increased letter spacing, larger line height, left-aligned text, and link highlights.</p>
+        <div class="p-tags">
+          <span class="p-tag">Dyslexia Font</span>
+          <span class="p-tag">Letter Spacing</span>
+          <span class="p-tag">Line Height</span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <span class="p-icon">🛡️</span>
+        <h3>Seizure Safe</h3>
+        <p>All animations paused, colors muted, and light mode forced to minimize flashing and visual triggers.</p>
+        <div class="p-tags">
+          <span class="p-tag">No Animations</span>
+          <span class="p-tag">Muted Colors</span>
+          <span class="p-tag">Light Mode</span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <span class="p-icon">🧠</span>
+        <h3>Cognitive Support</h3>
+        <p>Clean readable font, focus mode to reduce distractions, reading guide, no animations, left-aligned text.</p>
+        <div class="p-tags">
+          <span class="p-tag">Focus Mode</span>
+          <span class="p-tag">Reading Guide</span>
+          <span class="p-tag">No Animations</span>
+        </div>
+      </div>
+      <div class="profile-card">
+        <span class="p-icon">⌨️</span>
+        <h3>Keyboard Navigation</h3>
+        <p>Enhanced focus outlines, skip to content button, and highlighted links for complete keyboard-only browsing.</p>
+        <div class="p-tags">
+          <span class="p-tag">Focus Outlines</span>
+          <span class="p-tag">Skip Content</span>
+          <span class="p-tag">Link Highlights</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Sample Content -->
+<section id="content">
+  <div class="container">
+    <div class="section-tag">Try It Live</div>
+    <h2>Sample Page Content</h2>
+    <p class="section-lead">The article below is real page content. Use the accessibility widget (♿ button, bottom-right) to try different settings and see their effect.</p>
+
+    <main id="main">
+      <h1>The Importance of Web Accessibility</h1>
+      <p>
+        Web accessibility means designing and developing websites, tools, and technologies so that people with disabilities can use them effectively. More than one billion people worldwide live with some form of disability, which represents about 15% of the global population. Making the web accessible is not just a legal obligation — it is a fundamental right and a mark of inclusive design.
+      </p>
+
+      <blockquote>
+        "The power of the Web is in its universality. Access by everyone regardless of disability is an essential aspect." — Tim Berners-Lee, Inventor of the World Wide Web
+      </blockquote>
+
+      <h2>Types of Disabilities Addressed</h2>
+      <p>
+        Web accessibility encompasses a wide range of disabilities that affect how people use the internet:
+      </p>
+      <ul>
+        <li><strong>Visual impairments</strong> — including blindness, low vision, and color blindness</li>
+        <li><strong>Hearing impairments</strong> — including deafness and hard of hearing</li>
+        <li><strong>Motor disabilities</strong> — affecting the ability to use a mouse or keyboard</li>
+        <li><strong>Cognitive disabilities</strong> — including dyslexia, ADHD, and memory difficulties</li>
+        <li><strong>Seizure disorders</strong> — triggered by flashing content or animations</li>
+        <li><strong>Speech disabilities</strong> — affecting voice-based interactions</li>
+      </ul>
+
+      <h2>Why Every Website Needs Accessibility</h2>
+      <p>
+        Beyond compliance with laws such as the ADA, WCAG 2.1, Section 508, and EN 301 549, web accessibility delivers real business value. Accessible websites rank better in search engines, load faster, and convert more users. They also reduce legal liability and demonstrate corporate social responsibility.
+      </p>
+      <p>
+        Consider that temporary disabilities — such as a broken arm, bright sunlight on a screen, or a noisy environment — affect people occasionally. Accessibility features designed for people with permanent disabilities benefit all users in these temporary situations.
+      </p>
+
+      <h3>Key Accessibility Guidelines</h3>
+      <ol>
+        <li>Provide text alternatives for non-text content (images, audio, video)</li>
+        <li>Ensure all functionality is available via keyboard alone</li>
+        <li>Make text readable and understandable</li>
+        <li>Help users avoid and correct mistakes</li>
+        <li>Ensure content does not cause seizures or physical reactions</li>
+        <li>Provide enough time for users to read and use content</li>
+        <li>Provide ways to help users navigate, find content, and determine where they are</li>
+      </ol>
+
+      <h2>The Role of Assistive Technology</h2>
+      <p>
+        Assistive technology plays a crucial role in web accessibility. Screen readers like NVDA, JAWS, and VoiceOver convert digital text into synthesized speech. Screen magnifiers help low-vision users zoom into content. Alternative input devices like switch controls and eye-tracking systems allow people with motor disabilities to navigate websites without a mouse or keyboard.
+      </p>
+      <p>
+        Accessibility widgets like this one serve as a bridge — providing immediate, client-side customization that empowers users to adapt the interface to their needs without requiring custom software. This makes them particularly valuable for public-facing websites where visitors may have diverse accessibility requirements.
+      </p>
+
+      <h2>Arabic Language Accessibility</h2>
+      <p>
+        Special consideration is given to Arabic-language websites and bilingual environments. Arabic is a right-to-left (RTL) language, and proper accessibility support must account for directionality, text rendering, and culturally appropriate design patterns. This widget fully supports Arabic and English interfaces, with seamless switching between RTL and LTR layouts.
+      </p>
+
+      <h3>Getting Started</h3>
+      <p>
+        You can explore this widget right now. Click the <strong>♿ accessibility button</strong> in the bottom-right corner of this page to open the accessibility panel. Try adjusting the font size, enabling dark mode, activating the dyslexia profile, or turning on the reading mask. All changes are applied instantly and saved for your next visit.
+      </p>
+      <p>
+        <a href="admin/index.html">Visit the Admin Panel →</a> to configure the widget for your own website, generate an embed code, and review usage analytics.
+      </p>
+    </main>
+  </div>
+</section>
+
+<!-- Bilingual Demo -->
+<section id="bilingual" style="background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="section-tag">Bilingual Support</div>
+    <h2>Arabic & English — Fully Supported</h2>
+    <p class="section-lead">The widget interface switches seamlessly between English (LTR) and Arabic (RTL). It auto-detects your page language or can be set manually.</p>
+
+    <div class="lang-split">
+      <div class="lang-card">
+        <div class="lang-card-header">🇬🇧 English Interface (LTR)</div>
+        <div class="lang-card-body">
+          <p>The accessibility widget supports a full English interface with left-to-right layout, English labels, and English text-to-speech voice.</p>
+          <p>All feature names, profile titles, and button labels are displayed clearly in English for users who prefer it.</p>
+        </div>
+      </div>
+      <div class="lang-card ar">
+        <div class="lang-card-header" style="direction:rtl;text-align:right">🇸🇦 واجهة عربية (RTL)</div>
+        <div class="lang-card-body">
+          <p>تدعم أداة إمكانية الوصول واجهة عربية كاملة مع تخطيط من اليمين إلى اليسار، وتسميات عربية، وصوت تحويل النص إلى كلام باللغة العربية.</p>
+          <p>جميع أسماء الميزات وعناوين الملفات الشخصية وتسميات الأزرار معروضة بوضوح باللغة العربية للمستخدمين الذين يفضلونها.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Integration -->
+<section id="integration">
+  <div class="container">
+    <div class="section-tag">Easy Integration</div>
+    <h2>Add to Any Website in 2 Minutes</h2>
+    <p class="section-lead">One script tag is all it takes. Works with every framework, CMS, and hosting platform.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Copy the Script</h3>
+        <p>Download <code>accessibility-widget.js</code> and host it on your server, or reference it from a CDN.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Add Config (Optional)</h3>
+        <p>Set your preferred language, position, primary color, and which features to enable using a simple config object.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Paste Before &lt;/body&gt;</h3>
+        <p>Drop the script tag into your HTML layout file. The widget loads automatically on every page.</p>
+      </div>
+    </div>
+
+    <div style="background:#0f172a;color:#e2e8f0;border-radius:14px;padding:28px;margin-top:32px;font-family:'Courier New',monospace;font-size:14px;line-height:1.8;position:relative">
+      <span style="color:#475569">/* 1. Optional config */</span><br>
+      <span style="color:#7dd3fc">window</span>.AccessibilityWidgetConfig = {<br>
+      &nbsp;&nbsp;lang: <span style="color:#86efac">'auto'</span>,<br>
+      &nbsp;&nbsp;position: <span style="color:#86efac">'bottom-right'</span>,<br>
+      &nbsp;&nbsp;primaryColor: <span style="color:#86efac">'#2563EB'</span><br>
+      };<br><br>
+      <span style="color:#475569">/* 2. Load widget */</span><br>
+      &lt;<span style="color:#7dd3fc">script</span> src=<span style="color:#86efac">"accessibility-widget.js"</span>&gt;&lt;/<span style="color:#7dd3fc">script</span>&gt;
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Ready to Make Your Website Accessible?</h2>
+  <p>Configure your widget, generate an embed code, and go live today.</p>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+    <a href="admin/index.html" class="btn-white">Open Admin Panel →</a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>♿ <strong>AccessWidget</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website</p>
+  <p style="margin-top:8px">Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal</p>
+</footer>
+
+<!-- ── Load the Widget ── -->
+
+<script>
+  window.AccessibilityWidgetConfig = {
+    apiEndpoint: 'http://localhost:3001/api/v1/validate',
+    lang: 'auto',
+    position: 'bottom-right',
+    primaryColor: '#2563EB',
+    showProfiles: true,
+    showTTS: true,
+    devMode: true,  // demo page has no license key — validation skipped
+  };
+</script>
+<script src="accessibility-widget.js"></script>
+
+<script>
+// ── Demo page i18n ──────────────────────────────────────────
+const DEMO_I18N = {
+  en: {
+    'nav-features':'Features','nav-profiles':'Profiles','nav-content':'Sample Content',
+    'nav-integration':'Integration','nav-cta':'Admin Panel','lang-toggle':'🌐 AR',
+    'hero-badge':'🌍 Bilingual Arabic & English Support',
+    'hero-h1':'Make Every Website<br>Accessible to Everyone',
+    'hero-p':'A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.',
+    'hero-btn1':'Try the Widget Below ↓','hero-btn2':'Admin Dashboard',
+    'sec1-tag':'Core Features','sec1-h2':'Every Accessibility Need, Covered',
+    'sec1-lead':'23 built-in accessibility features organized into 4 categories, with 6 one-click profiles for the most common accessibility requirements.',
+    'f1-h3':'Font & Text Controls','f1-p':'Resize text from 110% to 170%, switch to readable or dyslexic-friendly fonts, adjust line height, letter spacing, and text alignment.',
+    'f2-h3':'Contrast & Color Modes','f2-p':'High contrast, dark mode, light mode, grayscale, inverted colors, and muted colors — applied instantly across the entire page.',
+    'f3-h3':'Visual Enhancements','f3-p':'Highlight links, highlight headings, large cursor, and visual indicators that make navigation easier for low-vision users.',
+    'f4-h3':'Reading Aids','f4-p':'Reading mask (spotlight band), reading guide (line cursor), focus mode to reduce distractions, and pause all page animations.',
+    'f5-h3':'Keyboard & Navigation','f5-p':'Enhanced keyboard focus indicators, skip-to-content button, and improved tab navigation for keyboard-only users.',
+    'f6-h3':'Text-to-Speech','f6-p':'Read the entire page aloud using the Web Speech API in Arabic or English. Supports stop, start, and browser-native voice selection.',
+    'f7-h3':'Arabic & English','f7-p':'Full RTL and LTR support. Switch between Arabic and English widget interfaces with one click. Auto-detects page language.',
+    'f8-h3':'Persistent Settings','f8-p':'User preferences are saved to localStorage and restored automatically on every future visit. No account needed.',
+    'f9-h3':'Zero Dependencies','f9-p':'Single JavaScript file, no external libraries, no frameworks required. Works on HTML, PHP, WordPress, React, Angular, Vue, Shopify, and more.',
+    'sec2-tag':'Accessibility Profiles','sec2-h2':'One-Click Presets for Common Needs',
+    'sec2-lead':'Profiles apply multiple accessibility settings at once, making it easy for users to get started without configuring every option individually.',
+    'p1-h3':'Visually Impaired','p1-p':'Large text, high contrast, highlighted links, big cursor, and keyboard navigation enabled.',
+    'p2-h3':'Low Vision','p2-p':'Maximum font size, readable font, increased line height, high contrast, and heading highlights.',
+    'p3-h3':'Dyslexia Support','p3-p':'OpenDyslexic font, increased letter spacing, larger line height, left-aligned text, and link highlights.',
+    'p4-h3':'Seizure Safe','p4-p':'All animations paused, colors muted, and light mode forced to minimize flashing and visual triggers.',
+    'p5-h3':'Cognitive Support','p5-p':'Clean readable font, focus mode to reduce distractions, reading guide, no animations, left-aligned text.',
+    'p6-h3':'Keyboard Navigation','p6-p':'Enhanced focus outlines, skip to content button, and highlighted links for complete keyboard-only browsing.',
+    'sec3-tag':'Try It Live','sec3-h2':'Sample Page Content',
+    'sec3-lead':'The article below is real page content. Use the accessibility widget (♿ button, bottom-right) to try different settings and see their effect.',
+    'article-h1':'The Importance of Web Accessibility',
+    'sec4-tag':'Bilingual Support','sec4-h2':'Arabic & English — Fully Supported',
+    'sec4-lead':'The widget interface switches seamlessly between English (LTR) and Arabic (RTL). It auto-detects your page language or can be set manually.',
+    'lang-en-header':'🇬🇧 English Interface (LTR)',
+    'sec5-tag':'Easy Integration','sec5-h2':'Add to Any Website in 2 Minutes',
+    'sec5-lead':'One script tag is all it takes. Works with every framework, CMS, and hosting platform.',
+    'step1-h3':'Copy the Script','step1-p':'Download accessibility-widget.js and host it on your server, or reference it from a CDN.',
+    'step2-h3':'Add Config (Optional)','step2-p':'Set your preferred language, position, primary color, and which features to enable using a simple config object.',
+    'step3-h3':'Paste Before &lt;/body&gt;','step3-p':'Drop the script tag into your HTML layout file. The widget loads automatically on every page.',
+    'cta-h2':'Ready to Make Your Website Accessible?',
+    'cta-p':'Configure your widget, generate an embed code, and go live today.',
+    'cta-btn':'Open Admin Panel →',
+    'footer-p1':'♿ <strong>AccessWidget</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website',
+    'footer-p2':'Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal',
+    'banner':'🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="admin/index.html">Open Admin Panel →</a>',
+  },
+  ar: {
+    'nav-features':'الميزات','nav-profiles':'الملفات الشخصية','nav-content':'محتوى تجريبي',
+    'nav-integration':'التكامل','nav-cta':'لوحة الإدارة','lang-toggle':'🌐 EN',
+    'hero-badge':'🌍 دعم ثنائي اللغة: العربية والإنجليزية',
+    'hero-h1':'اجعل كل موقع ويب<br>متاحاً للجميع',
+    'hero-p':'أداة إمكانية وصول خفيفة الوزن وجاهزة للتضمين، تعمل على أي موقع ويب. أضفها في دقائق. مكّن الملايين.',
+    'hero-btn1':'جرّب الأداة أدناه ↓','hero-btn2':'لوحة التحكم',
+    'sec1-tag':'الميزات الأساسية','sec1-h2':'كل احتياجات إمكانية الوصول، مُغطّاة',
+    'sec1-lead':'٢٣ ميزة إمكانية وصول مدمجة في ٤ فئات، مع ٦ ملفات شخصية بنقرة واحدة لأكثر متطلبات إمكانية الوصول شيوعاً.',
+    'f1-h3':'تحكم في الخطوط والنصوص','f1-p':'تغيير حجم النص من ١١٠٪ إلى ١٧٠٪، التبديل إلى خطوط مناسبة أو صديقة لعسر القراءة، ضبط ارتفاع السطر والتباعد بين الأحرف والمحاذاة.',
+    'f2-h3':'أوضاع التباين والألوان','f2-p':'تباين عالٍ، وضع داكن، وضع فاتح، تدرج رمادي، عكس الألوان، وتلطيف الألوان — تُطبَّق فوراً على كامل الصفحة.',
+    'f3-h3':'التحسينات البصرية','f3-p':'تمييز الروابط، تمييز العناوين، مؤشر كبير، ومؤشرات بصرية تسهّل التنقل لضعاف البصر.',
+    'f4-h3':'أدوات القراءة','f4-p':'قناع القراءة (شريط التركيز)، مرشد القراءة (خط المؤشر)، وضع التركيز لتقليل المشتتات، وإيقاف جميع رسوم الصفحة المتحركة.',
+    'f5-h3':'لوحة المفاتيح والتنقل','f5-p':'مؤشرات تركيز محسّنة، زر "انتقل إلى المحتوى"، وتحسين التنقل بمفتاح Tab للمستخدمين الذين يعتمدون على لوحة المفاتيح.',
+    'f6-h3':'تحويل النص إلى كلام','f6-p':'قراءة الصفحة بأكملها بصوت عالٍ عبر Web Speech API بالعربية أو الإنجليزية. يدعم الإيقاف والتشغيل وتحديد الصوت.',
+    'f7-h3':'العربية والإنجليزية','f7-p':'دعم كامل لـ RTL وLTR. التبديل بين واجهتي العربية والإنجليزية بنقرة واحدة. يكتشف تلقائياً لغة الصفحة.',
+    'f8-h3':'حفظ الإعدادات','f8-p':'يتم حفظ تفضيلات المستخدم في localStorage واستعادتها تلقائياً في كل زيارة مستقبلية. لا حاجة لحساب.',
+    'f9-h3':'بدون مكتبات خارجية','f9-p':'ملف JavaScript واحد، بدون مكتبات أو إطارات عمل. يعمل على HTML وPHP وWordPress وReact وAngular وVue وShopify والمزيد.',
+    'sec2-tag':'الملفات الشخصية','sec2-h2':'إعدادات مسبقة بنقرة واحدة للاحتياجات الشائعة',
+    'sec2-lead':'تطبّق الملفات الشخصية إعدادات إمكانية وصول متعددة دفعة واحدة، مما يسهّل البدء دون ضبط كل خيار على حدة.',
+    'p1-h3':'ضعاف البصر','p1-p':'نص كبير، تباين عالٍ، تمييز الروابط، مؤشر كبير، وتفعيل التنقل بلوحة المفاتيح.',
+    'p2-h3':'رؤية منخفضة','p2-p':'أقصى حجم للخط، خط مقروء، ارتفاع سطر موسّع، تباين عالٍ، وتمييز العناوين.',
+    'p3-h3':'دعم عسر القراءة','p3-p':'خط OpenDyslexic، زيادة المسافة بين الأحرف، ارتفاع سطر أكبر، محاذاة النص لليسار، وتمييز الروابط.',
+    'p4-h3':'الحماية من النوبات','p4-p':'إيقاف جميع الرسوم المتحركة، تلطيف الألوان، وفرض الوضع الفاتح لتقليل الوميض والمحفزات البصرية.',
+    'p5-h3':'الدعم المعرفي','p5-p':'خط واضح مقروء، وضع التركيز لتقليل المشتتات، مرشد القراءة، بدون رسوم متحركة، محاذاة النص.',
+    'p6-h3':'التنقل بلوحة المفاتيح','p6-p':'إطارات تركيز محسّنة، زر "انتقل إلى المحتوى"، وتمييز الروابط للتصفح الكامل بلوحة المفاتيح.',
+    'sec3-tag':'جرّب الآن','sec3-h2':'محتوى صفحة تجريبية',
+    'sec3-lead':'المقال أدناه محتوى صفحة حقيقي. استخدم أداة إمكانية الوصول (زر ♿) لتجربة الإعدادات المختلفة ومشاهدة تأثيرها.',
+    'article-h1':'أهمية إمكانية الوصول للويب',
+    'sec4-tag':'الدعم الثنائي للغة','sec4-h2':'العربية والإنجليزية — مدعومتان بالكامل',
+    'sec4-lead':'تتبدّل واجهة الأداة بسلاسة بين الإنجليزية (LTR) والعربية (RTL). تكتشف تلقائياً لغة الصفحة أو يمكن تعيينها يدوياً.',
+    'lang-en-header':'🇬🇧 English Interface (LTR)',
+    'sec5-tag':'تكامل سهل','sec5-h2':'أضفه إلى أي موقع في دقيقتين',
+    'sec5-lead':'كل ما تحتاجه وسم script واحد. يعمل مع كل إطار عمل ونظام إدارة محتوى ومنصة استضافة.',
+    'step1-h3':'انسخ السكريبت','step1-p':'نزّل accessibility-widget.js واستضفه على خادمك، أو استخدمه من CDN.',
+    'step2-h3':'أضف الإعداد (اختياري)','step2-p':'حدد اللغة والموضع واللون الرئيسي والميزات المراد تفعيلها باستخدام كائن إعداد بسيط.',
+    'step3-h3':'الصقه قبل &lt;/body&gt;','step3-p':'ضع وسم script في ملف HTML الخاص بك. ستُحمّل الأداة تلقائياً في كل صفحة.',
+    'cta-h2':'هل أنت مستعد لجعل موقعك متاحاً للجميع؟',
+    'cta-p':'اضبط الأداة، أنشئ كود التضمين، وابدأ اليوم.',
+    'cta-btn':'فتح لوحة الإدارة ←',
+    'footer-p1':'♿ <strong>AccessWidget</strong> v1.0.0 &mdash; أداة إمكانية وصول ثنائية اللغة لأي موقع',
+    'footer-p2':'تدعم العربية والإنجليزية &bull; تعمل على HTML وPHP وJava وReact وAngular وVue وWordPress وShopify وDrupal',
+    'banner':'🧪 هذا <strong>عرض تجريبي مباشر</strong> — أداة إمكانية الوصول نشطة على هذه الصفحة. انقر على زر <strong>♿</strong> في أسفل يسار الصفحة لتجربتها! &nbsp;|&nbsp; <a href="admin/index.html">فتح لوحة الإدارة ←</a>',
+  }
+};
+
+function applyDemoLang(lang) {
+  const t = DEMO_I18N[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  // Nav
+  ['features','profiles','content','integration'].forEach(k => {
+    const el = document.getElementById('nav-' + k);
+    if (el) el.textContent = t['nav-' + k];
+  });
+  const navCta = document.getElementById('nav-cta');
+  if (navCta) navCta.textContent = t['nav-cta'];
+  const lt = document.getElementById('lang-toggle');
+  if (lt) lt.textContent = t['lang-toggle'];
+
+  // Hero
+  const heroBadge = document.querySelector('.hero-badge');
+  if (heroBadge) heroBadge.textContent = t['hero-badge'];
+  const heroH1 = document.querySelector('.hero h1');
+  if (heroH1) heroH1.innerHTML = t['hero-h1'];
+  const heroP = document.querySelector('.hero > p');
+  if (heroP) heroP.textContent = t['hero-p'];
+  const heroBtns = document.querySelectorAll('.hero-actions a');
+  if (heroBtns[0]) heroBtns[0].textContent = t['hero-btn1'];
+  if (heroBtns[1]) heroBtns[1].textContent = t['hero-btn2'];
+
+  // Features section
+  const featSec = document.querySelector('#features');
+  if (featSec) {
+    featSec.querySelector('.section-tag').textContent = t['sec1-tag'];
+    featSec.querySelector('h2').textContent = t['sec1-h2'];
+    featSec.querySelector('.section-lead').textContent = t['sec1-lead'];
+    featSec.querySelectorAll('.feature-card').forEach((card, i) => {
+      const k = 'f' + (i + 1);
+      const h3 = card.querySelector('h3'); const p = card.querySelector('p');
+      if (h3 && t[k+'-h3']) h3.textContent = t[k+'-h3'];
+      if (p  && t[k+'-p'])  p.textContent  = t[k+'-p'];
+    });
+  }
+
+  // Profiles section
+  const profileSec = document.querySelector('#profiles');
+  if (profileSec) {
+    profileSec.querySelector('.section-tag').textContent = t['sec2-tag'];
+    profileSec.querySelector('h2').textContent = t['sec2-h2'];
+    profileSec.querySelector('.section-lead').textContent = t['sec2-lead'];
+    profileSec.querySelectorAll('.profile-card').forEach((card, i) => {
+      const k = 'p' + (i + 1);
+      const h3 = card.querySelector('h3'); const p = card.querySelector('p');
+      if (h3 && t[k+'-h3']) h3.textContent = t[k+'-h3'];
+      if (p  && t[k+'-p'])  p.textContent  = t[k+'-p'];
+    });
+  }
+
+  // Content section
+  const contentSec = document.querySelector('#content');
+  if (contentSec) {
+    contentSec.querySelector('.section-tag').textContent = t['sec3-tag'];
+    contentSec.querySelector('h2').textContent = t['sec3-h2'];
+    contentSec.querySelector('.section-lead').textContent = t['sec3-lead'];
+    const artH1 = document.querySelector('#main h1');
+    if (artH1) artH1.textContent = t['article-h1'];
+  }
+
+  // Bilingual section
+  const biSec = document.querySelector('#bilingual');
+  if (biSec) {
+    biSec.querySelector('.section-tag').textContent = t['sec4-tag'];
+    biSec.querySelector('h2').textContent = t['sec4-h2'];
+    biSec.querySelector('.section-lead').textContent = t['sec4-lead'];
+    const lcHeaders = biSec.querySelectorAll('.lang-card-header');
+    if (lcHeaders[0]) lcHeaders[0].textContent = t['lang-en-header'];
+  }
+
+  // Integration section
+  const integSec = document.querySelector('#integration');
+  if (integSec) {
+    integSec.querySelector('.section-tag').textContent = t['sec5-tag'];
+    integSec.querySelector('h2').textContent = t['sec5-h2'];
+    integSec.querySelector('.section-lead').textContent = t['sec5-lead'];
+    integSec.querySelectorAll('.step').forEach((step, i) => {
+      const k = 'step' + (i + 1);
+      const h3 = step.querySelector('h3'); const p = step.querySelector('p');
+      if (h3 && t[k+'-h3']) h3.innerHTML = t[k+'-h3'];
+      if (p  && t[k+'-p'])  p.textContent = t[k+'-p'];
+    });
+  }
+
+  // CTA
+  const ctaSec = document.querySelector('.cta-section');
+  if (ctaSec) {
+    const h2 = ctaSec.querySelector('h2'); const p = ctaSec.querySelector('p');
+    const btn = ctaSec.querySelector('.btn-white');
+    if (h2) h2.textContent = t['cta-h2'];
+    if (p)  p.textContent  = t['cta-p'];
+    if (btn) btn.textContent = t['cta-btn'];
+  }
+
+  // Banner
+  const banner = document.getElementById('demo-banner');
+  if (banner) banner.innerHTML = t['banner'];
+
+  // Footer
+  const footerPs = document.querySelectorAll('footer p');
+  if (footerPs[0]) footerPs[0].innerHTML = t['footer-p1'];
+  if (footerPs[1]) footerPs[1].innerHTML = t['footer-p2'];
+
+  localStorage.setItem('aw_ui_lang', lang);
+}
+
+function toggleLang() {
+  applyDemoLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
+}
+
+// Apply saved or default language
+applyDemoLang(localStorage.getItem('aw_ui_lang') || 'en');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accessibility Widget — Integration Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #2563EB; --border: #e2e8f0; --bg: #f8fafc; --text: #1e293b; --muted: #64748b; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    .page { max-width: 880px; margin: 0 auto; padding: 48px 32px; }
+
+    header { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+    header .badge { display: inline-block; background: #dbeafe; color: var(--primary); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+    header h1 { font-size: 40px; font-weight: 900; margin-bottom: 12px; }
+    header p { font-size: 17px; color: var(--muted); max-width: 640px; }
+
+    /* TOC */
+    .toc { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 40px; }
+    .toc h3 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 12px; }
+    .toc ol { padding-left: 20px; }
+    .toc li { margin-bottom: 6px; }
+    .toc a { color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 500; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* Sections */
+    .doc-section { margin-bottom: 56px; }
+    .doc-section h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; padding-top: 8px; border-top: 3px solid var(--primary); display: inline-block; }
+    .doc-section > p { font-size: 15px; color: #374151; margin-bottom: 20px; line-height: 1.7; }
+    h3 { font-size: 18px; font-weight: 700; margin: 28px 0 10px; }
+    h4 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    p { font-size: 14px; line-height: 1.7; color: #374151; margin-bottom: 12px; }
+
+    /* Code */
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin: 16px 0;
+      position: relative;
+    }
+    pre .kw { color: #7dd3fc; }
+    pre .str { color: #86efac; }
+    pre .cmt { color: #475569; }
+    pre .bool { color: #fbbf24; }
+    code { background: #f1f5f9; color: #dc2626; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'Courier New', monospace; }
+    .copy-btn {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(255,255,255,0.1);
+      color: #e2e8f0;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th { text-align: left; padding: 10px 14px; background: #f1f5f9; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); border: 1px solid var(--border); }
+    td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; line-height: 1.5; }
+    tr:hover td { background: #f8fafc; }
+    .td-type { color: #7c3aed; font-family: monospace; font-size: 12px; }
+    .td-default { color: #059669; font-family: monospace; font-size: 12px; }
+
+    /* Cards */
+    .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+    .card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .card h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; margin-top: 0; text-transform: none; letter-spacing: 0; color: var(--text); }
+    .card p { font-size: 12px; color: var(--muted); margin: 0; }
+
+    /* Alert */
+    .alert { padding: 14px 18px; border-radius: 10px; font-size: 13px; margin: 16px 0; display: flex; gap: 10px; }
+    .alert-blue { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+    .alert-yellow { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+    /* Nav bar */
+    .topnav {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .topnav-brand { font-weight: 800; font-size: 16px; color: var(--primary); margin-right: auto; }
+    .topnav a { color: var(--muted); text-decoration: none; font-weight: 500; }
+    .topnav a:hover { color: var(--primary); }
+    .topnav .active { color: var(--primary); font-weight: 700; }
+
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #fff; padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div class="topnav">
+  <span class="topnav-brand">♿ AccessWidget</span>
+  <a href="demo.html">Demo</a>
+  <a href="admin/index.html">Admin Panel</a>
+  <a href="#" class="active">Integration Guide</a>
+</div>
+
+<div class="page">
+  <header>
+    <div class="badge">Documentation</div>
+    <h1>Integration Guide</h1>
+    <p>Everything you need to add the Accessibility Widget to any website — from a simple one-liner to full custom configuration for complex enterprise environments.</p>
+  </header>
+
+  <div class="toc">
+    <h3>Contents</h3>
+    <ol>
+      <li><a href="#quickstart">Quick Start (2 Minutes)</a></li>
+      <li><a href="#config">Configuration Reference</a></li>
+      <li><a href="#features">Feature Control</a></li>
+      <li><a href="#frameworks">Framework Integration</a></li>
+      <li><a href="#profiles">Customizing Profiles</a></li>
+      <li><a href="#api">JavaScript API</a></li>
+      <li><a href="#rtl">Arabic & RTL Support</a></li>
+      <li><a href="#compat">Browser Compatibility</a></li>
+    </ol>
+  </div>
+
+  <!-- Quick Start -->
+  <div class="doc-section" id="quickstart">
+    <h2>Quick Start</h2>
+    <p>Add the widget to any page with a single script tag. Place it just before the closing <code>&lt;/body&gt;</code> tag.</p>
+
+    <h3>Minimal Embed</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button><span class="cmt">&lt;!-- Place before &lt;/body&gt; --&gt;</span>
+<span class="kw">&lt;script</span> src=<span class="str">"accessibility-widget.js"</span><span class="kw">&gt;&lt;/script&gt;</span></pre>
+
+    <h3>With Configuration</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button><span class="cmt">&lt;!-- 1. Configure before loading --&gt;</span>
+<span class="kw">&lt;script&gt;</span>
+  window.AccessibilityWidgetConfig = {
+    lang: <span class="str">'en'</span>,
+    position: <span class="str">'bottom-right'</span>,
+    primaryColor: <span class="str">'#2563EB'</span>
+  };
+<span class="kw">&lt;/script&gt;</span>
+
+<span class="cmt">&lt;!-- 2. Load widget --&gt;</span>
+<span class="kw">&lt;script</span> src=<span class="str">"accessibility-widget.js"</span><span class="kw">&gt;&lt;/script&gt;</span></pre>
+
+    <div class="alert alert-blue">
+      💡 The widget auto-initializes as soon as the DOM is ready. No further JavaScript is needed on your end.
+    </div>
+  </div>
+
+  <!-- Config Reference -->
+  <div class="doc-section" id="config">
+    <h2>Configuration Reference</h2>
+    <p>Set <code>window.AccessibilityWidgetConfig</code> before loading the widget script. All properties are optional.</p>
+
+    <table>
+      <thead>
+        <tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>lang</code></td><td class="td-type">string</td><td class="td-default">'en'</td><td>Widget language: <code>'en'</code>, <code>'ar'</code>, or <code>'auto'</code> (detects from <code>&lt;html lang&gt;</code>)</td></tr>
+        <tr><td><code>position</code></td><td class="td-type">string</td><td class="td-default">'bottom-right'</td><td>Trigger button position: <code>'bottom-right'</code>, <code>'bottom-left'</code>, <code>'top-right'</code>, <code>'top-left'</code></td></tr>
+        <tr><td><code>primaryColor</code></td><td class="td-type">string</td><td class="td-default">'#2563EB'</td><td>Hex color used for the button, toggles, and highlights</td></tr>
+        <tr><td><code>buttonIcon</code></td><td class="td-type">string</td><td class="td-default">'♿'</td><td>Icon or text displayed inside the floating trigger button</td></tr>
+        <tr><td><code>storageKey</code></td><td class="td-type">string</td><td class="td-default">'aw_settings'</td><td>localStorage key for persisting user preferences</td></tr>
+        <tr><td><code>showProfiles</code></td><td class="td-type">boolean</td><td class="td-default">true</td><td>Show accessibility profile presets at the top of the panel</td></tr>
+        <tr><td><code>showTTS</code></td><td class="td-type">boolean</td><td class="td-default">true</td><td>Show the text-to-speech section in the panel</td></tr>
+        <tr><td><code>showReadingMask</code></td><td class="td-type">boolean</td><td class="td-default">true</td><td>Include reading mask feature in the panel</td></tr>
+        <tr><td><code>features</code></td><td class="td-type">object</td><td class="td-default">{all: true}</td><td>Object to individually enable or disable specific features (see Feature Control)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Full Config Example</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button>window.AccessibilityWidgetConfig = {
+  lang: <span class="str">'auto'</span>,           <span class="cmt">// Auto-detect from HTML lang attribute</span>
+  position: <span class="str">'bottom-right'</span>, <span class="cmt">// Where the trigger button appears</span>
+  primaryColor: <span class="str">'#2563EB'</span>,  <span class="cmt">// Your brand color</span>
+  buttonIcon: <span class="str">'♿'</span>,          <span class="cmt">// Emoji or text for the button</span>
+  storageKey: <span class="str">'aw_settings'</span>,  <span class="cmt">// localStorage key</span>
+  showProfiles: <span class="bool">true</span>,         <span class="cmt">// Show profile presets</span>
+  showTTS: <span class="bool">true</span>,              <span class="cmt">// Text-to-speech</span>
+  features: {
+    fontSize: <span class="bool">true</span>,
+    fontFamily: <span class="bool">true</span>,
+    lineHeight: <span class="bool">true</span>,
+    letterSpacing: <span class="bool">true</span>,
+    textAlign: <span class="bool">true</span>,
+    highContrast: <span class="bool">true</span>,
+    darkMode: <span class="bool">true</span>,
+    lightMode: <span class="bool">true</span>,
+    grayscale: <span class="bool">true</span>,
+    invertColors: <span class="bool">true</span>,
+    muteColors: <span class="bool">true</span>,
+    highlightLinks: <span class="bool">true</span>,
+    highlightHeadings: <span class="bool">true</span>,
+    readingMask: <span class="bool">true</span>,
+    readingGuide: <span class="bool">true</span>,
+    focusMode: <span class="bool">true</span>,
+    dyslexiaFont: <span class="bool">true</span>,
+    pauseAnimations: <span class="bool">true</span>,
+    bigCursor: <span class="bool">true</span>,
+    skipContent: <span class="bool">true</span>,
+    keyboardNav: <span class="bool">true</span>,
+    textToSpeech: <span class="bool">true</span>,
+    muteSounds: <span class="bool">true</span>,
+  }
+};</pre>
+  </div>
+
+  <!-- Feature Control -->
+  <div class="doc-section" id="features">
+    <h2>Feature Control</h2>
+    <p>Any feature can be disabled by setting it to <code>false</code> in the <code>features</code> config object. Disabled features are completely hidden from the widget panel.</p>
+
+    <h4>Visual Features</h4>
+    <table>
+      <thead><tr><th>Key</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>fontSize</code></td><td>Step up/down font size (5 levels: 110% to 170%)</td></tr>
+        <tr><td><code>fontFamily</code></td><td>Switch between Default, Readable (Georgia), Dyslexia, Monospace</td></tr>
+        <tr><td><code>lineHeight</code></td><td>3-step line height increase (1.6 / 2.0 / 2.5)</td></tr>
+        <tr><td><code>letterSpacing</code></td><td>3-step letter spacing increase (0.08 / 0.15 / 0.22em)</td></tr>
+        <tr><td><code>textAlign</code></td><td>Paragraph alignment: left / center / right / justify</td></tr>
+        <tr><td><code>highContrast</code></td><td>Black background, yellow text, cyan links</td></tr>
+        <tr><td><code>darkMode</code></td><td>Dark navy background with light text</td></tr>
+        <tr><td><code>lightMode</code></td><td>Force white background</td></tr>
+        <tr><td><code>grayscale</code></td><td>Remove all color (CSS filter)</td></tr>
+        <tr><td><code>invertColors</code></td><td>Invert + hue-rotate (natural color inversion)</td></tr>
+        <tr><td><code>muteColors</code></td><td>Reduce saturation to 20%</td></tr>
+        <tr><td><code>highlightLinks</code></td><td>Yellow background + border on all anchor tags</td></tr>
+        <tr><td><code>highlightHeadings</code></td><td>Blue tinted background + left border on h1–h6</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Reading & Cognitive</h4>
+    <table>
+      <thead><tr><th>Key</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>readingMask</code></td><td>Horizontal spotlight band follows mouse to aid line-by-line reading</td></tr>
+        <tr><td><code>readingGuide</code></td><td>Thin colored line follows mouse Y position</td></tr>
+        <tr><td><code>focusMode</code></td><td>Dims all elements to 30% opacity; hovered element becomes fully visible</td></tr>
+        <tr><td><code>dyslexiaFont</code></td><td>Applies OpenDyslexic / Comic Sans fallback with increased letter spacing</td></tr>
+        <tr><td><code>pauseAnimations</code></td><td>Sets animation-play-state: paused and removes transitions on all elements</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Navigation & Audio</h4>
+    <table>
+      <thead><tr><th>Key</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>bigCursor</code></td><td>Replaces default cursor with enlarged SVG pointer</td></tr>
+        <tr><td><code>keyboardNav</code></td><td>Adds prominent focus outline + glow to all :focus elements</td></tr>
+        <tr><td><code>skipContent</code></td><td>Off-screen button that appears on focus, jumps to main content</td></tr>
+        <tr><td><code>textToSpeech</code></td><td>Web Speech API read-aloud in English or Arabic</td></tr>
+        <tr><td><code>muteSounds</code></td><td>Sets muted=true on all audio and video elements</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Frameworks -->
+  <div class="doc-section" id="frameworks">
+    <h2>Framework Integration</h2>
+
+    <h3>React / Next.js</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button><span class="cmt">// In _app.tsx or pages/_document.tsx</span>
+<span class="kw">import</span> { useEffect } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">export default function</span> App({ Component, pageProps }) {
+  useEffect(() => {
+    window.AccessibilityWidgetConfig = {
+      lang: <span class="str">'auto'</span>,
+      primaryColor: <span class="str">'#2563EB'</span>
+    };
+    <span class="kw">const</span> script = document.createElement(<span class="str">'script'</span>);
+    script.src = <span class="str">'/accessibility-widget.js'</span>;
+    script.async = <span class="bool">true</span>;
+    document.body.appendChild(script);
+    <span class="kw">return</span> () => document.body.removeChild(script);
+  }, []);
+  <span class="kw">return</span> &lt;Component {...pageProps} /&gt;;
+}</pre>
+
+    <h3>Vue / Nuxt.js</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button><span class="cmt">// In nuxt.config.js</span>
+<span class="kw">export default</span> {
+  head: {
+    script: [
+      { src: <span class="str">'/accessibility-widget.js'</span>, defer: <span class="bool">true</span>, body: <span class="bool">true</span> }
+    ]
+  }
+}
+
+<span class="cmt">// Or in app.vue</span>
+mounted() {
+  window.AccessibilityWidgetConfig = { lang: <span class="str">'auto'</span> };
+  <span class="kw">const</span> s = document.createElement(<span class="str">'script'</span>);
+  s.src = <span class="str">'/accessibility-widget.js'</span>;
+  document.body.appendChild(s);
+}</pre>
+
+    <h3>Angular</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button"><span class="cmt">// In angular.json → projects → architect → build → scripts</span>
+"scripts": ["src/assets/accessibility-widget.js"]
+
+<span class="cmt">// Or in AppComponent.ts</span>
+ngOnInit() {
+  (window <span class="kw">as any</span>).AccessibilityWidgetConfig = { lang: <span class="str">'auto'</span> };
+  <span class="kw">const</span> script = document.createElement(<span class="str">'script'</span>);
+  script.src = <span class="str">'assets/accessibility-widget.js'</span>;
+  document.body.appendChild(script);
+}</pre>
+
+    <h3>WordPress</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button"><span class="cmt">// In functions.php</span>
+function enqueue_accessibility_widget() {
+    wp_enqueue_script(
+        'accessibility-widget',
+        get_template_directory_uri() . '/js/accessibility-widget.js',
+        array(), '1.0.0', true
+    );
+    wp_add_inline_script(
+        'accessibility-widget',
+        'window.AccessibilityWidgetConfig = { lang: "auto", primaryColor: "#2563EB" };',
+        'before'
+    );
+}
+add_action('wp_enqueue_scripts', 'enqueue_accessibility_widget');</pre>
+
+    <h3>Shopify</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button"><span class="cmt">{# In theme.liquid, before &lt;/body&gt; #}</span>
+&lt;<span class="kw">script</span>&gt;
+  window.AccessibilityWidgetConfig = { lang: <span class="str">'auto'</span> };
+&lt;/<span class="kw">script</span>&gt;
+{{ 'accessibility-widget.js' | asset_url | script_tag }}</pre>
+
+    <h3>PHP / .NET / Java</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button">&lt;<span class="cmt">!-- In your base layout / master page template, before &lt;/body&gt; --&gt;</span>
+&lt;<span class="kw">script</span>&gt;
+  window.AccessibilityWidgetConfig = {
+    lang: <span class="str">'auto'</span>,
+    position: <span class="str">'bottom-right'</span>,
+    primaryColor: <span class="str">'#2563EB'</span>
+  };
+&lt;/<span class="kw">script</span>&gt;
+&lt;<span class="kw">script</span> src=<span class="str">"/js/accessibility-widget.js"</span>&gt;&lt;/<span class="kw">script</span>&gt;</pre>
+  </div>
+
+  <!-- Profiles -->
+  <div class="doc-section" id="profiles">
+    <h2>Accessibility Profiles</h2>
+    <p>Six built-in profiles activate multiple settings simultaneously. Users can click any profile to apply it, or click again to reset. Profiles can be disabled by setting <code>showProfiles: false</code> in config.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>👁️ Visually Impaired</h4>
+        <p>fontSize: 2, highContrast: true, highlightLinks: true, bigCursor: true, keyboardNav: true</p>
+      </div>
+      <div class="card">
+        <h4>🔍 Low Vision</h4>
+        <p>fontSize: 3, fontFamily: 'readable', lineHeight: 2, highContrast: true, highlightLinks: true, highlightHeadings: true</p>
+      </div>
+      <div class="card">
+        <h4>📖 Dyslexia Support</h4>
+        <p>fontFamily: 'dyslexia', lineHeight: 2, letterSpacing: 2, textAlign: 'left', highlightLinks: true</p>
+      </div>
+      <div class="card">
+        <h4>🛡️ Seizure Safe</h4>
+        <p>pauseAnimations: true, muteColors: true, lightMode: true</p>
+      </div>
+      <div class="card">
+        <h4>🧠 Cognitive Support</h4>
+        <p>fontFamily: 'readable', lineHeight: 1, focusMode: true, readingGuide: true, pauseAnimations: true, textAlign: 'left'</p>
+      </div>
+      <div class="card">
+        <h4>⌨️ Keyboard Navigation</h4>
+        <p>keyboardNav: true, skipContent: true, highlightLinks: true</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS API -->
+  <div class="doc-section" id="api">
+    <h2>JavaScript API</h2>
+    <p>The widget instance is available at <code>window._accessibilityWidget</code> after the script loads. You can also instantiate it manually for advanced control.</p>
+
+    <table>
+      <thead><tr><th>Method</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>.open()</code></td><td>Open the accessibility panel programmatically</td></tr>
+        <tr><td><code>.close()</code></td><td>Close the accessibility panel</td></tr>
+        <tr><td><code>.toggle()</code></td><td>Toggle the panel open/closed</td></tr>
+        <tr><td><code>.resetAll()</code></td><td>Reset all settings to defaults and remove all applied classes</td></tr>
+        <tr><td><code>.applyProfile(name)</code></td><td>Apply a profile by name: <code>'visuallyImpaired'</code>, <code>'dyslexia'</code>, <code>'seizureSafe'</code>, etc.</td></tr>
+        <tr><td><code>.toggleTTS()</code></td><td>Start or stop text-to-speech reading</td></tr>
+        <tr><td><code>.toggleLang()</code></td><td>Switch widget interface language between English and Arabic</td></tr>
+        <tr><td><code>.destroy()</code></td><td>Remove the widget from the DOM and reset all styles</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Usage Examples</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button><span class="cmt">// Access the running instance</span>
+<span class="kw">const</span> widget = window._accessibilityWidget;
+
+<span class="cmt">// Open the panel from a custom button</span>
+document.getElementById(<span class="str">'my-a11y-btn'</span>).addEventListener(<span class="str">'click'</span>, () => {
+  widget.open();
+});
+
+<span class="cmt">// Apply a profile programmatically</span>
+widget.applyProfile(<span class="str">'dyslexia'</span>);
+
+<span class="cmt">// Create a new instance with custom config</span>
+<span class="kw">const</span> myWidget = <span class="kw">new</span> AccessibilityWidget({
+  lang: <span class="str">'ar'</span>,
+  position: <span class="str">'bottom-left'</span>,
+  primaryColor: <span class="str">'#059669'</span>,
+  showProfiles: <span class="bool">false</span>
+});</pre>
+  </div>
+
+  <!-- RTL -->
+  <div class="doc-section" id="rtl">
+    <h2>Arabic & RTL Support</h2>
+    <p>The widget provides full support for Arabic-language and bilingual websites. When set to Arabic, the widget panel switches to RTL layout with Arabic labels.</p>
+
+    <h3>Language Detection</h3>
+    <p>Setting <code>lang: 'auto'</code> makes the widget read the <code>&lt;html lang&gt;</code> attribute. If it starts with <code>ar</code>, the Arabic interface is used; otherwise English.</p>
+
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button"><span class="cmt">&lt;!-- Your HTML page in Arabic --&gt;</span>
+&lt;<span class="kw">html</span> lang=<span class="str">"ar"</span> dir=<span class="str">"rtl"</span>&gt;
+
+<span class="cmt">&lt;!-- Widget auto-detects Arabic --&gt;</span>
+<span class="kw">&lt;script&gt;</span>
+  window.AccessibilityWidgetConfig = { lang: <span class="str">'auto'</span> };
+<span class="kw">&lt;/script&gt;</span>
+<span class="kw">&lt;script</span> src=<span class="str">"accessibility-widget.js"</span><span class="kw">&gt;&lt;/script&gt;</span></pre>
+
+    <h3>Manual Language Setting</h3>
+    <pre><button class="copy-btn" onclick="copy(this)">Copy</button"><span class="cmt">// Force Arabic interface</span>
+window.AccessibilityWidgetConfig = { lang: <span class="str">'ar'</span> };
+
+<span class="cmt">// Force English interface</span>
+window.AccessibilityWidgetConfig = { lang: <span class="str">'en'</span> };</pre>
+
+    <div class="alert alert-yellow">
+      ⚠️ The language toggle button inside the panel always allows users to switch between Arabic and English regardless of the default setting.
+    </div>
+  </div>
+
+  <!-- Browser Compat -->
+  <div class="doc-section" id="compat">
+    <h2>Browser Compatibility</h2>
+    <p>The widget uses standard CSS and browser APIs with no polyfills required.</p>
+
+    <table>
+      <thead><tr><th>Feature</th><th>Chrome</th><th>Firefox</th><th>Safari</th><th>Edge</th></tr></thead>
+      <tbody>
+        <tr><td>Core widget</td><td>✅ 80+</td><td>✅ 75+</td><td>✅ 13+</td><td>✅ 80+</td></tr>
+        <tr><td>CSS filters (grayscale, invert)</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Custom cursor (bigCursor)</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>Text-to-Speech (Web Speech API)</td><td>✅</td><td>⚠️ Partial</td><td>✅</td><td>✅</td></tr>
+        <tr><td>localStorage</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+        <tr><td>RTL layout</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+      </tbody>
+    </table>
+
+    <div class="alert alert-blue">
+      ℹ️ Text-to-speech availability depends on the user's operating system voices. The widget gracefully handles unsupported environments by alerting the user.
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div id="toast"></div>
+
+<script>
+  function copy(btn) {
+    const pre = btn.parentElement;
+    const text = pre.innerText.replace(/^Copy\n/, '');
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+      const t = document.getElementById('toast');
+      t.textContent = '📋 Copied to clipboard';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    });
+  }
+</script>
+</body>
+</html>

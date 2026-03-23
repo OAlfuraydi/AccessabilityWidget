@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AccessWidget — Sign In</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #2563EB; --primary-hover: #1d4ed8;
+      --bg: #f1f5f9; --surface: #fff;
+      --border: #e2e8f0; --text: #1e293b; --muted: #64748b;
+      --danger: #dc2626; --success: #059669;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; }
+
+    .split { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
+
+    /* Left branding panel */
+    .brand-panel {
+      background: linear-gradient(145deg, #0f172a 0%, #1e3a8a 60%, #2563EB 100%);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .brand-logo { font-size: 28px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+    .brand-logo-icon { width: 44px; height: 44px; background: rgba(255,255,255,0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .brand-tagline { font-size: 36px; font-weight: 800; line-height: 1.2; margin: 48px 0 16px; }
+    .brand-sub { font-size: 16px; opacity: 0.7; line-height: 1.6; max-width: 360px; }
+    .brand-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .brand-stat { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 16px; }
+    .brand-stat-val { font-size: 28px; font-weight: 800; }
+    .brand-stat-lbl { font-size: 12px; opacity: 0.6; margin-top: 4px; }
+    .brand-trust { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.5; }
+
+    /* Right form panel */
+    .form-panel { display: flex; align-items: center; justify-content: center; padding: 48px; }
+    .form-box { width: 100%; max-width: 400px; }
+    .form-box h1 { font-size: 28px; font-weight: 800; margin-bottom: 6px; }
+    .form-box .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 32px; }
+
+    /* Tabs */
+    .form-tabs { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 28px; }
+    .form-tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--bg); color: var(--muted); border: none; transition: all 0.15s; }
+    .form-tab.active { background: var(--primary); color: #fff; }
+
+    /* Form elements */
+    .form-group { margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+    .input-wrap { position: relative; }
+    .input-wrap .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 16px; pointer-events: none; }
+    input[type="text"], input[type="email"], input[type="password"], select {
+      width: 100%; padding: 10px 12px 10px 38px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font-size: 14px; color: var(--text); background: #fff;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.12); }
+    input.error { border-color: var(--danger); }
+    .field-error { color: var(--danger); font-size: 11px; margin-top: 4px; display: none; }
+    .field-error.show { display: block; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Remember + Forgot */
+    .form-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; font-size: 13px; }
+    .checkbox-label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--muted); }
+    .checkbox-label input { width: 14px; height: 14px; accent-color: var(--primary); }
+    .forgot-link { color: var(--primary); text-decoration: none; font-weight: 600; }
+    .forgot-link:hover { text-decoration: underline; }
+
+    /* Submit */
+    .btn-submit {
+      width: 100%; padding: 12px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 8px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.15s, transform 0.1s;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+    .btn-submit:active { transform: scale(0.99); }
+    .btn-submit.loading { opacity: 0.7; pointer-events: none; }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--muted); font-size: 12px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* Social login */
+    .btn-social {
+      width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 8px;
+      background: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background 0.15s; color: var(--text); margin-bottom: 10px;
+    }
+    .btn-social:hover { background: var(--bg); }
+
+    /* Alert */
+    .alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; display: none; }
+    .alert.show { display: flex; gap: 8px; align-items: flex-start; }
+    .alert-success { background: #f0fdf4; border: 1px solid #bbf7d0; color: var(--success); }
+    .alert-error   { background: #fef2f2; border: 1px solid #fecaca; color: var(--danger); }
+
+    /* Demo badge */
+    .demo-hint {
+      background: #fef3c7; border: 1px solid #fde68a;
+      border-radius: 8px; padding: 12px 14px; font-size: 12px;
+      color: #92400e; margin-top: 20px;
+    }
+    .demo-hint strong { display: block; margin-bottom: 4px; }
+    .demo-cred { font-family: monospace; font-size: 12px; }
+    .demo-fill { color: var(--primary); cursor: pointer; font-weight: 600; text-decoration: underline; }
+
+    /* Password strength */
+    .pwd-strength { display: flex; gap: 4px; margin-top: 6px; }
+    .pwd-bar { flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background 0.2s; }
+    .pwd-bar.weak   { background: #dc2626; }
+    .pwd-bar.medium { background: #f59e0b; }
+    .pwd-bar.strong { background: var(--success); }
+    .pwd-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+    /* Terms */
+    .terms { font-size: 11px; color: var(--muted); text-align: center; margin-top: 14px; }
+    .terms a { color: var(--primary); text-decoration: none; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .split { grid-template-columns: 1fr; }
+      .brand-panel { display: none; }
+      .form-panel { padding: 32px 20px; }
+    }
+
+    /* ── Language toggle ── */
+    .lang-btn {
+      position: absolute; top: 16px; right: 16px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 14px;
+      font-size: 12px; font-weight: 700; cursor: pointer; color: var(--text);
+      transition: all 0.15s; z-index: 10;
+    }
+    .lang-btn:hover { background: #e2e8f0; }
+
+    /* ── RTL overrides ── */
+    html[dir="rtl"] .split { direction: rtl; }
+    html[dir="rtl"] .brand-panel { direction: rtl; text-align: right; }
+    html[dir="rtl"] .brand-stats { direction: rtl; }
+    html[dir="rtl"] .form-panel { direction: rtl; }
+    html[dir="rtl"] .form-box { direction: rtl; text-align: right; }
+    html[dir="rtl"] .form-tabs { flex-direction: row-reverse; }
+    html[dir="rtl"] .input-wrap .icon { left: auto; right: 12px; }
+    html[dir="rtl"] input[type="text"],
+    html[dir="rtl"] input[type="email"],
+    html[dir="rtl"] input[type="password"],
+    html[dir="rtl"] select { padding: 10px 38px 10px 12px; direction: rtl; }
+    html[dir="rtl"] .form-meta { flex-direction: row-reverse; }
+    html[dir="rtl"] .lang-btn { right: auto; left: 16px; }
+    html[dir="rtl"] .row-2 { direction: rtl; }
+    html[dir="rtl"] .brand-logo { flex-direction: row-reverse; }
+    html[dir="rtl"] .brand-trust { flex-direction: row-reverse; }
+  </style>
+</head>
+<body>
+<div class="split">
+
+  <!-- ── Brand Panel ── -->
+  <div class="brand-panel">
+    <div>
+      <div class="brand-logo">
+        <div class="brand-logo-icon">♿</div>
+        AccessWidget
+      </div>
+      <div class="brand-tagline">Make Every Website Accessible</div>
+      <div class="brand-sub">The leading SaaS platform for website accessibility — bilingual, easy to embed, and trusted by organizations worldwide.</div>
+    </div>
+
+    <div>
+      <div class="brand-stats">
+        <div class="brand-stat">
+          <div class="brand-stat-val">2,400+</div>
+          <div class="brand-stat-lbl">Active Websites</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-val">1.2M</div>
+          <div class="brand-stat-lbl">Widget Activations / mo</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-val">23</div>
+          <div class="brand-stat-lbl">Accessibility Features</div>
+        </div>
+        <div class="brand-stat">
+          <div class="brand-stat-val">99.9%</div>
+          <div class="brand-stat-lbl">API Uptime</div>
+        </div>
+      </div>
+      <div class="brand-trust" style="margin-top:20px">
+        🔒 Enterprise-grade security &bull; WCAG 2.1 AA compliant &bull; Arabic & English
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Form Panel ── -->
+  <div class="form-panel" style="position:relative">
+    <button class="lang-btn" id="lang-toggle" onclick="toggleLoginLang()">🌐 AR</button>
+    <div class="form-box">
+      <h1 id="login-h1">Welcome back</h1>
+      <p class="subtitle" id="login-subtitle">Sign in to manage your accessibility widgets</p>
+
+      <!-- Tabs -->
+      <div class="form-tabs">
+        <button class="form-tab active" id="tab-login-btn" onclick="switchTab('login', this)">Sign In</button>
+        <button class="form-tab" id="tab-reg-btn" onclick="switchTab('register', this)">Create Account</button>
+      </div>
+
+      <!-- Alert area -->
+      <div class="alert alert-error" id="alert-error">⚠️ <span id="alert-msg"></span></div>
+      <div class="alert alert-success" id="alert-success">✅ <span id="alert-ok-msg"></span></div>
+
+      <!-- ── Login Form ── -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-email" id="label-login-email">Email Address</label>
+          <div class="input-wrap">
+            <span class="icon">✉</span>
+            <input type="email" id="login-email" placeholder="you@company.com" autocomplete="email">
+          </div>
+          <div class="field-error" id="err-login-email">Please enter a valid email</div>
+        </div>
+        <div class="form-group">
+          <label for="login-password" id="label-login-pwd">Password</label>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <div class="field-error" id="err-login-pwd">Password is required</div>
+        </div>
+        <div class="form-meta">
+          <label class="checkbox-label">
+            <input type="checkbox" id="remember"> <span id="label-remember">Remember me</span>
+          </label>
+          <a href="#" class="forgot-link" id="link-forgot">Forgot password?</a>
+        </div>
+        <button type="submit" class="btn-submit" id="login-btn">Sign In</button>
+      </form>
+
+      <!-- ── Register Form (hidden) ── -->
+      <form id="register-form" onsubmit="handleRegister(event)" style="display:none">
+        <div class="row-2">
+          <div class="form-group">
+            <label for="reg-fname">First Name</label>
+            <div class="input-wrap">
+              <span class="icon">👤</span>
+              <input type="text" id="reg-fname" placeholder="John" autocomplete="given-name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="reg-lname">Last Name</label>
+            <div class="input-wrap">
+              <span class="icon">👤</span>
+              <input type="text" id="reg-lname" placeholder="Smith" autocomplete="family-name">
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-org">Organization Name</label>
+          <div class="input-wrap">
+            <span class="icon">🏢</span>
+            <input type="text" id="reg-org" placeholder="Your Company Ltd.">
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Work Email</label>
+          <div class="input-wrap">
+            <span class="icon">✉</span>
+            <input type="email" id="reg-email" placeholder="you@company.com">
+          </div>
+          <div class="field-error" id="err-reg-email">Please enter a valid email</div>
+        </div>
+        <div class="form-group">
+          <label for="reg-plan">Select Plan</label>
+          <div class="input-wrap">
+            <span class="icon">📋</span>
+            <select id="reg-plan" style="padding-left:38px">
+              <option value="starter">Starter — 3 websites, $29/mo</option>
+              <option value="professional" selected>Professional — 10 websites, $79/mo</option>
+              <option value="enterprise">Enterprise — Unlimited, $199/mo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Password</label>
+          <div class="input-wrap">
+            <span class="icon">🔒</span>
+            <input type="password" id="reg-password" placeholder="Min 8 characters" oninput="checkPwdStrength(this.value)">
+          </div>
+          <div class="pwd-strength">
+            <div class="pwd-bar" id="pb1"></div>
+            <div class="pwd-bar" id="pb2"></div>
+            <div class="pwd-bar" id="pb3"></div>
+            <div class="pwd-bar" id="pb4"></div>
+          </div>
+          <div class="pwd-label" id="pwd-label"></div>
+        </div>
+        <button type="submit" class="btn-submit" id="reg-btn">Create Account &amp; Start Trial</button>
+        <div class="terms">By registering you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>.</div>
+      </form>
+
+      <div class="divider" id="social-divider">or continue with</div>
+      <button class="btn-social" onclick="socialLogin('google')" id="btn-google">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' width='18' height='18'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E" alt="">
+        Continue with Google
+      </button>
+      <button class="btn-social" onclick="socialLogin('microsoft')">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 21 21' width='18' height='18'%3E%3Crect x='1' y='1' width='9' height='9' fill='%23f25022'/%3E%3Crect x='11' y='1' width='9' height='9' fill='%2300a4ef'/%3E%3Crect x='1' y='11' width='9' height='9' fill='%2300b04f'/%3E%3Crect x='11' y='11' width='9' height='9' fill='%23ffb900'/%3E%3C/svg%3E" alt="">
+        Continue with Microsoft
+      </button>
+
+      <div class="demo-hint">
+        <strong id="demo-hint-title">🧪 Demo Credentials</strong>
+        <div class="demo-cred"><span id="demo-email-label">Email:</span> <span class="demo-fill" onclick="fillDemo()">demo@accesswidget.io</span></div>
+        <div class="demo-cred"><span id="demo-pwd-label">Password:</span> <span class="demo-fill" onclick="fillDemo()">Demo1234!</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tab, el) {
+    document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+    clearAlerts();
+    const lang = document.documentElement.lang || 'en';
+    const tr = LOGIN_I18N[lang] || LOGIN_I18N.en;
+    document.getElementById('login-h1').textContent = tr[tab === 'login' ? 'login-h1' : 'reg-h1'];
+    document.getElementById('login-subtitle').textContent = tr[tab === 'login' ? 'login-subtitle' : 'reg-subtitle'];
+  }
+
+  function clearAlerts() {
+    document.getElementById('alert-error').classList.remove('show');
+    document.getElementById('alert-success').classList.remove('show');
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('alert-error');
+    document.getElementById('alert-msg').textContent = msg;
+    el.classList.add('show');
+  }
+
+  function showSuccess(msg) {
+    const el = document.getElementById('alert-success');
+    document.getElementById('alert-ok-msg').textContent = msg;
+    el.classList.add('show');
+  }
+
+  function fillDemo() {
+    document.getElementById('login-email').value = 'demo@accesswidget.io';
+    document.getElementById('login-password').value = 'Demo1234!';
+  }
+
+  // API base — works whether opened as a file or served from the server
+  const API_BASE = window.location.port === '3001' ? '' : 'http://localhost:3001';
+
+  // Redirect to dashboard if already logged in
+  if (localStorage.getItem('aw_token')) {
+    window.location.href = (window.location.port === '3001') ? '/dashboard' : 'index.html';
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    clearAlerts();
+    const email = document.getElementById('login-email').value.trim();
+    const pwd   = document.getElementById('login-password').value;
+    if (!email || !pwd) { showError('Please fill in all fields.'); return; }
+
+    const btn = document.getElementById('login-btn');
+    btn.textContent = 'Signing in…'; btn.classList.add('loading');
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pwd }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || 'Login failed.'); return; }
+
+      localStorage.setItem('aw_token', data.token);
+      showSuccess('Login successful! Redirecting…');
+      setTimeout(() => {
+        window.location.href = window.location.port === '3001' ? '/dashboard' : 'index.html';
+      }, 800);
+    } catch(_) {
+      showError('Cannot reach server. Make sure the API is running on port 3001.');
+    } finally {
+      btn.textContent = 'Sign In'; btn.classList.remove('loading');
+    }
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    clearAlerts();
+    const email  = document.getElementById('reg-email').value.trim();
+    const pwd    = document.getElementById('reg-password').value;
+    const fname  = document.getElementById('reg-fname')?.value.trim() || '';
+    const lname  = document.getElementById('reg-lname')?.value.trim() || '';
+    const name   = [fname, lname].filter(Boolean).join(' ') || email.split('@')[0];
+    const org    = document.getElementById('reg-org').value.trim();
+
+    if (!email || !pwd || !org) { showError('Please fill in all required fields.'); return; }
+    if (pwd.length < 8) { showError('Password must be at least 8 characters.'); return; }
+
+    const btn = document.getElementById('reg-btn');
+    btn.textContent = 'Creating account…'; btn.classList.add('loading');
+
+    try {
+      const res  = await fetch(`${API_BASE}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pwd, name, org }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error || 'Registration failed.'); return; }
+
+      localStorage.setItem('aw_token', data.token);
+      showSuccess('Account created! Redirecting to dashboard…');
+      setTimeout(() => {
+        window.location.href = window.location.port === '3001' ? '/dashboard' : 'index.html';
+      }, 1000);
+    } catch(_) {
+      showError('Cannot reach server. Make sure the API is running on port 3001.');
+    } finally {
+      btn.textContent = 'Create Account & Start Trial'; btn.classList.remove('loading');
+    }
+  }
+
+  function socialLogin(provider) {
+    const label = { google: 'Google', microsoft: 'Microsoft' }[provider];
+    // In a real app: redirect to OAuth provider
+    showSuccess(`Redirecting to ${label} login…`);
+    setTimeout(() => window.location.href = 'index.html', 1000);
+  }
+
+  // ── i18n ──────────────────────────────────────
+  const LOGIN_I18N = {
+    en: {
+      'brand-tagline':'Make Every Website Accessible',
+      'brand-sub':'The leading SaaS platform for website accessibility — bilingual, easy to embed, and trusted by organizations worldwide.',
+      'tab-login':'Sign In','tab-reg':'Create Account',
+      'login-h1':'Welcome back','login-subtitle':'Sign in to manage your accessibility widgets',
+      'reg-h1':'Create your account','reg-subtitle':'Start your 14-day free trial, no credit card required',
+      'label-login-email':'Email Address','label-login-pwd':'Password',
+      'label-remember':'Remember me','link-forgot':'Forgot password?','login-btn':'Sign In',
+      'label-reg-fname':'First Name','label-reg-lname':'Last Name',
+      'label-reg-org':'Organization Name','label-reg-email':'Work Email',
+      'label-reg-plan':'Select Plan','label-reg-pwd':'Password',
+      'reg-btn':'Create Account & Start Trial',
+      'social-divider':'or continue with',
+      'btn-google-text':'Continue with Google',
+      'demo-hint-title':'🧪 Demo Credentials',
+      'demo-email-label':'Email:','demo-pwd-label':'Password:',
+      'terms-text':'By registering you agree to our Terms of Service and Privacy Policy.',
+      'lang-toggle':'🌐 AR',
+    },
+    ar: {
+      'brand-tagline':'اجعل كل موقع ويب متاحاً للجميع',
+      'brand-sub':'المنصة الرائدة لإمكانية الوصول لمواقع الويب — ثنائية اللغة، سهلة التضمين، وموثوقة من قبل منظمات حول العالم.',
+      'tab-login':'تسجيل الدخول','tab-reg':'إنشاء حساب',
+      'login-h1':'مرحباً بعودتك','login-subtitle':'سجّل دخولك لإدارة أدوات إمكانية الوصول',
+      'reg-h1':'أنشئ حسابك','reg-subtitle':'ابدأ تجربتك المجانية لمدة ١٤ يوماً، بدون بطاقة ائتمان',
+      'label-login-email':'البريد الإلكتروني','label-login-pwd':'كلمة المرور',
+      'label-remember':'تذكّرني','link-forgot':'نسيت كلمة المرور؟','login-btn':'تسجيل الدخول',
+      'label-reg-fname':'الاسم الأول','label-reg-lname':'اسم العائلة',
+      'label-reg-org':'اسم المنظمة','label-reg-email':'بريد العمل',
+      'label-reg-plan':'اختر الخطة','label-reg-pwd':'كلمة المرور',
+      'reg-btn':'إنشاء الحساب وبدء التجربة',
+      'social-divider':'أو تابع عبر',
+      'btn-google-text':'تابع عبر Google',
+      'demo-hint-title':'🧪 بيانات الدخول التجريبية',
+      'demo-email-label':'البريد:','demo-pwd-label':'كلمة المرور:',
+      'terms-text':'بالتسجيل أنت توافق على شروط الخدمة وسياسة الخصوصية.',
+      'lang-toggle':'🌐 EN',
+    }
+  };
+
+  function applyLoginLang(lang) {
+    const t = LOGIN_I18N[lang];
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    const s = (id, key) => { const el = document.getElementById(id); if (el && t[key]) el.textContent = t[key]; };
+
+    // Brand panel
+    const bTag = document.querySelector('.brand-tagline'); if (bTag) bTag.textContent = t['brand-tagline'];
+    const bSub = document.querySelector('.brand-sub'); if (bSub) bSub.textContent = t['brand-sub'];
+
+    // Tabs
+    s('tab-login-btn', 'tab-login'); s('tab-reg-btn', 'tab-reg');
+
+    // Login form
+    const isLogin = document.getElementById('login-form').style.display !== 'none';
+    s('login-h1', isLogin ? 'login-h1' : 'reg-h1');
+    s('login-subtitle', isLogin ? 'login-subtitle' : 'reg-subtitle');
+    s('label-login-email', 'label-login-email'); s('label-login-pwd', 'label-login-pwd');
+    s('label-remember', 'label-remember'); s('link-forgot', 'link-forgot');
+    s('login-btn', 'login-btn');
+
+    // Register form labels
+    const regLabels = document.querySelectorAll('#register-form label');
+    const regKeys = ['label-reg-fname','label-reg-lname','label-reg-org','label-reg-email','label-reg-plan','label-reg-pwd'];
+    regLabels.forEach((lbl, i) => { if (t[regKeys[i]]) lbl.textContent = t[regKeys[i]]; });
+    s('reg-btn', 'reg-btn');
+
+    // Social + demo
+    s('social-divider', 'social-divider');
+    const gBtn = document.getElementById('btn-google');
+    if (gBtn) { const span = gBtn.childNodes[1]; if (span) span.textContent = ' ' + t['btn-google-text']; }
+    s('demo-hint-title', 'demo-hint-title');
+    s('demo-email-label', 'demo-email-label'); s('demo-pwd-label', 'demo-pwd-label');
+    const terms = document.querySelector('.terms');
+    if (terms) terms.innerHTML = t['terms-text'];
+
+    // Lang toggle
+    s('lang-toggle', 'lang-toggle');
+    localStorage.setItem('aw_ui_lang', lang);
+  }
+
+  function toggleLoginLang() {
+    applyLoginLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
+  }
+
+  function checkPwdStrength(val) {
+    const bars = ['pb1','pb2','pb3','pb4'];
+    const label = document.getElementById('pwd-label');
+    bars.forEach(id => document.getElementById(id).className = 'pwd-bar');
+    if (!val) { label.textContent = ''; return; }
+    let score = 0;
+    if (val.length >= 8) score++;
+    if (/[A-Z]/.test(val)) score++;
+    if (/[0-9]/.test(val)) score++;
+    if (/[^A-Za-z0-9]/.test(val)) score++;
+    const levels = ['weak','weak','medium','strong'];
+    const texts  = ['Too short','Weak','Medium','Strong'];
+    for (let i = 0; i < score; i++) document.getElementById(bars[i]).classList.add(levels[score - 1]);
+    label.textContent = texts[score - 1] || '';
+  }
+
+  // Apply saved language on load (must be after LOGIN_I18N and applyLoginLang are defined)
+  applyLoginLang(localStorage.getItem('aw_ui_lang') || 'en');
+</script>
+</body>
+</html>

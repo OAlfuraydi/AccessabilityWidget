@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AccessWidget — How to Run</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --primary: #2563EB; --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --green: #22c55e; --yellow: #fbbf24; --red: #f87171; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+    .page { max-width: 860px; margin: 0 auto; padding: 48px 28px; }
+
+    header { text-align: center; margin-bottom: 56px; }
+    header .logo { font-size: 48px; margin-bottom: 16px; }
+    header h1 { font-size: 36px; font-weight: 900; }
+    header p { color: var(--muted); font-size: 16px; margin-top: 8px; }
+
+    /* Part cards */
+    .parts { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 48px; }
+    .part-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .part-icon { font-size: 28px; margin-bottom: 10px; }
+    .part-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+    .part-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .part-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-top: 8px; }
+    .badge-green  { background: #14532d; color: #86efac; }
+    .badge-blue   { background: #1e3a8a; color: #93c5fd; }
+    .badge-purple { background: #3b0764; color: #d8b4fe; }
+
+    /* Step sections */
+    .step-group { margin-bottom: 44px; }
+    .step-group-title {
+      font-size: 20px; font-weight: 800; margin-bottom: 20px;
+      padding-bottom: 10px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+    .step { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 14px; }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .step-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+    .step h3 { font-size: 14px; font-weight: 700; }
+    .step p { font-size: 13px; color: var(--muted); margin-bottom: 10px; line-height: 1.6; }
+
+    /* Code blocks */
+    .cmd { background: #020617; border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; font-family: 'Courier New', monospace; font-size: 13px; margin: 8px 0; position: relative; }
+    .cmd .prompt { color: var(--green); user-select: none; }
+    .cmd .text   { color: #e2e8f0; }
+    .cmd .comment { color: #475569; }
+    .cmd-copy { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.08); color: var(--muted); border: 1px solid var(--border); border-radius: 5px; padding: 3px 9px; font-size: 10px; cursor: pointer; font-family: inherit; font-weight: 600; }
+    .cmd-copy:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* Info / warning boxes */
+    .info  { background: #172554; border: 1px solid #1e40af; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin: 12px 0; }
+    .warn  { background: #451a03; border: 1px solid #92400e; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin: 12px 0; }
+    .ok    { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 12px 16px; font-size: 13px; margin: 12px 0; }
+    .info .label, .warn .label, .ok .label { font-weight: 700; display: block; margin-bottom: 4px; }
+    .info .label { color: #93c5fd; }
+    .warn .label { color: var(--yellow); }
+    .ok   .label { color: #86efac; }
+
+    /* DB diagram */
+    .db-diagram { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 16px 0; }
+    .db-table { background: #020617; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .db-table-name { background: var(--primary); color: #fff; font-size: 11px; font-weight: 700; padding: 7px 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .db-col { padding: 5px 12px; font-size: 11px; font-family: monospace; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; }
+    .db-col:last-child { border-bottom: none; }
+    .db-col .col-name { color: #e2e8f0; }
+    .db-col .col-type { color: #64748b; }
+    .db-col .col-pk   { color: var(--yellow); font-weight: 700; }
+    .db-col .col-fk   { color: #f472b6; }
+
+    /* File tree */
+    .tree { background: #020617; border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; font-family: monospace; font-size: 12px; line-height: 2; }
+    .tree .dir  { color: #93c5fd; font-weight: 700; }
+    .tree .file { color: #e2e8f0; }
+    .tree .note { color: #475569; }
+
+    /* URL table */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 14px 0; }
+    th { text-align: left; padding: 8px 12px; background: #020617; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid var(--border); }
+    td { padding: 9px 12px; border: 1px solid var(--border); vertical-align: top; }
+    td code { background: #020617; padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+    .method { font-weight: 700; font-family: monospace; font-size: 11px; }
+    .method.GET  { color: var(--green); }
+    .method.POST { color: var(--yellow); }
+    .method.PUT  { color: #c084fc; }
+    .method.DEL  { color: var(--red); }
+
+    #toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #fff; padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; opacity: 0; transition: opacity 0.3s; pointer-events: none; border: 1px solid var(--border); }
+    #toast.show { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .parts       { grid-template-columns: 1fr; }
+      .db-diagram  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="logo">♿</div>
+    <h1>How to Run AccessWidget</h1>
+    <p>Complete setup guide — static pages, API server, and database</p>
+  </header>
+
+  <!-- ── Project parts ── -->
+  <div class="parts">
+    <div class="part-card">
+      <div class="part-icon">🌐</div>
+      <div class="part-title">Static Pages</div>
+      <div class="part-desc">demo.html, admin/index.html, saas/dashboard/ — plain HTML, open directly in any browser.</div>
+      <span class="part-badge badge-green">No server needed</span>
+    </div>
+    <div class="part-card">
+      <div class="part-icon">⚙️</div>
+      <div class="part-title">API Server</div>
+      <div class="part-desc">Node.js + Express backend at saas/api/. Handles license validation, auth, analytics.</div>
+      <span class="part-badge badge-blue">Node.js required</span>
+    </div>
+    <div class="part-card">
+      <div class="part-icon">🗄️</div>
+      <div class="part-title">SQLite Database</div>
+      <div class="part-desc">File-based database at saas/api/data/accesswidget.db. Auto-created on first run. No external server.</div>
+      <span class="part-badge badge-purple">Auto-created</span>
+    </div>
+  </div>
+
+  <!-- ═══ PART 1: Open static pages ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">1</div>
+      Open the Static Pages (no setup needed)
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Open the demo page</h3></div>
+      <p>Double-click any HTML file to open it in your browser. The widget works instantly — no server required for the front-end.</p>
+      <div class="cmd">
+        <span class="comment"># Windows Explorer — just double-click:</span><br>
+        <span class="text">demo.html</span><br>
+        <span class="text">admin\index.html</span><br>
+        <span class="text">saas\dashboard\login.html</span><br>
+        <span class="text">saas\dashboard\index.html</span><br>
+        <span class="text">embed-guide.html</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="ok">
+        <span class="label">✅ That's it for the front-end</span>
+        All pages open without any server. The widget, admin panel, and customer dashboard all work in the browser.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Optional: use a local HTTP server for better experience</h3></div>
+      <p>Some browsers block <code>file://</code> URLs from making fetch requests. If the widget's license check fails locally, serve the files over HTTP:</p>
+      <div class="cmd">
+        <span class="comment"># Option A — Python (built-in, no install)</span><br>
+        <span class="prompt">$ </span><span class="text">cd "c:\Users\admin\Downloads\Accessability tool"</span><br>
+        <span class="prompt">$ </span><span class="text">python -m http.server 8080</span><br>
+        <span class="comment"># Then open: http://localhost:8080/demo.html</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="cmd">
+        <span class="comment"># Option B — Node.js (install once)</span><br>
+        <span class="prompt">$ </span><span class="text">npm install -g serve</span><br>
+        <span class="prompt">$ </span><span class="text">serve "c:\Users\admin\Downloads\Accessability tool" -p 8080</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 2: Install Node.js ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">2</div>
+      Install Prerequisites (one time only)
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Install Node.js</h3></div>
+      <p>The API server requires Node.js v18 or higher. Download from nodejs.org and run the installer.</p>
+      <div class="cmd">
+        <span class="comment"># Verify installation after downloading:</span><br>
+        <span class="prompt">$ </span><span class="text">node --version</span>
+        <span class="comment">  # should print v18.x.x or higher</span><br>
+        <span class="prompt">$ </span><span class="text">npm --version</span>
+        <span class="comment">   # should print 9.x.x or higher</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="info">
+        <span class="label">ℹ Download Node.js</span>
+        Visit <strong>https://nodejs.org</strong> → Download the <strong>LTS</strong> version → Run the .msi installer → Restart your terminal.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 3: Run API Server ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">3</div>
+      Start the API Server
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Install dependencies</h3></div>
+      <p>Open a terminal (Command Prompt or PowerShell) and run:</p>
+      <div class="cmd">
+        <span class="prompt">$ </span><span class="text">cd "c:\Users\admin\Downloads\Accessability tool\saas\api"</span><br>
+        <span class="prompt">$ </span><span class="text">npm install</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <p style="margin-top:10px">This installs: <code>express</code>, <code>better-sqlite3</code>, <code>cors</code>, <code>helmet</code>, <code>uuid</code>, <code>express-rate-limit</code></p>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Start the server</h3></div>
+      <div class="cmd">
+        <span class="comment"># Production (keeps running until you close the terminal):</span><br>
+        <span class="prompt">$ </span><span class="text">npm start</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="cmd">
+        <span class="comment"># Development (auto-restarts when you edit server.js):</span><br>
+        <span class="prompt">$ </span><span class="text">npm run dev</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="ok">
+        <span class="label">✅ Server is running when you see:</span>
+        <code style="font-size:12px;display:block;margin-top:6px;color:#86efac">
+          URL  : http://localhost:3001<br>
+          DB   : SQLite → saas/api/data/accesswidget.db
+        </code>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Test the API</h3></div>
+      <p>Open your browser or use curl to verify:</p>
+      <div class="cmd">
+        <span class="comment"># Health check — should return {"status":"ok"}</span><br>
+        <span class="prompt">$ </span><span class="text">curl http://localhost:3001/health</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="cmd">
+        <span class="comment"># Test license validation (demo key):</span><br>
+        <span class="prompt">$ </span><span class="text">curl -X POST http://localhost:3001/api/v1/validate \</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text">-H "Content-Type: application/json" \</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="text">-d "{\"key\":\"AW-PRO1-X2Y3-Z4A5-B6C7\",\"domain\":\"mycompany.com\"}"</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 4: Dashboard login ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">4</div>
+      Open the Customer Dashboard
+    </div>
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Sign in with demo credentials</h3></div>
+      <p>Open <code>saas/dashboard/login.html</code> in your browser, then use:</p>
+      <div class="cmd">
+        <span class="text">Email    : demo@accesswidget.io</span><br>
+        <span class="text">Password : demo1234</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="info">
+        <span class="label">ℹ The dashboard is self-contained</span>
+        It uses mock data that mirrors the database. For a live connection to the API, update the fetch calls in <code>dashboard/index.html</code> to point to <code>http://localhost:3001</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 5: Database ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">5</div>
+      Database — What's Stored &amp; Where
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>SQLite — file-based, no external server</h3></div>
+      <p>The database is a single file that is <strong>created automatically</strong> the first time you run the server. All customer data persists between server restarts.</p>
+      <div class="cmd">
+        <span class="comment"># Database file location:</span><br>
+        <span class="text">saas\api\data\accesswidget.db</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+      <div class="ok">
+        <span class="label">✅ Data survives server restarts</span>
+        Unlike the old in-memory version, all customers, licenses, and analytics are now saved permanently to disk.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>Database tables</h3></div>
+      <div class="db-diagram">
+        <div class="db-table">
+          <div class="db-table-name">customers</div>
+          <div class="db-col"><span class="col-name col-pk">id</span><span class="col-type">TEXT PK</span></div>
+          <div class="db-col"><span class="col-name">email</span><span class="col-type">TEXT UNIQUE</span></div>
+          <div class="db-col"><span class="col-name">password</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">org</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">plan</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">api_key</span><span class="col-type">TEXT UNIQUE</span></div>
+          <div class="db-col"><span class="col-name">created_at</span><span class="col-type">TEXT</span></div>
+        </div>
+        <div class="db-table">
+          <div class="db-table-name">subscriptions</div>
+          <div class="db-col"><span class="col-name col-pk">id</span><span class="col-type">INT PK</span></div>
+          <div class="db-col"><span class="col-name col-fk">customer_id</span><span class="col-type">→ customers</span></div>
+          <div class="db-col"><span class="col-name">plan</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">website_limit</span><span class="col-type">INTEGER</span></div>
+          <div class="db-col"><span class="col-name">expires_at</span><span class="col-type">TEXT</span></div>
+        </div>
+        <div class="db-table">
+          <div class="db-table-name">licenses</div>
+          <div class="db-col"><span class="col-name col-pk">id</span><span class="col-type">INT PK</span></div>
+          <div class="db-col"><span class="col-name">key</span><span class="col-type">TEXT UNIQUE</span></div>
+          <div class="db-col"><span class="col-name col-fk">customer_id</span><span class="col-type">→ customers</span></div>
+          <div class="db-col"><span class="col-name">domain</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">name</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">plan</span><span class="col-type">TEXT</span></div>
+        </div>
+        <div class="db-table">
+          <div class="db-table-name">analytics</div>
+          <div class="db-col"><span class="col-name col-pk">id</span><span class="col-type">INT PK</span></div>
+          <div class="db-col"><span class="col-name">type</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name col-fk">license_key</span><span class="col-type">→ licenses</span></div>
+          <div class="db-col"><span class="col-name">domain</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">plan</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">ts</span><span class="col-type">INTEGER (unix)</span></div>
+        </div>
+        <div class="db-table">
+          <div class="db-table-name">billing</div>
+          <div class="db-col"><span class="col-name col-pk">id</span><span class="col-type">INT PK</span></div>
+          <div class="db-col"><span class="col-name col-fk">customer_id</span><span class="col-type">→ customers</span></div>
+          <div class="db-col"><span class="col-name">invoice_id</span><span class="col-type">TEXT UNIQUE</span></div>
+          <div class="db-col"><span class="col-name">plan</span><span class="col-type">TEXT</span></div>
+          <div class="db-col"><span class="col-name">amount_cents</span><span class="col-type">INTEGER</span></div>
+          <div class="db-col"><span class="col-name">status</span><span class="col-type">TEXT</span></div>
+        </div>
+      </div>
+      <div class="warn">
+        <span class="label">⚠ Production note: hash your passwords</span>
+        Currently passwords are stored as plain text for demo simplicity. Before going live, install <code>bcrypt</code> (<code>npm install bcrypt</code>) and hash passwords on register and compare on login. Never store plain passwords in production.
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header"><div class="step-dot"></div><h3>View the database (optional)</h3></div>
+      <p>To browse the SQLite database visually, download <strong>DB Browser for SQLite</strong> (free) and open <code>saas/api/data/accesswidget.db</code>.</p>
+      <div class="cmd">
+        <span class="comment"># Or query it from the terminal:</span><br>
+        <span class="prompt">$ </span><span class="text">sqlite3 saas\api\data\accesswidget.db</span><br>
+        <span class="text">sqlite&gt; SELECT email, plan, api_key FROM customers;</span><br>
+        <span class="text">sqlite&gt; SELECT key, domain, status FROM licenses;</span><br>
+        <span class="text">sqlite&gt; SELECT COUNT(*) FROM analytics WHERE type='activation';</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 6: API reference ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">6</div>
+      API Endpoints Reference
+    </div>
+    <div class="step">
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="method GET">GET</span></td><td><code>/health</code></td><td>—</td><td>Server health check</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/v1/auth/login</code></td><td>—</td><td>Login → returns token</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/v1/auth/register</code></td><td>—</td><td>Create account</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/v1/validate</code></td><td>—</td><td><strong>Widget license check</strong> — public</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/v1/licenses</code></td><td>API Key</td><td>List your license keys</td></tr>
+          <tr><td><span class="method POST">POST</span></td><td><code>/api/v1/licenses</code></td><td>API Key</td><td>Create a new license key</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/v1/licenses/:key/status</code></td><td>API Key</td><td>Suspend or activate a key</td></tr>
+          <tr><td><span class="method DEL">DELETE</span></td><td><code>/api/v1/licenses/:key</code></td><td>API Key</td><td>Delete a license key</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/v1/analytics</code></td><td>API Key</td><td>Usage statistics</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/v1/subscription</code></td><td>API Key</td><td>Subscription details</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/v1/subscription/plan</code></td><td>API Key</td><td>Upgrade / downgrade plan</td></tr>
+          <tr><td><span class="method GET">GET</span></td><td><code>/api/v1/billing</code></td><td>API Key</td><td>Invoice history</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/v1/account</code></td><td>API Key</td><td>Update name / org</td></tr>
+          <tr><td><span class="method PUT">PUT</span></td><td><code>/api/v1/account/password</code></td><td>API Key</td><td>Change password</td></tr>
+        </tbody>
+      </table>
+      <div class="info">
+        <span class="label">ℹ Authenticating protected endpoints</span>
+        Include your API key in the <code>Authorization</code> header:<br>
+        <code>Authorization: Bearer aw_live_sk_a1b2c3d4e5f6g7h8i9j0</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PART 7: Quick summary ═══ -->
+  <div class="step-group">
+    <div class="step-group-title">
+      <div class="step-num">7</div>
+      Quick Summary — All URLs
+    </div>
+    <div class="step">
+      <div class="cmd">
+        <span class="comment"># Static pages (open directly in browser):</span><br>
+        <span class="text">demo.html</span>                          <span class="comment">← widget live demo</span><br>
+        <span class="text">admin/index.html</span>                  <span class="comment">← widget admin panel</span><br>
+        <span class="text">embed-guide.html</span>                  <span class="comment">← integration docs</span><br>
+        <span class="text">saas/dashboard/login.html</span>         <span class="comment">← customer login</span><br>
+        <span class="text">saas/dashboard/index.html</span>         <span class="comment">← customer dashboard</span><br>
+        <span class="text">HOW-TO-RUN.html</span>                   <span class="comment">← this file</span><br><br>
+        <span class="comment"># API server (after npm start in saas/api/):</span><br>
+        <span class="text">http://localhost:3001/health</span><br>
+        <span class="text">http://localhost:3001/api/v1/validate</span><br><br>
+        <span class="comment"># Database file:</span><br>
+        <span class="text">saas/api/data/accesswidget.db</span>
+        <button class="cmd-copy" onclick="copy(this)">Copy</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<div id="toast"></div>
+
+<script>
+  function copy(btn) {
+    const block = btn.parentElement;
+    const text  = [...block.childNodes]
+      .filter(n => n.nodeType === Node.TEXT_NODE || (n.tagName && n.tagName !== 'BUTTON'))
+      .map(n => n.innerText || n.textContent)
+      .join('').replace(/^\s+|\s+$/gm, '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+      toast('📋 Copied to clipboard');
+    });
+  }
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+</script>
+</body>
+</html>

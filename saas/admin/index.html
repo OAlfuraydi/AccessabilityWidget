@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AccessWidget — Admin Panel</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0f172a;
+  --surface:  #1e293b;
+  --surface2: #263348;
+  --border:   #334155;
+  --text:     #f1f5f9;
+  --muted:    #94a3b8;
+  --primary:  #3b82f6;
+  --green:    #22c55e;
+  --yellow:   #f59e0b;
+  --red:      #ef4444;
+  --purple:   #a855f7;
+  --orange:   #f97316;
+  --sidebar:  240px;
+}
+
+body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* ── Login ─────────────────────────────────── */
+#login-screen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 2rem;
+}
+.login-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 400px;
+}
+.login-card h1 { font-size: 1.5rem; margin-bottom: .25rem; }
+.login-card p  { color: var(--muted); margin-bottom: 2rem; font-size: .9rem; }
+.login-card label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .4rem; }
+.login-card input {
+  width: 100%; padding: .7rem 1rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+  font-size: .95rem; outline: none; margin-bottom: 1rem;
+}
+.login-card input:focus { border-color: var(--primary); }
+#login-error { color: var(--red); font-size: .85rem; margin-bottom: 1rem; display: none; }
+.btn-primary {
+  width: 100%; padding: .75rem; background: var(--primary); color: #fff;
+  border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; font-weight: 600;
+  transition: background .2s;
+}
+.btn-primary:hover { background: #2563eb; }
+
+/* ── App Layout ─────────────────────────────── */
+#app { display: none; }
+.layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ─────────────────────────────────── */
+#sidebar {
+  width: var(--sidebar); background: var(--surface); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; position: fixed; top: 0; bottom: 0; left: 0; z-index: 10;
+}
+.sidebar-logo {
+  padding: 1.5rem 1.25rem; border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; background: var(--primary); border-radius: 8px;
+  font-size: 1.1rem; margin-bottom: .5rem;
+}
+.sidebar-logo h2 { font-size: 1rem; font-weight: 700; }
+.sidebar-logo p  { font-size: .72rem; color: var(--muted); }
+
+nav { flex: 1; padding: 1rem 0; overflow-y: auto; }
+.nav-section { padding: .25rem 1.25rem .5rem; font-size: .7rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.nav-item {
+  display: flex; align-items: center; gap: .75rem; padding: .65rem 1.25rem;
+  cursor: pointer; border-radius: 0; color: var(--muted); font-size: .88rem;
+  transition: all .15s; border-left: 3px solid transparent;
+  text-decoration: none; width: 100%;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,.04); }
+.nav-item.active { color: var(--primary); border-left-color: var(--primary); background: rgba(59,130,246,.08); }
+.nav-item .icon { font-size: 1.05rem; width: 20px; text-align: center; }
+
+.sidebar-footer {
+  padding: 1rem 1.25rem; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: .75rem;
+}
+.sidebar-footer .avatar {
+  width: 32px; height: 32px; background: var(--primary); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .8rem;
+}
+.sidebar-footer .info { font-size: .78rem; }
+.sidebar-footer .info .name { font-weight: 600; color: var(--text); }
+.sidebar-footer .info .role { color: var(--muted); }
+#logout-btn { margin-left: auto; background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; }
+#logout-btn:hover { color: var(--red); }
+
+/* ── Main content ────────────────────────────── */
+#content { margin-left: var(--sidebar); flex: 1; min-height: 100vh; }
+
+.page-header {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 5;
+}
+.page-header h1 { font-size: 1.15rem; font-weight: 700; }
+.page-header .subtitle { font-size: .8rem; color: var(--muted); }
+.header-actions { display: flex; gap: .75rem; align-items: center; }
+
+.tab-pane { display: none; padding: 2rem; }
+.tab-pane.active { display: block; }
+
+/* ── Cards & Stats ───────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+.stat-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem;
+}
+.stat-card .label { font-size: .78rem; color: var(--muted); margin-bottom: .4rem; }
+.stat-card .value { font-size: 2rem; font-weight: 700; line-height: 1; }
+.stat-card .change { font-size: .78rem; color: var(--muted); margin-top: .4rem; }
+.stat-card.green .value { color: var(--green); }
+.stat-card.blue  .value { color: var(--primary); }
+.stat-card.purple .value { color: var(--purple); }
+.stat-card.orange .value { color: var(--orange); }
+
+/* ── Tables ──────────────────────────────────── */
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+.card-header {
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.card-header h3 { font-size: .95rem; font-weight: 600; }
+.card-body { padding: 1.25rem; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+thead th {
+  text-align: left; padding: .65rem 1rem; font-size: .75rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+tbody tr { border-bottom: 1px solid rgba(51,65,85,.5); }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: rgba(255,255,255,.02); }
+tbody td { padding: .75rem 1rem; vertical-align: middle; }
+
+/* ── Badges ──────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .2rem .6rem; border-radius: 20px; font-size: .72rem; font-weight: 600;
+}
+.badge-green  { background: rgba(34,197,94,.15);  color: var(--green); }
+.badge-red    { background: rgba(239,68,68,.15);   color: var(--red); }
+.badge-yellow { background: rgba(245,158,11,.15);  color: var(--yellow); }
+.badge-gray   { background: rgba(148,163,184,.15); color: var(--muted); }
+.badge-blue   { background: rgba(59,130,246,.15);  color: var(--primary); }
+.badge-purple { background: rgba(168,85,247,.15);  color: var(--purple); }
+.badge-orange { background: rgba(249,115,22,.15);  color: var(--orange); }
+
+/* ── Buttons ─────────────────────────────────── */
+.btn {
+  padding: .45rem .9rem; border-radius: 7px; font-size: .8rem; font-weight: 600;
+  cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; gap: .4rem;
+}
+.btn-sm { padding: .3rem .65rem; font-size: .75rem; }
+.btn-blue   { background: var(--primary); color: #fff; }
+.btn-blue:hover { background: #2563eb; }
+.btn-green  { background: rgba(34,197,94,.15); color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+.btn-green:hover { background: rgba(34,197,94,.25); }
+.btn-red    { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); }
+.btn-red:hover { background: rgba(239,68,68,.25); }
+.btn-gray   { background: rgba(148,163,184,.1); color: var(--muted); border: 1px solid var(--border); }
+.btn-gray:hover { background: rgba(148,163,184,.2); color: var(--text); }
+.btn-yellow { background: rgba(245,158,11,.15); color: var(--yellow); border: 1px solid rgba(245,158,11,.3); }
+.btn-yellow:hover { background: rgba(245,158,11,.25); }
+
+/* ── Search & Filters ────────────────────────── */
+.search-row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.search-input {
+  flex: 1; min-width: 200px; padding: .55rem .9rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .85rem; outline: none;
+}
+.search-input:focus { border-color: var(--primary); }
+select.filter-select {
+  padding: .55rem .9rem; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-size: .85rem; outline: none; cursor: pointer;
+}
+select.filter-select:focus { border-color: var(--primary); }
+
+/* ── Modal ───────────────────────────────────── */
+#modal-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7);
+  z-index: 100; align-items: center; justify-content: center; padding: 1rem;
+}
+#modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; width: 100%; max-width: 520px;
+  position: relative; max-height: 90vh; overflow-y: auto;
+}
+.modal h2 { font-size: 1.15rem; margin-bottom: .25rem; }
+.modal .modal-sub { color: var(--muted); font-size: .85rem; margin-bottom: 1.5rem; }
+.modal-close {
+  position: absolute; top: 1rem; right: 1rem; background: none; border: none;
+  color: var(--muted); cursor: pointer; font-size: 1.3rem; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+.form-row { margin-bottom: 1rem; }
+.form-row label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: .4rem; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%; padding: .65rem .9rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: .88rem; outline: none;
+}
+.form-row input:focus, .form-row select:focus { border-color: var(--primary); }
+.modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.5rem; }
+
+/* ── Toast ───────────────────────────────────── */
+#toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 999; display: flex; flex-direction: column; gap: .5rem; }
+.toast {
+  padding: .75rem 1.25rem; border-radius: 10px; font-size: .85rem; font-weight: 500;
+  animation: slideIn .3s ease; box-shadow: 0 8px 24px rgba(0,0,0,.4);
+}
+.toast.success { background: #14532d; color: var(--green); border: 1px solid rgba(34,197,94,.3); }
+.toast.error   { background: #450a0a; color: var(--red);   border: 1px solid rgba(239,68,68,.3); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ── Loading ─────────────────────────────────── */
+.loading { text-align: center; color: var(--muted); padding: 3rem; font-size: .9rem; }
+.loading::before { content: '⏳ '; }
+
+/* ── Detail row ─────────────────────────────── */
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.detail-item .dl { font-size: .75rem; color: var(--muted); margin-bottom: .2rem; }
+.detail-item .dd { font-size: .9rem; font-weight: 500; }
+
+/* ── Inline editable cell ──────────────────────── */
+.editable { cursor: pointer; border-bottom: 1px dashed var(--border); }
+.editable:hover { border-bottom-color: var(--primary); }
+
+/* ── Revenue display ─────────────────────────── */
+.revenue-big { font-size: 2.5rem; font-weight: 800; color: var(--green); }
+
+/* ── Empty state ─────────────────────────────── */
+.empty { text-align: center; padding: 3rem; color: var(--muted); }
+.empty .icon { font-size: 2.5rem; margin-bottom: .75rem; }
+
+/* ── Top domains bar ─────────────────────────── */
+.domain-bar { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+.domain-bar .d-name { width: 180px; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.domain-bar .d-bar  { flex: 1; height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.domain-bar .d-fill { height: 100%; background: var(--primary); border-radius: 4px; }
+.domain-bar .d-count { width: 50px; text-align: right; font-size: .8rem; color: var(--muted); }
+
+/* ── API config ──────────────────────────────── */
+.api-url-display {
+  font-family: monospace; font-size: .8rem; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px; padding: .5rem .75rem;
+  color: var(--muted);
+}
+
+/* ── Language toggle ─────────────────────────── */
+.lang-btn {
+  background: rgba(148,163,184,.1); border: 1px solid var(--border);
+  border-radius: 20px; padding: .3rem .85rem;
+  font-size: .78rem; font-weight: 700; cursor: pointer; color: var(--muted);
+  transition: all .15s;
+}
+.lang-btn:hover { background: rgba(148,163,184,.2); color: var(--text); }
+
+/* ── RTL overrides ───────────────────────────── */
+html[dir="rtl"] #sidebar { left: auto; right: 0; border-right: none; border-left: 1px solid var(--border); }
+html[dir="rtl"] #content { margin-left: 0; margin-right: var(--sidebar); }
+html[dir="rtl"] .nav-item { border-left: none; border-right: 3px solid transparent; text-align: right; }
+html[dir="rtl"] .nav-item.active { border-right-color: var(--primary); border-left-color: transparent; }
+html[dir="rtl"] .sidebar-logo, html[dir="rtl"] .sidebar-footer { direction: rtl; text-align: right; }
+html[dir="rtl"] thead th, html[dir="rtl"] tbody td { text-align: right; }
+html[dir="rtl"] .page-header { direction: rtl; }
+html[dir="rtl"] .header-actions { flex-direction: row-reverse; }
+html[dir="rtl"] .card-header { direction: rtl; }
+html[dir="rtl"] .search-row { flex-direction: row-reverse; }
+html[dir="rtl"] .login-card { direction: rtl; text-align: right; }
+html[dir="rtl"] .modal { direction: rtl; text-align: right; }
+html[dir="rtl"] .modal-actions { flex-direction: row-reverse; }
+html[dir="rtl"] .modal-close { right: auto; left: 1rem; }
+html[dir="rtl"] #toast-container { right: auto; left: 1.5rem; }
+html[dir="rtl"] .stats-grid { direction: rtl; }
+html[dir="rtl"] .stat-card { text-align: right; }
+html[dir="rtl"] .detail-grid { direction: rtl; }
+html[dir="rtl"] .domain-bar { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+
+<!-- ═══ Login Screen ════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div style="font-size:2rem;margin-bottom:.5rem">🛡️</div>
+    <h1>Admin Panel</h1>
+    <p>AccessWidget Platform Administration</p>
+    <div id="login-error"></div>
+    <label for="api-url-input">API Server URL</label>
+    <input id="api-url-input" type="text" value="http://localhost:3001" placeholder="http://localhost:3001">
+    <label for="admin-key-input">Admin Secret Key</label>
+    <input id="admin-key-input" type="password" placeholder="Enter your ADMIN_SECRET">
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign In</button>
+  </div>
+</div>
+
+<!-- ═══ Main App ═════════════════════════════════ -->
+<div id="app">
+  <div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark">♿</div>
+        <h2>AccessWidget</h2>
+        <p>Admin Panel</p>
+      </div>
+      <nav>
+        <div class="nav-section">Overview</div>
+        <a class="nav-item active" onclick="showTab('dashboard')" href="#">
+          <span class="icon">📊</span> Dashboard
+        </a>
+        <div class="nav-section">Management</div>
+        <a class="nav-item" onclick="showTab('organizations')" href="#">
+          <span class="icon">🏢</span> Organizations
+        </a>
+        <a class="nav-item" onclick="showTab('subscriptions')" href="#">
+          <span class="icon">💳</span> Subscriptions
+        </a>
+        <a class="nav-item" onclick="showTab('licenses')" href="#">
+          <span class="icon">🔑</span> Licenses
+        </a>
+        <div class="nav-section">Insights</div>
+        <a class="nav-item" onclick="showTab('analytics')" href="#">
+          <span class="icon">📈</span> Analytics
+        </a>
+        <a class="nav-item" onclick="showTab('billing')" href="#">
+          <span class="icon">🧾</span> Billing
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="avatar">A</div>
+        <div class="info">
+          <div class="name">Administrator</div>
+          <div class="role">Super Admin</div>
+        </div>
+        <button id="logout-btn" title="Logout" onclick="doLogout()">⏏</button>
+      </div>
+    </aside>
+
+    <!-- Content -->
+    <div id="content">
+
+      <!-- Page Header -->
+      <div class="page-header">
+        <div>
+          <h1 id="page-title">Dashboard</h1>
+          <div class="subtitle" id="page-subtitle">Platform overview</div>
+        </div>
+        <div class="header-actions">
+          <div class="api-url-display" id="api-url-badge">localhost:3001</div>
+          <button class="lang-btn" id="lang-toggle" onclick="toggleAdminLang()">🌐 AR</button>
+          <button class="btn btn-gray btn-sm" id="refresh-btn" onclick="refreshCurrent()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- ── Dashboard ──────────────────────────── -->
+      <div class="tab-pane active" id="pane-dashboard">
+        <div class="stats-grid" id="dash-stats">
+          <div class="loading">Loading stats…</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+          <div class="card">
+            <div class="card-header"><h3>📊 Subscriptions by Status</h3></div>
+            <div class="card-body" id="dash-sub-status"><div class="loading">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>🌍 Top Active Domains</h3></div>
+            <div class="card-body" id="dash-top-domains"><div class="loading">Loading…</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Organizations ──────────────────────── -->
+      <div class="tab-pane" id="pane-organizations">
+        <div class="card">
+          <div class="card-header">
+            <h3>All Organizations</h3>
+            <div class="search-row">
+              <input class="search-input" id="org-search" placeholder="Search by name, email, org…" oninput="filterOrgs()">
+              <select class="filter-select" id="org-plan-filter" onchange="filterOrgs()">
+                <option value="">All Plans</option>
+                <option value="starter">Starter</option>
+                <option value="professional">Professional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <select class="filter-select" id="org-status-filter" onchange="filterOrgs()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name / Email</th>
+                  <th>Organization</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Licenses</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="org-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Subscriptions ──────────────────────── -->
+      <div class="tab-pane" id="pane-subscriptions">
+        <div class="card">
+          <div class="card-header">
+            <h3>All Subscriptions</h3>
+            <div class="search-row">
+              <input class="search-input" id="sub-search" placeholder="Search customer…" oninput="filterSubs()">
+              <select class="filter-select" id="sub-status-filter" onchange="filterSubs()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="trial">Trial</option>
+                <option value="expired">Expired</option>
+                <option value="suspended">Suspended</option>
+              </select>
+              <select class="filter-select" id="sub-plan-filter" onchange="filterSubs()">
+                <option value="">All Plans</option>
+                <option value="starter">Starter</option>
+                <option value="professional">Professional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Sites Limit</th>
+                  <th>Expires</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="sub-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Licenses ───────────────────────────── -->
+      <div class="tab-pane" id="pane-licenses">
+        <div class="card">
+          <div class="card-header">
+            <h3>All Licenses</h3>
+            <div class="search-row">
+              <input class="search-input" id="lic-search" placeholder="Search key, domain, customer…" oninput="filterLics()">
+              <select class="filter-select" id="lic-status-filter" onchange="filterLics()">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+                <option value="expired">Expired</option>
+              </select>
+              <select class="filter-select" id="lic-plan-filter" onchange="filterLics()">
+                <option value="">All Plans</option>
+                <option value="starter">Starter</option>
+                <option value="professional">Professional</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <button class="btn btn-blue" onclick="openAddLicModal()">➕ Add License</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>License Key</th>
+                  <th>Customer</th>
+                  <th>Domain</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="lic-tbody"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Analytics ──────────────────────────── -->
+      <div class="tab-pane" id="pane-analytics">
+        <div class="stats-grid" id="an-stats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem">
+          <div class="card">
+            <div class="card-header"><h3>🌍 Top Domains by Activations</h3></div>
+            <div class="card-body" id="an-top-domains"><div class="loading">Loading…</div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>⚡ Event Type Breakdown</h3></div>
+            <div class="card-body" id="an-breakdown"><div class="loading">Loading…</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>🕒 Recent Events</h3></div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Time</th><th>Type</th><th>License Key</th><th>Domain</th><th>Plan</th></tr>
+              </thead>
+              <tbody id="an-events-tbody"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Billing ────────────────────────────── -->
+      <div class="tab-pane" id="pane-billing">
+        <div class="stats-grid" style="margin-bottom:1.5rem" id="billing-stats"></div>
+        <div class="card">
+          <div class="card-header">
+            <h3>All Invoices</h3>
+            <input class="search-input" style="max-width:280px" id="bill-search" placeholder="Search customer or invoice…" oninput="filterBilling()">
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Invoice</th><th>Customer</th><th>Plan</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+              </thead>
+              <tbody id="bill-tbody"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- ═══ Modal ════════════════════════════════════ -->
+<div id="modal-overlay" onclick="closeModalOnBackdrop(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2 id="modal-title">Modal</h2>
+    <p class="modal-sub" id="modal-sub"></p>
+    <div id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- ═══ Toast ════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<script>
+'use strict';
+
+// ─────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────
+let API = 'http://localhost:3001';
+let ADMIN_KEY = '';
+let currentTab = 'dashboard';
+
+// Raw data stores
+let orgsData = [];
+let subsData = [];
+let licsData = [];
+let billData = [];
+
+// ─────────────────────────────────────────────
+// Login / Logout
+// ─────────────────────────────────────────────
+async function doLogin() {
+  const url = document.getElementById('api-url-input').value.trim().replace(/\/$/, '');
+  const key = document.getElementById('admin-key-input').value.trim();
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+
+  if (!url || !key) { showLoginError('Please fill in both fields.'); return; }
+
+  document.getElementById('login-btn').textContent = 'Verifying…';
+  try {
+    const res = await fetch(`${url}/api/v1/admin/stats`, {
+      headers: { 'Authorization': `AdminKey ${key}` }
+    });
+    if (res.status === 401) { showLoginError('Invalid admin key.'); return; }
+    if (!res.ok) { showLoginError(`Server error: ${res.status}`); return; }
+
+    API = url;
+    ADMIN_KEY = key;
+    sessionStorage.setItem('aw_admin_key', key);
+    sessionStorage.setItem('aw_admin_url', url);
+
+    document.getElementById('api-url-badge').textContent = url.replace('http://', '').replace('https://', '');
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    loadTab('dashboard');
+  } catch (e) {
+    showLoginError('Cannot reach server. Is it running?');
+  } finally {
+    document.getElementById('login-btn').textContent = 'Sign In';
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function doLogout() {
+  sessionStorage.removeItem('aw_admin_key');
+  sessionStorage.removeItem('aw_admin_url');
+  location.reload();
+}
+
+// Auto-login from session
+(function autoLogin() {
+  const key = sessionStorage.getItem('aw_admin_key');
+  const url = sessionStorage.getItem('aw_admin_url');
+  if (key && url) {
+    document.getElementById('admin-key-input').value = key;
+    document.getElementById('api-url-input').value = url;
+    doLogin();
+  }
+})();
+
+document.getElementById('admin-key-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ─────────────────────────────────────────────
+// API helper
+// ─────────────────────────────────────────────
+async function api(path, method = 'GET', body) {
+  const opts = {
+    method,
+    headers: { 'Authorization': `AdminKey ${ADMIN_KEY}`, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+  return data;
+}
+
+// ─────────────────────────────────────────────
+// Tab navigation
+// ─────────────────────────────────────────────
+const tabMeta = {
+  dashboard:     { title: 'Dashboard',     subtitle: 'Platform overview' },
+  organizations: { title: 'Organizations', subtitle: 'Manage customers and accounts' },
+  subscriptions: { title: 'Subscriptions', subtitle: 'Manage plans and billing cycles' },
+  licenses:      { title: 'Licenses',      subtitle: 'Manage license keys and domains' },
+  analytics:     { title: 'Analytics',     subtitle: 'Platform usage and activation data' },
+  billing:       { title: 'Billing',       subtitle: 'Invoices and revenue overview' },
+};
+
+function showTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`pane-${tab}`).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(`'${tab}'`)) n.classList.add('active');
+  });
+  const lang = document.documentElement.lang || 'en';
+  const tr = ADMIN_I18N[lang] || ADMIN_I18N.en;
+  const titleKeys = { dashboard:'nav-dashboard', organizations:'nav-orgs', subscriptions:'nav-subs', licenses:'nav-licenses', analytics:'nav-analytics', billing:'nav-billing' };
+  const subKeys = { dashboard:'tab-dash-sub', organizations:'tab-orgs-sub', subscriptions:'tab-subs-sub', licenses:'tab-lic-sub', analytics:'tab-ana-sub', billing:'tab-bill-sub' };
+  document.getElementById('page-title').textContent = tr[titleKeys[tab]] || tab;
+  document.getElementById('page-subtitle').textContent = tr[subKeys[tab]] || '';
+  loadTab(tab);
+}
+
+function refreshCurrent() { loadTab(currentTab); }
+
+async function loadTab(tab) {
+  switch (tab) {
+    case 'dashboard':     await loadDashboard(); break;
+    case 'organizations': await loadOrgs(); break;
+    case 'subscriptions': await loadSubs(); break;
+    case 'licenses':      await loadLics(); break;
+    case 'analytics':     await loadAnalytics(); break;
+    case 'billing':       await loadBilling(); break;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Dashboard
+// ─────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const d = await api('/api/v1/admin/stats');
+
+    document.getElementById('dash-stats').innerHTML = `
+      <div class="stat-card blue">
+        <div class="label">Total Organizations</div>
+        <div class="value">${d.customers}</div>
+      </div>
+      <div class="stat-card green">
+        <div class="label">Total Revenue</div>
+        <div class="value">$${(d.revenue_cents / 100).toFixed(2)}</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="label">Total Licenses</div>
+        <div class="value">${d.licenses}</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="label">Total Activations</div>
+        <div class="value">${d.analytics?.activations || 0}</div>
+      </div>
+    `;
+
+    // Sub status breakdown
+    const subs = d.subscriptions || {};
+    const subStatuses = ['active','trial','expired','suspended'];
+    const subColors = { active:'green', trial:'yellow', expired:'gray', suspended:'red' };
+    document.getElementById('dash-sub-status').innerHTML = subStatuses.map(s =>
+      `<div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border)">
+        <span>${badge(s, subColors[s])}</span>
+        <strong>${subs[s] || 0}</strong>
+      </div>`
+    ).join('');
+
+    // Top domains
+    const domains = d.topDomains || [];
+    const maxCount = domains[0]?.count || 1;
+    document.getElementById('dash-top-domains').innerHTML = domains.length
+      ? domains.slice(0, 8).map(r => `
+          <div class="domain-bar">
+            <div class="d-name" title="${r.domain}">${r.domain}</div>
+            <div class="d-bar"><div class="d-fill" style="width:${Math.round(r.count/maxCount*100)}%"></div></div>
+            <div class="d-count">${r.count}</div>
+          </div>`).join('')
+      : '<div class="empty"><div class="icon">📭</div>No activation data yet</div>';
+
+  } catch (e) {
+    toast(`Dashboard error: ${e.message}`, 'error');
+  }
+}
+
+// ─────────────────────────────────────────────
+// Organizations
+// ─────────────────────────────────────────────
+async function loadOrgs() {
+  try {
+    const d = await api('/api/v1/admin/customers');
+    orgsData = d.customers;
+    renderOrgs(orgsData);
+  } catch (e) {
+    toast(`Error loading organizations: ${e.message}`, 'error');
+  }
+}
+
+function filterOrgs() {
+  const q = document.getElementById('org-search').value.toLowerCase();
+  const plan = document.getElementById('org-plan-filter').value;
+  const status = document.getElementById('org-status-filter').value;
+  const filtered = orgsData.filter(c =>
+    (!q || c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q) || c.org?.toLowerCase().includes(q)) &&
+    (!plan || c.plan === plan) &&
+    (!status || c.status === status)
+  );
+  renderOrgs(filtered);
+}
+
+function renderOrgs(list) {
+  const tbody = document.getElementById('org-tbody');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="icon">🏢</div>No organizations found</div></td></tr>`; return; }
+  tbody.innerHTML = list.map(c => `
+    <tr>
+      <td>
+        <div style="font-weight:600">${esc(c.name)}</div>
+        <div style="color:var(--muted);font-size:.78rem">${esc(c.email)}</div>
+      </td>
+      <td>${esc(c.org) || '<span style="color:var(--muted)">—</span>'}</td>
+      <td>${planBadge(c.plan)}</td>
+      <td>${badge(c.status, c.status === 'active' ? 'green' : 'red')}</td>
+      <td>${c.license_count ?? '—'}</td>
+      <td style="color:var(--muted);font-size:.8rem">${fmtDate(c.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-sm btn-gray" onclick="viewOrg('${esc(c.id)}')">View</button>
+          <button class="btn btn-sm btn-blue" onclick="editOrgModal('${esc(c.id)}')">Edit</button>
+          ${c.status === 'active'
+            ? `<button class="btn btn-sm btn-yellow" onclick="toggleOrgStatus('${esc(c.id)}','suspended','${esc(c.name)}')">Suspend</button>`
+            : `<button class="btn btn-sm btn-green"  onclick="toggleOrgStatus('${esc(c.id)}','active','${esc(c.name)}')">Activate</button>`}
+          <button class="btn btn-sm btn-red" onclick="deleteOrg('${esc(c.id)}','${esc(c.name)}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function viewOrg(id) {
+  try {
+    const d = await api(`/api/v1/admin/customers/${id}`);
+    const c = d.customer, s = d.subscription;
+    openModal(
+      `🏢 ${esc(c.name)}`,
+      esc(c.email),
+      `<div class="detail-grid">
+        <div class="detail-item"><div class="dl">Organization</div><div class="dd">${esc(c.org) || '—'}</div></div>
+        <div class="detail-item"><div class="dl">Plan</div><div class="dd">${planBadge(c.plan)}</div></div>
+        <div class="detail-item"><div class="dl">Account Status</div><div class="dd">${badge(c.status, c.status==='active'?'green':'red')}</div></div>
+        <div class="detail-item"><div class="dl">Sub Status</div><div class="dd">${badge(s?.status||'none', {active:'green',trial:'yellow',expired:'gray',suspended:'red'}[s?.status]||'gray')}</div></div>
+        <div class="detail-item"><div class="dl">Site Limit</div><div class="dd">${s?.website_limit ?? '—'}</div></div>
+        <div class="detail-item"><div class="dl">Expires</div><div class="dd">${fmtDate(s?.expires_at)}</div></div>
+        <div class="detail-item"><div class="dl">Licenses</div><div class="dd">${d.licenses?.length ?? 0}</div></div>
+        <div class="detail-item"><div class="dl">Invoices</div><div class="dd">${d.billing?.length ?? 0}</div></div>
+        <div class="detail-item" style="grid-column:1/-1"><div class="dl">API Key</div>
+          <div class="dd" style="font-family:monospace;font-size:.78rem;word-break:break-all">${esc(c.api_key)}</div></div>
+        <div class="detail-item" style="grid-column:1/-1"><div class="dl">Member Since</div><div class="dd">${fmtDate(c.created_at)}</div></div>
+      </div>
+      <hr style="border-color:var(--border);margin:1rem 0">
+      <div style="font-size:.85rem;font-weight:600;margin-bottom:.5rem">Licenses (${d.licenses.length})</div>
+      ${d.licenses.map(l => `<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(51,65,85,.4);font-size:.82rem">
+        <span style="font-family:monospace">${esc(l.key)}</span>
+        <span>${esc(l.domain)}</span>
+        <span>${badge(l.status, l.status==='active'?'green':l.status==='expired'?'gray':'red')}</span>
+      </div>`).join('') || '<div style="color:var(--muted);font-size:.85rem">No licenses</div>'}`,
+      []
+    );
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function editOrgModal(id) {
+  const c = orgsData.find(o => o.id === id);
+  if (!c) return;
+  openModal('Edit Organization', esc(c.email),
+    `<div class="form-row"><label>Name</label><input id="edit-name" value="${esc(c.name)}"></div>
+     <div class="form-row"><label>Organization</label><input id="edit-org" value="${esc(c.org)}"></div>
+     <div class="form-row"><label>Status</label>
+       <select id="edit-status">
+         <option value="active" ${c.status==='active'?'selected':''}>Active</option>
+         <option value="suspended" ${c.status==='suspended'?'selected':''}>Suspended</option>
+       </select>
+     </div>`,
+    [
+      { label: 'Cancel', cls: 'btn-gray', action: closeModal },
+      { label: 'Save Changes', cls: 'btn-blue', action: async () => {
+          try {
+            await api(`/api/v1/admin/customers/${id}`, 'PUT', {
+              name: document.getElementById('edit-name').value,
+              org: document.getElementById('edit-org').value,
+              status: document.getElementById('edit-status').value,
+            });
+            toast('Organization updated'); closeModal(); loadOrgs();
+          } catch(e) { toast(e.message, 'error'); }
+        }
+      }
+    ]
+  );
+}
+
+async function toggleOrgStatus(id, newStatus, name) {
+  if (!confirm(`${newStatus === 'suspended' ? 'Suspend' : 'Activate'} "${name}"?`)) return;
+  try {
+    await api(`/api/v1/admin/customers/${id}`, 'PUT', { status: newStatus });
+    toast(`Organization ${newStatus === 'suspended' ? 'suspended' : 'activated'}`);
+    loadOrgs();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteOrg(id, name) {
+  if (!confirm(`DELETE "${name}"?\n\nThis will permanently delete the organization, all its licenses and subscriptions. This cannot be undone.`)) return;
+  try {
+    await api(`/api/v1/admin/customers/${id}`, 'DELETE');
+    toast('Organization deleted'); loadOrgs();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─────────────────────────────────────────────
+// Subscriptions
+// ─────────────────────────────────────────────
+async function loadSubs() {
+  try {
+    const d = await api('/api/v1/admin/subscriptions');
+    subsData = d.subscriptions;
+    renderSubs(subsData);
+  } catch(e) { toast(`Error loading subscriptions: ${e.message}`, 'error'); }
+}
+
+function filterSubs() {
+  const q = document.getElementById('sub-search').value.toLowerCase();
+  const status = document.getElementById('sub-status-filter').value;
+  const plan = document.getElementById('sub-plan-filter').value;
+  renderSubs(subsData.filter(s =>
+    (!q || s.customer_name?.toLowerCase().includes(q) || s.customer_email?.toLowerCase().includes(q)) &&
+    (!status || s.status === status) &&
+    (!plan   || s.plan === plan)
+  ));
+}
+
+function renderSubs(list) {
+  const tbody = document.getElementById('sub-tbody');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="icon">💳</div>No subscriptions found</div></td></tr>`; return; }
+  const statusColors = { active:'green', trial:'yellow', expired:'gray', suspended:'red' };
+  tbody.innerHTML = list.map(s => `
+    <tr>
+      <td>
+        <div style="font-weight:600">${esc(s.customer_name)}</div>
+        <div style="color:var(--muted);font-size:.78rem">${esc(s.customer_email)}</div>
+      </td>
+      <td>${planBadge(s.plan)}</td>
+      <td>${badge(s.status, statusColors[s.status] || 'gray')}</td>
+      <td>${s.website_limit}</td>
+      <td style="color:${s.status==='expired'?'var(--red)':'inherit'}">${fmtDate(s.expires_at)}</td>
+      <td style="color:var(--muted);font-size:.8rem">${fmtDate(s.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          <button class="btn btn-sm btn-blue" onclick="editSubModal('${esc(s.customer_id)}','${esc(s.customer_name)}')">Edit</button>
+          ${s.status !== 'suspended'
+            ? `<button class="btn btn-sm btn-yellow" onclick="changeSubStatus('${esc(s.customer_id)}','suspended','${esc(s.customer_name)}')">Suspend</button>`
+            : `<button class="btn btn-sm btn-green"  onclick="changeSubStatus('${esc(s.customer_id)}','active','${esc(s.customer_name)}')">Activate</button>`}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function editSubModal(customerId, customerName) {
+  const s = subsData.find(x => x.customer_id === customerId);
+  if (!s) return;
+  const expiryVal = s.expires_at ? new Date(s.expires_at).toISOString().split('T')[0] : '';
+  openModal('Edit Subscription', esc(customerName),
+    `<div class="form-row"><label>Plan</label>
+       <select id="sub-plan">
+         <option value="starter" ${s.plan==='starter'?'selected':''}>Starter</option>
+         <option value="professional" ${s.plan==='professional'?'selected':''}>Professional</option>
+         <option value="enterprise" ${s.plan==='enterprise'?'selected':''}>Enterprise</option>
+       </select></div>
+     <div class="form-row"><label>Status</label>
+       <select id="sub-status">
+         <option value="active" ${s.status==='active'?'selected':''}>Active</option>
+         <option value="trial" ${s.status==='trial'?'selected':''}>Trial</option>
+         <option value="expired" ${s.status==='expired'?'selected':''}>Expired</option>
+         <option value="suspended" ${s.status==='suspended'?'selected':''}>Suspended</option>
+       </select></div>
+     <div class="form-row"><label>Website Limit</label><input id="sub-limit" type="number" value="${s.website_limit}" min="1"></div>
+     <div class="form-row"><label>Expiry Date</label><input id="sub-expiry" type="date" value="${expiryVal}"></div>`,
+    [
+      { label: 'Cancel', cls: 'btn-gray', action: closeModal },
+      { label: 'Save Changes', cls: 'btn-blue', action: async () => {
+          const expiryDate = document.getElementById('sub-expiry').value;
+          try {
+            await api(`/api/v1/admin/subscriptions/${customerId}`, 'PUT', {
+              plan: document.getElementById('sub-plan').value,
+              status: document.getElementById('sub-status').value,
+              websiteLimit: parseInt(document.getElementById('sub-limit').value),
+              expiresAt: expiryDate ? expiryDate + ' 00:00:00' : null,
+            });
+            toast('Subscription updated'); closeModal(); loadSubs();
+          } catch(e) { toast(e.message, 'error'); }
+        }
+      }
+    ]
+  );
+}
+
+async function changeSubStatus(customerId, status, name) {
+  if (!confirm(`${status === 'suspended' ? 'Suspend' : 'Activate'} subscription for "${name}"?`)) return;
+  try {
+    await api(`/api/v1/admin/subscriptions/${customerId}`, 'PUT', { status });
+    toast(`Subscription ${status === 'suspended' ? 'suspended' : 'activated'}`);
+    loadSubs();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─────────────────────────────────────────────
+// Licenses
+// ─────────────────────────────────────────────
+async function loadLics() {
+  try {
+    const d = await api('/api/v1/admin/licenses');
+    licsData = d.licenses;
+    renderLics(licsData);
+  } catch(e) { toast(`Error loading licenses: ${e.message}`, 'error'); }
+}
+
+function filterLics() {
+  const q = document.getElementById('lic-search').value.toLowerCase();
+  const status = document.getElementById('lic-status-filter').value;
+  const plan = document.getElementById('lic-plan-filter').value;
+  renderLics(licsData.filter(l =>
+    (!q || l.key?.toLowerCase().includes(q) || l.domain?.toLowerCase().includes(q) || l.customer_name?.toLowerCase().includes(q) || l.customer_email?.toLowerCase().includes(q)) &&
+    (!status || l.status === status) &&
+    (!plan   || l.plan === plan)
+  ));
+}
+
+function renderLics(list) {
+  const tbody = document.getElementById('lic-tbody');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="7"><div class="empty"><div class="icon">🔑</div>No licenses found</div></td></tr>`; return; }
+  const statusColors = { active:'green', suspended:'red', expired:'gray' };
+  tbody.innerHTML = list.map(l => `
+    <tr>
+      <td style="font-family:monospace;font-size:.8rem">${esc(l.key)}</td>
+      <td>
+        <div style="font-weight:600">${esc(l.customer_name)}</div>
+        <div style="color:var(--muted);font-size:.78rem">${esc(l.customer_email)}</div>
+      </td>
+      <td>${esc(l.domain)}<br><span style="color:var(--muted);font-size:.78rem">${esc(l.name)}</span></td>
+      <td>${planBadge(l.plan)}</td>
+      <td>${badge(l.status, statusColors[l.status] || 'gray')}</td>
+      <td style="color:var(--muted);font-size:.8rem">${fmtDate(l.created_at)}</td>
+      <td>
+        <div style="display:flex;gap:.4rem">
+          ${l.status === 'active'
+            ? `<button class="btn btn-sm btn-yellow" onclick="changeLicStatus('${esc(l.key)}','suspended')">Suspend</button>`
+            : `<button class="btn btn-sm btn-green"  onclick="changeLicStatus('${esc(l.key)}','active')">Activate</button>`}
+          <button class="btn btn-sm btn-red" onclick="deleteLic('${esc(l.key)}','${esc(l.domain)}')">Delete</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function changeLicStatus(key, status) {
+  try {
+    await api(`/api/v1/admin/licenses/${encodeURIComponent(key)}/status`, 'PUT', { status });
+    toast(`License ${status === 'suspended' ? 'suspended' : 'activated'}`);
+    loadLics();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function deleteLic(key, domain) {
+  if (!confirm(`Delete license for "${domain}"?\nKey: ${key}`)) return;
+  try {
+    await api(`/api/v1/admin/licenses/${encodeURIComponent(key)}`, 'DELETE');
+    toast('License deleted'); loadLics();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+async function openAddLicModal() {
+  // Fetch customers list to populate the dropdown
+  let customers = orgsData;
+  if (!customers.length) {
+    try { const d = await api('/api/v1/admin/customers'); customers = d.customers; } catch(_) {}
+  }
+  const options = customers.map(c => `<option value="${esc(c.id)}">${esc(c.name)} &lt;${esc(c.email)}&gt;</option>`).join('');
+
+  document.getElementById('modal-title').textContent = 'Add License';
+  document.getElementById('modal-sub').textContent = 'Create a new license key for a customer\'s website.';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="form-row">
+      <label>Customer *</label>
+      <select id="new-lic-customer">${options || '<option value="">No customers found</option>'}</select>
+    </div>
+    <div class="form-row">
+      <label>Domain * <span style="color:var(--muted);font-weight:400">(e.g. mystore.com)</span></label>
+      <input type="text" id="new-lic-domain" placeholder="mystore.com">
+    </div>
+    <div class="form-row">
+      <label>Display Name <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <input type="text" id="new-lic-name" placeholder="My Online Store">
+    </div>`;
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="btn btn-gray" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-blue" onclick="submitAddLic()">Create License</button>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+async function submitAddLic() {
+  const customerId = document.getElementById('new-lic-customer').value;
+  const domain     = document.getElementById('new-lic-domain').value.trim();
+  const name       = document.getElementById('new-lic-name').value.trim();
+  if (!customerId) return toast('Please select a customer', 'error');
+  if (!domain)     return toast('Domain is required', 'error');
+  try {
+    const d = await api('/api/v1/admin/licenses', 'POST', { customerId, domain, name });
+    toast(`License created: ${d.license.key}`);
+    closeModal();
+    loadLics();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+// ─────────────────────────────────────────────
+// Analytics
+// ─────────────────────────────────────────────
+async function loadAnalytics() {
+  try {
+    const d = await api('/api/v1/admin/analytics');
+    const stats = d.stats || {};
+
+    document.getElementById('an-stats').innerHTML = `
+      <div class="stat-card blue">
+        <div class="label">Total Events</div>
+        <div class="value">${stats.total || 0}</div>
+      </div>
+      <div class="stat-card green">
+        <div class="label">Activations</div>
+        <div class="value">${stats.activations || 0}</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="label">Validations</div>
+        <div class="value">${stats.validations || 0}</div>
+      </div>
+    `;
+
+    // Top domains
+    const domains = d.topDomains || [];
+    const maxCount = domains[0]?.count || 1;
+    document.getElementById('an-top-domains').innerHTML = domains.length
+      ? domains.map(r => `
+          <div class="domain-bar">
+            <div class="d-name" title="${r.domain}">${r.domain}</div>
+            <div class="d-bar"><div class="d-fill" style="width:${Math.round(r.count/maxCount*100)}%"></div></div>
+            <div class="d-count">${r.count}</div>
+          </div>`).join('')
+      : '<div class="empty"><div class="icon">📭</div>No data</div>';
+
+    // Breakdown
+    const total = parseInt(stats.total) || 1;
+    const actPct = Math.round((parseInt(stats.activations) || 0) / total * 100);
+    const valPct = Math.round((parseInt(stats.validations) || 0) / total * 100);
+    document.getElementById('an-breakdown').innerHTML = `
+      <div class="domain-bar">
+        <div class="d-name">Activations</div>
+        <div class="d-bar"><div class="d-fill" style="width:${actPct}%;background:var(--green)"></div></div>
+        <div class="d-count">${actPct}%</div>
+      </div>
+      <div class="domain-bar">
+        <div class="d-name">Validations</div>
+        <div class="d-bar"><div class="d-fill" style="width:${valPct}%;background:var(--purple)"></div></div>
+        <div class="d-count">${valPct}%</div>
+      </div>`;
+
+    // Recent events
+    const events = d.recentEvents || [];
+    document.getElementById('an-events-tbody').innerHTML = events.length
+      ? events.map(e => `
+          <tr>
+            <td style="color:var(--muted);font-size:.8rem">${fmtTs(e.ts)}</td>
+            <td>${badge(e.type, {activation:'green',validate:'blue'}[e.type]||'gray')}</td>
+            <td style="font-family:monospace;font-size:.75rem">${esc(e.license_key) || '—'}</td>
+            <td>${esc(e.domain) || '—'}</td>
+            <td>${e.plan ? planBadge(e.plan) : '—'}</td>
+          </tr>`).join('')
+      : `<tr><td colspan="5"><div class="empty"><div class="icon">📭</div>No events</div></td></tr>`;
+
+  } catch(e) { toast(`Analytics error: ${e.message}`, 'error'); }
+}
+
+// ─────────────────────────────────────────────
+// Billing
+// ─────────────────────────────────────────────
+async function loadBilling() {
+  try {
+    const d = await api('/api/v1/admin/billing');
+    billData = d.invoices;
+
+    document.getElementById('billing-stats').innerHTML = `
+      <div class="stat-card green">
+        <div class="label">Total Revenue</div>
+        <div class="value">$${(d.totalRevenue / 100).toFixed(2)}</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="label">Total Invoices</div>
+        <div class="value">${d.invoices.length}</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="label">Paid Invoices</div>
+        <div class="value">${d.invoices.filter(i => i.status === 'paid').length}</div>
+      </div>
+    `;
+
+    renderBilling(billData);
+  } catch(e) { toast(`Billing error: ${e.message}`, 'error'); }
+}
+
+function filterBilling() {
+  const q = document.getElementById('bill-search').value.toLowerCase();
+  renderBilling(billData.filter(b =>
+    !q || b.invoice_id?.toLowerCase().includes(q) || b.customer_name?.toLowerCase().includes(q) || b.customer_email?.toLowerCase().includes(q)
+  ));
+}
+
+function renderBilling(list) {
+  const tbody = document.getElementById('bill-tbody');
+  if (!list.length) { tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="icon">🧾</div>No invoices</div></td></tr>`; return; }
+  const statusColors = { paid:'green', pending:'yellow', failed:'red' };
+  tbody.innerHTML = list.map(b => `
+    <tr>
+      <td style="font-family:monospace;font-size:.82rem">${esc(b.invoice_id)}</td>
+      <td>
+        <div style="font-weight:600">${esc(b.customer_name)}</div>
+        <div style="color:var(--muted);font-size:.78rem">${esc(b.customer_email)}</div>
+      </td>
+      <td>${planBadge(b.plan)}</td>
+      <td style="font-weight:600;color:var(--green)">$${(b.amount_cents / 100).toFixed(2)} <span style="font-size:.75rem;color:var(--muted)">${b.currency}</span></td>
+      <td>${badge(b.status, statusColors[b.status] || 'gray')}</td>
+      <td style="color:var(--muted);font-size:.8rem">${fmtDate(b.created_at)}</td>
+    </tr>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// Modal
+// ─────────────────────────────────────────────
+function openModal(title, sub, body, actions = []) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-sub').textContent = sub;
+  document.getElementById('modal-body').innerHTML = body;
+  document.getElementById('modal-actions').innerHTML = actions.map((a, i) =>
+    `<button class="btn ${a.cls}" id="modal-action-${i}">${a.label}</button>`
+  ).join('');
+  actions.forEach((a, i) => {
+    document.getElementById(`modal-action-${i}`).addEventListener('click', a.action);
+  });
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function closeModalOnBackdrop(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModal();
+}
+
+// ─────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = (type === 'success' ? '✓ ' : '✕ ') + msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function badge(text, color = 'gray') {
+  return `<span class="badge badge-${color}">${esc(text)}</span>`;
+}
+
+function planBadge(plan) {
+  const colors = { starter:'blue', professional:'purple', enterprise:'orange' };
+  return badge(plan, colors[plan] || 'gray');
+}
+
+function fmtDate(dt) {
+  if (!dt) return '—';
+  return new Date(dt).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+}
+
+function fmtTs(ts) {
+  if (!ts) return '—';
+  return new Date(ts * 1000).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+// ─────────────────────────────────────────────
+// i18n — Arabic / English
+// ─────────────────────────────────────────────
+const ADMIN_I18N = {
+  en: {
+    'login-title':'Admin Panel','login-sub':'AccessWidget Platform Administration',
+    'login-url-label':'API Server URL','login-key-label':'Admin Secret Key','login-btn':'Sign In',
+    'sidebar-overview':'Overview','nav-dashboard':'Dashboard',
+    'sidebar-mgmt':'Management','nav-orgs':'Organizations','nav-subs':'Subscriptions','nav-licenses':'Licenses',
+    'sidebar-insights':'Insights','nav-analytics':'Analytics','nav-billing':'Billing',
+    'admin-name':'Administrator','admin-role':'Super Admin',
+    'refresh-btn':'↻ Refresh','lang-toggle':'🌐 AR',
+    'dash-subs-header':'📊 Subscriptions by Status','dash-domains-header':'🌍 Top Active Domains',
+    'orgs-header':'All Organizations','orgs-search':'Search by name, email, org…',
+    'org-all-plans':'All Plans','org-all-status':'All Status',
+    'org-col-name':'Name / Email','org-col-org':'Organization','org-col-plan':'Plan',
+    'org-col-status':'Status','org-col-lic':'Licenses','org-col-joined':'Joined','org-col-actions':'Actions',
+    'subs-header':'All Subscriptions','subs-search':'Search customer…',
+    'sub-col-customer':'Customer','sub-col-plan':'Plan','sub-col-status':'Status',
+    'sub-col-limit':'Sites Limit','sub-col-expires':'Expires','sub-col-created':'Created','sub-col-actions':'Actions',
+    'lic-header':'All Licenses','lic-search':'Search key, domain, customer…',
+    'lic-all-status':'All Status','lic-all-plans':'All Plans','lic-add-btn':'➕ Add License',
+    'lic-col-key':'License Key','lic-col-customer':'Customer','lic-col-domain':'Domain',
+    'lic-col-plan':'Plan','lic-col-status':'Status','lic-col-created':'Created','lic-col-actions':'Actions',
+    'an-top-header':'🌍 Top Domains by Activations','an-break-header':'⚡ Event Type Breakdown',
+    'an-recent-header':'🕒 Recent Events',
+    'an-col-time':'Time','an-col-type':'Type','an-col-key':'License Key','an-col-domain':'Domain','an-col-plan':'Plan',
+    'bill-header':'All Invoices','bill-search':'Search customer or invoice…',
+    'bill-col-inv':'Invoice','bill-col-customer':'Customer','bill-col-plan':'Plan',
+    'bill-col-amount':'Amount','bill-col-status':'Status','bill-col-date':'Date',
+    'tab-dash-sub':'Platform overview','tab-orgs-sub':'Manage customers and accounts',
+    'tab-subs-sub':'Manage plans and billing cycles','tab-lic-sub':'Manage license keys and domains',
+    'tab-ana-sub':'Platform usage and activation data','tab-bill-sub':'Invoices and revenue overview',
+  },
+  ar: {
+    'login-title':'لوحة الإدارة','login-sub':'إدارة منصة AccessWidget',
+    'login-url-label':'رابط خادم API','login-key-label':'مفتاح الإدارة السري','login-btn':'تسجيل الدخول',
+    'sidebar-overview':'نظرة عامة','nav-dashboard':'لوحة التحكم',
+    'sidebar-mgmt':'الإدارة','nav-orgs':'المنظمات','nav-subs':'الاشتراكات','nav-licenses':'التراخيص',
+    'sidebar-insights':'الإحصاءات','nav-analytics':'التحليلات','nav-billing':'الفواتير',
+    'admin-name':'المشرف','admin-role':'مشرف عام',
+    'refresh-btn':'↻ تحديث','lang-toggle':'🌐 EN',
+    'dash-subs-header':'📊 الاشتراكات حسب الحالة','dash-domains-header':'🌍 أكثر النطاقات نشاطاً',
+    'orgs-header':'جميع المنظمات','orgs-search':'بحث بالاسم أو البريد أو المنظمة…',
+    'org-all-plans':'كل الخطط','org-all-status':'كل الحالات',
+    'org-col-name':'الاسم / البريد','org-col-org':'المنظمة','org-col-plan':'الخطة',
+    'org-col-status':'الحالة','org-col-lic':'التراخيص','org-col-joined':'الانضمام','org-col-actions':'إجراءات',
+    'subs-header':'جميع الاشتراكات','subs-search':'بحث عن عميل…',
+    'sub-col-customer':'العميل','sub-col-plan':'الخطة','sub-col-status':'الحالة',
+    'sub-col-limit':'حد المواقع','sub-col-expires':'الانتهاء','sub-col-created':'التاريخ','sub-col-actions':'إجراءات',
+    'lic-header':'جميع التراخيص','lic-search':'بحث بالمفتاح أو النطاق أو العميل…',
+    'lic-all-status':'كل الحالات','lic-all-plans':'كل الخطط','lic-add-btn':'➕ إضافة ترخيص',
+    'lic-col-key':'مفتاح الترخيص','lic-col-customer':'العميل','lic-col-domain':'النطاق',
+    'lic-col-plan':'الخطة','lic-col-status':'الحالة','lic-col-created':'تاريخ الإنشاء','lic-col-actions':'إجراءات',
+    'an-top-header':'🌍 أكثر النطاقات تفعيلاً','an-break-header':'⚡ تصنيف أنواع الأحداث',
+    'an-recent-header':'🕒 الأحداث الأخيرة',
+    'an-col-time':'الوقت','an-col-type':'النوع','an-col-key':'مفتاح الترخيص','an-col-domain':'النطاق','an-col-plan':'الخطة',
+    'bill-header':'جميع الفواتير','bill-search':'بحث عن عميل أو فاتورة…',
+    'bill-col-inv':'الفاتورة','bill-col-customer':'العميل','bill-col-plan':'الخطة',
+    'bill-col-amount':'المبلغ','bill-col-status':'الحالة','bill-col-date':'التاريخ',
+    'tab-dash-sub':'نظرة عامة على المنصة','tab-orgs-sub':'إدارة العملاء والحسابات',
+    'tab-subs-sub':'إدارة الخطط ودورات الفوترة','tab-lic-sub':'إدارة مفاتيح الترخيص والنطاقات',
+    'tab-ana-sub':'بيانات الاستخدام والتفعيل','tab-bill-sub':'الفواتير ونظرة عامة على الإيرادات',
+  }
+};
+
+function applyAdminLang(lang) {
+  const t = ADMIN_I18N[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  const s = (sel, key) => { const el = document.querySelector(sel); if (el && t[key]) el.textContent = t[key]; };
+  const sIn = (id, key) => { const el = document.getElementById(id); if (el && t[key]) el.placeholder = t[key]; };
+  const sOpt = (sel, key) => { const el = document.querySelector(sel); if (el && t[key]) el.textContent = t[key]; };
+
+  // Login
+  s('.login-card h1', 'login-title');
+  s('.login-card p', 'login-sub');
+  s('label[for="api-url-input"]', 'login-url-label');
+  s('label[for="admin-key-input"]', 'login-key-label');
+  const loginBtn = document.getElementById('login-btn'); if (loginBtn) loginBtn.textContent = t['login-btn'];
+
+  // Sidebar
+  const navSections = document.querySelectorAll('.nav-section');
+  if (navSections[0]) navSections[0].textContent = t['sidebar-overview'];
+  if (navSections[1]) navSections[1].textContent = t['sidebar-mgmt'];
+  if (navSections[2]) navSections[2].textContent = t['sidebar-insights'];
+  const navItems = document.querySelectorAll('.nav-item');
+  const navKeys = ['nav-dashboard','nav-orgs','nav-subs','nav-licenses','nav-analytics','nav-billing'];
+  navItems.forEach((item, i) => { if (t[navKeys[i]]) item.childNodes[1].textContent = ' ' + t[navKeys[i]]; });
+  s('.sidebar-footer .name', 'admin-name');
+  s('.sidebar-footer .role', 'admin-role');
+
+  // Header
+  const refreshBtn = document.getElementById('refresh-btn'); if (refreshBtn) refreshBtn.textContent = t['refresh-btn'];
+  const lt = document.getElementById('lang-toggle'); if (lt) lt.textContent = t['lang-toggle'];
+
+  // Dashboard cards
+  const dashCards = document.querySelectorAll('#pane-dashboard .card-header h3');
+  if (dashCards[0]) dashCards[0].textContent = t['dash-subs-header'];
+  if (dashCards[1]) dashCards[1].textContent = t['dash-domains-header'];
+
+  // Orgs
+  s('#pane-organizations .card-header h3', 'orgs-header');
+  sIn('org-search', 'orgs-search');
+  sOpt('#org-plan-filter option[value=""]', 'org-all-plans');
+  sOpt('#org-status-filter option[value=""]', 'org-all-status');
+  const orgThs = document.querySelectorAll('#pane-organizations thead th');
+  const orgCols = ['org-col-name','org-col-org','org-col-plan','org-col-status','org-col-lic','org-col-joined','org-col-actions'];
+  orgThs.forEach((th, i) => { if (t[orgCols[i]]) th.textContent = t[orgCols[i]]; });
+
+  // Subs
+  s('#pane-subscriptions .card-header h3', 'subs-header');
+  sIn('sub-search', 'subs-search');
+  const subThs = document.querySelectorAll('#pane-subscriptions thead th');
+  const subCols = ['sub-col-customer','sub-col-plan','sub-col-status','sub-col-limit','sub-col-expires','sub-col-created','sub-col-actions'];
+  subThs.forEach((th, i) => { if (t[subCols[i]]) th.textContent = t[subCols[i]]; });
+
+  // Licenses
+  s('#pane-licenses .card-header h3', 'lic-header');
+  sIn('lic-search', 'lic-search');
+  sOpt('#lic-status-filter option[value=""]', 'lic-all-status');
+  sOpt('#lic-plan-filter option[value=""]', 'lic-all-plans');
+  const addLicBtn = document.querySelector('#pane-licenses .btn-blue');
+  if (addLicBtn) addLicBtn.textContent = t['lic-add-btn'];
+  const licThs = document.querySelectorAll('#pane-licenses thead th');
+  const licCols = ['lic-col-key','lic-col-customer','lic-col-domain','lic-col-plan','lic-col-status','lic-col-created','lic-col-actions'];
+  licThs.forEach((th, i) => { if (t[licCols[i]]) th.textContent = t[licCols[i]]; });
+
+  // Analytics
+  const anCards = document.querySelectorAll('#pane-analytics .card-header h3');
+  if (anCards[0]) anCards[0].textContent = t['an-top-header'];
+  if (anCards[1]) anCards[1].textContent = t['an-break-header'];
+  if (anCards[2]) anCards[2].textContent = t['an-recent-header'];
+  const anThs = document.querySelectorAll('#pane-analytics thead th');
+  const anCols = ['an-col-time','an-col-type','an-col-key','an-col-domain','an-col-plan'];
+  anThs.forEach((th, i) => { if (t[anCols[i]]) th.textContent = t[anCols[i]]; });
+
+  // Billing
+  s('#pane-billing .card-header h3', 'bill-header');
+  sIn('bill-search', 'bill-search');
+  const billThs = document.querySelectorAll('#pane-billing thead th');
+  const billCols = ['bill-col-inv','bill-col-customer','bill-col-plan','bill-col-amount','bill-col-status','bill-col-date'];
+  billThs.forEach((th, i) => { if (t[billCols[i]]) th.textContent = t[billCols[i]]; });
+
+  localStorage.setItem('aw_ui_lang', lang);
+}
+
+function toggleAdminLang() {
+  applyAdminLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
+}
+
+// Apply on load
+applyAdminLang(localStorage.getItem('aw_ui_lang') || 'en');
+</script>
+</body>
+</html>
