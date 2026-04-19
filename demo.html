@@ -282,21 +282,22 @@
 <body>
 
 <div class="demo-banner" id="demo-banner">
-  🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="admin/index.html">Open Admin Panel →</a>
+  🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">Open Admin Panel →</a>
 </div>
 
 <!-- Navigation -->
 <nav>
-  <div class="nav-brand">♿ AccessWidget</div>
+  <div class="nav-brand" id="nav-brand">♿ Insijam</div>
   <div class="nav-links">
     <a href="#features" id="nav-features">Features</a>
     <a href="#profiles" id="nav-profiles">Profiles</a>
     <a href="#content" id="nav-content">Sample Content</a>
     <a href="#integration" id="nav-integration">Integration</a>
+    <a href="features-docs.html" id="nav-docs">Documentation</a>
   </div>
   <div style="display:flex;align-items:center;gap:10px">
     <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">🌐 AR</button>
-    <a href="admin/index.html" class="nav-cta" id="nav-cta">Admin Panel</a>
+    <a href="saas/dashboard/login.html" class="nav-cta" id="nav-cta">Admin Panel</a>
   </div>
 </nav>
 
@@ -307,7 +308,7 @@
   <p>A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.</p>
   <div class="hero-actions">
     <a href="#content" class="btn-white">Try the Widget Below ↓</a>
-    <a href="admin/index.html" class="btn-ghost">Admin Dashboard</a>
+    <a href="saas/dashboard/login.html" class="btn-ghost">Admin Dashboard</a>
   </div>
 </div>
 
@@ -507,7 +508,7 @@
         You can explore this widget right now. Click the <strong>♿ accessibility button</strong> in the bottom-right corner of this page to open the accessibility panel. Try adjusting the font size, enabling dark mode, activating the dyslexia profile, or turning on the reading mask. All changes are applied instantly and saved for your next visit.
       </p>
       <p>
-        <a href="admin/index.html">Visit the Admin Panel →</a> to configure the widget for your own website, generate an embed code, and review usage analytics.
+        <a href="saas/dashboard/login.html">Visit the Admin Panel →</a> to configure the widget for your own website, generate an embed code, and review usage analytics.
       </p>
     </main>
   </div>
@@ -582,13 +583,13 @@
   <h2>Ready to Make Your Website Accessible?</h2>
   <p>Configure your widget, generate an embed code, and go live today.</p>
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-    <a href="admin/index.html" class="btn-white">Open Admin Panel →</a>
+    <a href="saas/dashboard/login.html" class="btn-white">Open Admin Panel →</a>
   </div>
 </div>
 
 <!-- Footer -->
 <footer>
-  <p>♿ <strong>AccessWidget</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website</p>
+  <p>♿ <strong>Insijam</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website</p>
   <p style="margin-top:8px">Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal</p>
 </footer>
 
@@ -611,8 +612,9 @@
 // ── Demo page i18n ──────────────────────────────────────────
 const DEMO_I18N = {
   en: {
+    'brand-name':'♿ Insijam',
     'nav-features':'Features','nav-profiles':'Profiles','nav-content':'Sample Content',
-    'nav-integration':'Integration','nav-cta':'Admin Panel','lang-toggle':'🌐 AR',
+    'nav-integration':'Integration','nav-docs':'Documentation','nav-cta':'Admin Panel','lang-toggle':'🌐 AR',
     'hero-badge':'🌍 Bilingual Arabic & English Support',
     'hero-h1':'Make Every Website<br>Accessible to Everyone',
     'hero-p':'A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.',
@@ -650,13 +652,14 @@ const DEMO_I18N = {
     'cta-h2':'Ready to Make Your Website Accessible?',
     'cta-p':'Configure your widget, generate an embed code, and go live today.',
     'cta-btn':'Open Admin Panel →',
-    'footer-p1':'♿ <strong>AccessWidget</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website',
+    'footer-p1':'♿ <strong>Insijam</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website',
     'footer-p2':'Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal',
-    'banner':'🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="admin/index.html">Open Admin Panel →</a>',
+    'banner':'🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">Open Admin Panel →</a>',
   },
   ar: {
+    'brand-name':'♿ انسجام',
     'nav-features':'الميزات','nav-profiles':'الملفات الشخصية','nav-content':'محتوى تجريبي',
-    'nav-integration':'التكامل','nav-cta':'لوحة الإدارة','lang-toggle':'🌐 EN',
+    'nav-integration':'التكامل','nav-docs':'التوثيق','nav-cta':'لوحة الإدارة','lang-toggle':'🌐 EN',
     'hero-badge':'🌍 دعم ثنائي اللغة: العربية والإنجليزية',
     'hero-h1':'اجعل كل موقع ويب<br>متاحاً للجميع',
     'hero-p':'أداة إمكانية وصول خفيفة الوزن وجاهزة للتضمين، تعمل على أي موقع ويب. أضفها في دقائق. مكّن الملايين.',
@@ -694,9 +697,9 @@ const DEMO_I18N = {
     'cta-h2':'هل أنت مستعد لجعل موقعك متاحاً للجميع؟',
     'cta-p':'اضبط الأداة، أنشئ كود التضمين، وابدأ اليوم.',
     'cta-btn':'فتح لوحة الإدارة ←',
-    'footer-p1':'♿ <strong>AccessWidget</strong> v1.0.0 &mdash; أداة إمكانية وصول ثنائية اللغة لأي موقع',
+    'footer-p1':'♿ <strong>انسجام</strong> v1.0.0 &mdash; أداة إمكانية وصول ثنائية اللغة لأي موقع',
     'footer-p2':'تدعم العربية والإنجليزية &bull; تعمل على HTML وPHP وJava وReact وAngular وVue وWordPress وShopify وDrupal',
-    'banner':'🧪 هذا <strong>عرض تجريبي مباشر</strong> — أداة إمكانية الوصول نشطة على هذه الصفحة. انقر على زر <strong>♿</strong> في أسفل يسار الصفحة لتجربتها! &nbsp;|&nbsp; <a href="admin/index.html">فتح لوحة الإدارة ←</a>',
+    'banner':'🧪 هذا <strong>عرض تجريبي مباشر</strong> — أداة إمكانية الوصول نشطة على هذه الصفحة. انقر على زر <strong>♿</strong> في أسفل يسار الصفحة لتجربتها! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">فتح لوحة الإدارة ←</a>',
   }
 };
 
@@ -705,8 +708,12 @@ function applyDemoLang(lang) {
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
+  // Brand
+  const brand = document.getElementById('nav-brand');
+  if (brand) brand.textContent = t['brand-name'];
+
   // Nav
-  ['features','profiles','content','integration'].forEach(k => {
+  ['features','profiles','content','integration','docs'].forEach(k => {
     const el = document.getElementById('nav-' + k);
     if (el) el.textContent = t['nav-' + k];
   });

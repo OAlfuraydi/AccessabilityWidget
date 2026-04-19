@@ -26,7 +26,7 @@ async function seed() {
   await pool.execute(
     `INSERT IGNORE INTO customers (id, email, password, name, org, plan, status, api_key)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    ['cust_001', 'demo@accesswidget.io', hashedPassword,
+    ['cust_001', 'demo@insijam.io', hashedPassword,
      'John Demo', 'Demo Corp Ltd.', 'professional', 'active',
      'aw_live_sk_a1b2c3d4e5f6g7h8i9j0demo']
   );
@@ -70,7 +70,7 @@ async function seed() {
   console.log('  Billing records inserted ✓');
 
   console.log('\nDone! Demo credentials:');
-  console.log('  Email   : demo@accesswidget.io');
+  console.log('  Email   : demo@insijam.io');
   console.log('  Password: Demo1234!');
   console.log('  API key : aw_live_sk_a1b2c3d4e5f6g7h8i9j0demo');
 

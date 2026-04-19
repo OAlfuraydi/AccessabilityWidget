@@ -843,20 +843,35 @@
     _init() {
       this._injectCSS();
 
-      // devMode: true → skip license check (local development only)
-      if (this.cfg.devMode === true) {
-        console.warn('[AccessWidget] Running in devMode — license validation skipped. Do NOT use devMode in production.');
+      // devMode is honored ONLY when the page is served from a trusted
+      // local origin (localhost, 127.0.0.1, or file://). On any real
+      // domain the flag is silently ignored — a license key is mandatory.
+      const host = (window.location.hostname || '').toLowerCase();
+      const protocol = window.location.protocol;
+      const isLocalOrigin =
+        protocol === 'file:' ||
+        host === 'localhost' ||
+        host === '127.0.0.1' ||
+        host === '[::1]' ||
+        host === '';
+
+      if (this.cfg.devMode === true && isLocalOrigin) {
+        console.warn('[Insijam] devMode active on local origin — license validation skipped. This will NOT work on a production domain.');
         this._initWidget();
         return;
       }
 
+      if (this.cfg.devMode === true && !isLocalOrigin) {
+        console.error('[Insijam] devMode is ignored on production domains. Add a valid licenseKey.');
+      }
+
       if (this.cfg.licenseKey) {
-        // SaaS mode — validate key before showing widget
+        // SaaS mode — validate key + domain on every session before loading.
         this._validateLicense();
       } else {
-        // No key, no devMode → refuse to load
+        // No key, no local origin → refuse to load.
         this._showLicenseNotice('no_license', 'A valid license key is required. Please add your license key to AccessibilityWidgetConfig.');
-        console.error('[AccessWidget] No licenseKey provided. Widget will not load. Set devMode:true for local development.');
+        console.error('[Insijam] No licenseKey provided. Widget will not load.');
       }
     }
 
@@ -906,7 +921,7 @@
         })
         .catch((err) => {
           // Network error — fail closed to enforce license validation
-          console.error('[AccessWidget] License validation failed — widget will not load.', err.message);
+          console.error('[Insijam] License validation failed — widget will not load.', err.message);
           this._showLicenseNotice('network_error', 'Accessibility service temporarily unavailable. Please try again later.');
         });
     }

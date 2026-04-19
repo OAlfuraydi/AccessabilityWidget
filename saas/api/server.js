@@ -1,5 +1,5 @@
 /**
- * AccessWidget API Server — MySQL edition
+ * Insijam API Server — MySQL edition
  *
  * Setup:
  *   cp .env.example .env        # fill in DB credentials
@@ -72,13 +72,21 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       'http://localhost:3000', 'http://localhost:3001',
       'http://127.0.0.1:3000', 'http://127.0.0.1:3001',
       'http://127.0.0.1:5500', 'http://localhost:5500',
-      /\.accesswidget\.io$/,
+      /\.insijam\.io$/,
     ];
 
-app.use(cors({
+// Open CORS for /api/v1/validate: it is called by the widget embedded on
+// customer websites, so any origin must reach it. Authorization is
+// handled by the license-key + domain check inside the handler itself.
+const openCors = cors({
+  origin: true,
+  methods: ['POST','OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+});
+
+// Restricted CORS for every other route (dashboard, admin, auth).
+const restrictedCors = cors({
   origin: (origin, cb) => {
-    // In development allow no-origin (file://, curl, Postman).
-    // In production every request must carry an explicit Origin.
     if (!origin) {
       return IS_PROD
         ? cb(new Error('Not allowed by CORS'), false)
@@ -89,7 +97,13 @@ app.use(cors({
   },
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','Authorization'],
-}));
+});
+
+// Route dispatcher: validate uses open CORS, everything else restricted.
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/v1/validate')) return openCors(req, res, next);
+  return restrictedCors(req, res, next);
+});
 
 // ─────────────────────────────────────────────
 // Rate limiters
@@ -289,7 +303,9 @@ app.post('/api/v1/validate', wrap(async (req, res) => {
   const { key } = req.body || {};
 
   // ── Determine the real origin from HTTP headers (cannot be faked by JS) ──
-  // Priority: Origin header → Referer header → body domain (dev/curl fallback)
+  // Priority: Origin header → Referer header. In non-production we allow a
+  // body.domain fallback for local curl/Postman testing; in production the
+  // body field is ignored because any HTTP client can forge it.
   let actualDomain = null;
   const originHeader  = req.headers['origin'];
   const refererHeader = req.headers['referer'];
@@ -297,9 +313,8 @@ app.post('/api/v1/validate', wrap(async (req, res) => {
     actualDomain = normalizeDomain(originHeader);
   } else if (refererHeader) {
     actualDomain = normalizeDomain(refererHeader);
-  } else {
-    // Fallback: body domain — only trusted in development
-    actualDomain = req.body?.domain ? normalizeDomain(req.body.domain) : null;
+  } else if (!IS_PROD && req.body?.domain) {
+    actualDomain = normalizeDomain(req.body.domain);
   }
 
   await analytics.insert({ type: 'validate', key: key || null, domain: actualDomain || null, plan: null, feature: null });
@@ -705,10 +720,10 @@ app.use((err, req, res, _next) => {
 // ─────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log('\n========================================');
-  console.log('  AccessWidget API Server  v2.0');
+  console.log('  Insijam API Server  v2.0');
   console.log('========================================');
   console.log(`  URL     : http://localhost:${PORT}`);
-  console.log(`  DB      : MySQL → ${process.env.DB_NAME || 'accesswidget'}@${process.env.DB_HOST || 'localhost'}`);
+  console.log(`  DB      : MySQL → ${process.env.DB_NAME || 'insijam'}@${process.env.DB_HOST || 'localhost'}`);
   console.log(`  Env     : ${process.env.NODE_ENV || 'development'}`);
   console.log('');
   console.log(`  Dashboard  : http://localhost:${PORT}/dashboard`);

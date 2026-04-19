@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>AccessWidget — Documentation | التوثيق</title>
+<title>Insijam — Documentation | التوثيق</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -125,7 +125,7 @@ body.ar [data-ar]{display:revert}
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <div class="topbar-logo"><span>♿</span> <span data-en>AccessWidget Docs</span><span data-ar>توثيق AccessWidget</span></div>
+  <div class="topbar-logo"><span>♿</span> <span data-en>Insijam Docs</span><span data-ar>توثيق انسجام</span></div>
   <button class="lang-btn" onclick="toggleLang()" id="langBtn">العربية</button>
 </div>
 
@@ -191,7 +191,7 @@ body.ar [data-ar]{display:revert}
 <!-- ════════════════════════════════ HERO ════════════════════════════════ -->
 <div class="hero">
   <div data-en>
-    <h1>♿ AccessWidget Documentation</h1>
+    <h1>♿ Insijam Documentation</h1>
     <p>Complete guide for administrators and customers — server setup, embedding the widget, managing licenses, and customizing branding.</p>
     <div class="badge-row">
       <span class="badge">v2.0</span>
@@ -202,7 +202,7 @@ body.ar [data-ar]{display:revert}
     </div>
   </div>
   <div data-ar>
-    <h1>♿ توثيق AccessWidget</h1>
+    <h1>♿ توثيق انسجام</h1>
     <p>الدليل الشامل للمسؤولين والعملاء — إعداد الخادم، تضمين الودجت، إدارة التراخيص، وتخصيص الهوية البصرية.</p>
     <div class="badge-row">
       <span class="badge">v2.0</span>
@@ -218,7 +218,7 @@ body.ar [data-ar]{display:revert}
 <a class="section-anchor" id="overview"></a>
 <div data-en>
 <h2>📖 Overview</h2>
-<p>AccessWidget is a SaaS accessibility solution that lets website owners embed a fully-featured accessibility toolbar on any website using a single <code>&lt;script&gt;</code> tag. The platform consists of three parts:</p>
+<p>Insijam is a SaaS accessibility solution that lets website owners embed a fully-featured accessibility toolbar on any website using a single <code>&lt;script&gt;</code> tag. The platform consists of three parts:</p>
 <div class="card-grid">
   <div class="card"><div class="card-icon">⚙️</div><h4>API Server</h4><p>Node.js + Express backend. Handles auth, license validation, analytics, and widget config storage.</p></div>
   <div class="card"><div class="card-icon">🛡️</div><h4>Admin Panel</h4><p>Internal dashboard for the platform operator to manage customers, subscriptions, and licenses.</p></div>
@@ -228,7 +228,7 @@ body.ar [data-ar]{display:revert}
 </div>
 <div data-ar>
 <h2>📖 نظرة عامة</h2>
-<p>AccessWidget هو حل SaaS لإمكانية الوصول يتيح لأصحاب المواقع تضمين شريط أدوات إمكانية وصول متكامل في أي موقع باستخدام وسم <code>&lt;script&gt;</code> واحد فقط. تتكون المنصة من ثلاثة أجزاء:</p>
+<p>انسجام هو حل SaaS لإمكانية الوصول يتيح لأصحاب المواقع تضمين شريط أدوات إمكانية وصول متكامل في أي موقع باستخدام وسم <code>&lt;script&gt;</code> واحد فقط. تتكون المنصة من ثلاثة أجزاء:</p>
 <div class="card-grid">
   <div class="card"><div class="card-icon">⚙️</div><h4>خادم API</h4><p>خلفية Node.js + Express تتولى المصادقة والتحقق من التراخيص وتخزين التحليلات وإعدادات الودجت.</p></div>
   <div class="card"><div class="card-icon">🛡️</div><h4>لوحة الإدارة</h4><p>لوحة تحكم داخلية لمشغّل المنصة لإدارة العملاء والاشتراكات والتراخيص.</p></div>
@@ -281,7 +281,7 @@ body.ar [data-ar]{display:revert}
   <div class="step"><div class="step-num">1</div><div class="step-body">
     <h4>Create the MySQL database &amp; schema</h4>
     <pre><code>mysql -u root -p &lt; saas/api/schema.sql</code></pre>
-    <p>This creates the <code>accesswidget</code> database with all tables and inserts demo seed data.</p>
+    <p>This creates the <code>insijam</code> database with all tables and inserts demo seed data.</p>
   </div></div>
   <div class="step"><div class="step-num">2</div><div class="step-body">
     <h4>Configure environment variables</h4>
@@ -292,7 +292,7 @@ cp .env.example .env</code></pre>
 DB_PORT=3306
 DB_USER=root
 DB_PASS=your_mysql_password
-DB_NAME=accesswidget
+DB_NAME=insijam
 PORT=3001
 ADMIN_SECRET=choose_a_strong_secret_here
 ALLOWED_ORIGINS=https://yourdomain.com</code></pre>
@@ -324,7 +324,7 @@ npm run dev        # development (auto-restart on changes)</code></pre>
   <div class="step"><div class="step-num">1</div><div class="step-body">
     <h4>إنشاء قاعدة بيانات MySQL والجداول</h4>
     <pre><code>mysql -u root -p &lt; saas/api/schema.sql</code></pre>
-    <p>ينشئ هذا قاعدة البيانات <code>accesswidget</code> بجميع الجداول مع بيانات تجريبية.</p>
+    <p>ينشئ هذا قاعدة البيانات <code>insijam</code> بجميع الجداول مع بيانات تجريبية.</p>
   </div></div>
   <div class="step"><div class="step-num">2</div><div class="step-body">
     <h4>ضبط متغيرات البيئة</h4>
@@ -335,7 +335,7 @@ cp .env.example .env</code></pre>
 DB_PORT=3306
 DB_USER=root
 DB_PASS=كلمة_مرور_MySQL
-DB_NAME=accesswidget
+DB_NAME=insijam
 PORT=3001
 ADMIN_SECRET=اختر_مفتاحاً_قوياً_هنا
 ALLOWED_ORIGINS=https://yourdomain.com</code></pre>
@@ -678,7 +678,7 @@ npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></p
   <tr><td><code>showProfiles</code></td><td>boolean</td><td>true</td><td>Show/hide the presets section.</td></tr>
   <tr><td><code>showTTS</code></td><td>boolean</td><td>true</td><td>Show/hide text-to-speech feature.</td></tr>
   <tr><td><code>showReadingMask</code></td><td>boolean</td><td>true</td><td>Show/hide reading mask feature.</td></tr>
-  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>Skip license validation. For local development only.</td></tr>
+  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>Skip license validation. <strong>Only honored on <code>localhost</code>, <code>127.0.0.1</code>, or <code>file://</code></strong> — silently ignored on real domains.</td></tr>
 </table></div>
 </div>
 <div data-ar>
@@ -713,7 +713,7 @@ npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></p
   <tr><td><code>showProfiles</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء قسم الملفات المسبقة.</td></tr>
   <tr><td><code>showTTS</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء ميزة تحويل النص لكلام.</td></tr>
   <tr><td><code>showReadingMask</code></td><td>boolean</td><td>true</td><td>إظهار/إخفاء ميزة قناع القراءة.</td></tr>
-  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>تخطّي التحقق من الترخيص. للتطوير المحلي فقط.</td></tr>
+  <tr><td><code>devMode</code></td><td>boolean</td><td>false</td><td>تخطّي التحقق من الترخيص. <strong>يُحترم فقط على <code>localhost</code> أو <code>127.0.0.1</code> أو <code>file://</code></strong> — يُتجاهل بصمت على أي نطاق حقيقي.</td></tr>
 </table></div>
 </div>
 
@@ -830,7 +830,7 @@ npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></p
   };
 &lt;/script&gt;
 &lt;script src="accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
-<div class="callout danger"><div class="callout-icon">🚨</div><p><strong>Never use <code>devMode: true</code> on a live website.</strong> It bypasses license validation entirely, meaning anyone can use your widget script without a key. Only use it during local development.</p></div>
+<div class="callout"><div class="callout-icon">🔒</div><p><strong>devMode is domain-locked.</strong> The widget checks <code>window.location.hostname</code> at startup. If the page is not served from <code>localhost</code>, <code>127.0.0.1</code>, or a <code>file://</code> URL, the <code>devMode</code> flag is ignored and a real license is required. You cannot bypass validation by copying the script to your site and flipping <code>devMode: true</code>.</p></div>
 </div>
 <div data-ar>
 <h2>🛠️ وضع التطوير</h2>
@@ -842,7 +842,7 @@ npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></p
   };
 &lt;/script&gt;
 &lt;script src="accessibility-widget.js"&gt;&lt;/script&gt;</code></pre>
-<div class="callout danger"><div class="callout-icon">🚨</div><p><strong>لا تستخدم <code>devMode: true</code> أبداً على موقع حي.</strong> يتخطى التحقق من الترخيص بالكامل، مما يعني أن أي شخص يمكنه استخدام سكريبت الودجت دون مفتاح. استخدمه فقط أثناء التطوير المحلي.</p></div>
+<div class="callout"><div class="callout-icon">🔒</div><p><strong><code>devMode</code> مقفل على النطاق.</strong> تتحقق الأداة من <code>window.location.hostname</code> عند البدء. إذا لم تكن الصفحة من <code>localhost</code> أو <code>127.0.0.1</code> أو رابط <code>file://</code>، يُتجاهل <code>devMode</code> ويُطلب ترخيص حقيقي. لا يمكن تجاوز التحقق بنسخ السكريبت إلى موقعك وتفعيل <code>devMode: true</code>.</p></div>
 </div>
 
 <hr/>
@@ -973,8 +973,8 @@ npm run dev        # تطوير (إعادة تشغيل تلقائية)</code></p
 
 <hr/>
 <p style="text-align:center;color:var(--gray-500);font-size:.85rem;padding:20px 0">
-  <span data-en>AccessWidget v2.0 — Built with ♥ for web accessibility</span>
-  <span data-ar>AccessWidget v2.0 — مبني بـ ♥ من أجل إمكانية الوصول على الويب</span>
+  <span data-en>Insijam v2.0 — Built with ♥ for web accessibility</span>
+  <span data-ar>انسجام v2.0 — مبني بـ ♥ من أجل إمكانية الوصول على الويب</span>
 </p>
 
 </div><!-- /content -->

@@ -1,5 +1,5 @@
 -- ============================================================
--- AccessWidget — MySQL Schema
+-- Insijam — MySQL Schema
 -- ============================================================
 -- Run once to set up the database:
 --   mysql -u root -p < schema.sql
@@ -7,11 +7,11 @@
 -- Or from MySQL Workbench / phpMyAdmin: paste & execute.
 -- ============================================================
 
-CREATE DATABASE IF NOT EXISTS accesswidget
+CREATE DATABASE IF NOT EXISTS insijam
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE accesswidget;
+USE insijam;
 
 -- ── customers ──────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS customers (

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AccessWidget — Admin Panel</title>
+<title>Insijam — Admin Panel</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -301,7 +301,7 @@ html[dir="rtl"] .domain-bar { flex-direction: row-reverse; }
   <div class="login-card">
     <div style="font-size:2rem;margin-bottom:.5rem">🛡️</div>
     <h1>Admin Panel</h1>
-    <p>AccessWidget Platform Administration</p>
+    <p>Insijam Platform Administration</p>
     <div id="login-error"></div>
     <label for="api-url-input">API Server URL</label>
     <input id="api-url-input" type="text" value="http://localhost:3001" placeholder="http://localhost:3001">
@@ -319,7 +319,7 @@ html[dir="rtl"] .domain-bar { flex-direction: row-reverse; }
     <aside id="sidebar">
       <div class="sidebar-logo">
         <div class="logo-mark">♿</div>
-        <h2>AccessWidget</h2>
+        <h2 id="admin-brand-name">Insijam</h2>
         <p>Admin Panel</p>
       </div>
       <nav>
@@ -1278,7 +1278,8 @@ function fmtTs(ts) {
 // ─────────────────────────────────────────────
 const ADMIN_I18N = {
   en: {
-    'login-title':'Admin Panel','login-sub':'AccessWidget Platform Administration',
+    'brand-name':'Insijam',
+    'login-title':'Admin Panel','login-sub':'Insijam Platform Administration',
     'login-url-label':'API Server URL','login-key-label':'Admin Secret Key','login-btn':'Sign In',
     'sidebar-overview':'Overview','nav-dashboard':'Dashboard',
     'sidebar-mgmt':'Management','nav-orgs':'Organizations','nav-subs':'Subscriptions','nav-licenses':'Licenses',
@@ -1308,7 +1309,8 @@ const ADMIN_I18N = {
     'tab-ana-sub':'Platform usage and activation data','tab-bill-sub':'Invoices and revenue overview',
   },
   ar: {
-    'login-title':'لوحة الإدارة','login-sub':'إدارة منصة AccessWidget',
+    'brand-name':'انسجام',
+    'login-title':'لوحة الإدارة','login-sub':'إدارة منصة انسجام',
     'login-url-label':'رابط خادم API','login-key-label':'مفتاح الإدارة السري','login-btn':'تسجيل الدخول',
     'sidebar-overview':'نظرة عامة','nav-dashboard':'لوحة التحكم',
     'sidebar-mgmt':'الإدارة','nav-orgs':'المنظمات','nav-subs':'الاشتراكات','nav-licenses':'التراخيص',
@@ -1346,6 +1348,9 @@ function applyAdminLang(lang) {
   const s = (sel, key) => { const el = document.querySelector(sel); if (el && t[key]) el.textContent = t[key]; };
   const sIn = (id, key) => { const el = document.getElementById(id); if (el && t[key]) el.placeholder = t[key]; };
   const sOpt = (sel, key) => { const el = document.querySelector(sel); if (el && t[key]) el.textContent = t[key]; };
+
+  // Brand
+  const brandEl = document.getElementById('admin-brand-name'); if (brandEl && t['brand-name']) brandEl.textContent = t['brand-name'];
 
   // Login
   s('.login-card h1', 'login-title');

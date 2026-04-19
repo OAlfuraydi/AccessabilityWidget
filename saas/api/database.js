@@ -1,5 +1,5 @@
 /**
- * database.js — MySQL database layer for AccessWidget API
+ * database.js — MySQL database layer for Insijam API
  *
  * Requires: npm install mysql2 dotenv
  *
@@ -23,7 +23,7 @@ const pool = mysql.createPool({
   port:               parseInt(process.env.DB_PORT || '3306'),
   user:               process.env.DB_USER || 'root',
   password:           process.env.DB_PASS || '',
-  database:           process.env.DB_NAME || 'accesswidget',
+  database:           process.env.DB_NAME || 'insijam',
   waitForConnections: true,
   connectionLimit:    10,
   queueLimit:         0,

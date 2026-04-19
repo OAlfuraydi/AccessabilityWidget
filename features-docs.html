@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Insijam — Features Documentation | توثيق الميزات</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #2563EB; --primary-dark: #1d4ed8; --primary-light: #eff6ff;
+    --green: #16a34a; --green-light: #f0fdf4;
+    --amber: #d97706; --amber-light: #fffbeb;
+    --red: #dc2626; --red-light: #fef2f2;
+    --purple: #7c3aed; --purple-light: #f5f3ff;
+    --cyan: #0891b2; --cyan-light: #ecfeff;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+    --gray-300: #d1d5db; --gray-500: #6b7280; --gray-600: #4b5563;
+    --gray-700: #374151; --gray-800: #1f2937; --gray-900: #111827;
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: var(--gray-50); color: var(--gray-800); line-height: 1.7;
+  }
+  html[dir="rtl"] body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; }
+
+  /* ── Top bar ── */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--primary); color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 60px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+  .topbar-logo { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 10px; }
+  .topbar-logo span { font-size: 24px; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .lang-btn, .nav-btn {
+    background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35);
+    color: #fff; padding: 6px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+    transition: background 0.2s;
+  }
+  .lang-btn:hover, .nav-btn:hover { background: rgba(255,255,255,0.3); }
+  html[dir="rtl"] .topbar { direction: rtl; }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(145deg, var(--primary) 0%, #1e3a8a 100%);
+    color: #fff; padding: 64px 32px; text-align: center;
+  }
+  .hero h1 { font-size: 42px; font-weight: 800; margin-bottom: 14px; }
+  .hero p { font-size: 18px; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+  .hero-stats { display: flex; justify-content: center; gap: 40px; margin-top: 32px; flex-wrap: wrap; }
+  .hero-stat { text-align: center; }
+  .hero-stat-num { font-size: 32px; font-weight: 900; }
+  .hero-stat-lbl { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+
+  /* ── Container ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 48px 24px; }
+
+  /* ── Category heading ── */
+  .category {
+    margin: 48px 0 24px;
+    padding-bottom: 14px;
+    border-bottom: 3px solid var(--primary);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .category-icon {
+    width: 52px; height: 52px; border-radius: 12px;
+    background: var(--primary-light); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
+  }
+  .category h2 { font-size: 28px; font-weight: 800; color: var(--gray-900); }
+  .category p { font-size: 14px; color: var(--gray-600); margin-top: 3px; }
+  html[dir="rtl"] .category { direction: rtl; }
+
+  /* ── Feature card ── */
+  .feature {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+  .feature:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  html[dir="rtl"] .feature { direction: rtl; text-align: right; }
+
+  .feature-head {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 14px;
+    padding-bottom: 14px; border-bottom: 1px dashed var(--gray-200);
+  }
+  .feature-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--primary-light); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .feature-name { font-size: 19px; font-weight: 700; color: var(--gray-900); }
+  .feature-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px;
+    background: var(--gray-100); color: var(--gray-600);
+    margin-top: 4px; letter-spacing: 0.04em;
+  }
+
+  .feature-body h4 {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    color: var(--gray-500); margin: 14px 0 6px;
+    letter-spacing: 0.05em;
+  }
+  .feature-body p { font-size: 15px; color: var(--gray-700); margin-bottom: 6px; }
+  .feature-body ul { list-style: none; margin: 4px 0; }
+  .feature-body li {
+    font-size: 14px; color: var(--gray-700);
+    padding: 4px 0 4px 22px; position: relative;
+  }
+  .feature-body li::before {
+    content: '✓'; position: absolute; left: 0; top: 4px;
+    color: var(--green); font-weight: 700;
+  }
+  html[dir="rtl"] .feature-body li { padding: 4px 22px 4px 0; }
+  html[dir="rtl"] .feature-body li::before { left: auto; right: 0; }
+
+  /* ── Profile card ── */
+  .profile-card {
+    background: #fff;
+    border: 2px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .profile-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 6px 24px rgba(37,99,235,0.1);
+  }
+  html[dir="rtl"] .profile-card { direction: rtl; text-align: right; }
+
+  .profile-head { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .profile-icon {
+    width: 48px; height: 48px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .profile-name { font-size: 20px; font-weight: 800; color: var(--gray-900); }
+  .profile-card p { color: var(--gray-700); font-size: 15px; margin-bottom: 14px; }
+  .profile-features {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding-top: 12px; border-top: 1px dashed var(--gray-200);
+  }
+  .profile-features span {
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px; border-radius: 16px;
+    background: var(--primary-light); color: var(--primary-dark);
+  }
+
+  /* ── Color variants for categories ── */
+  .cat-visual .category-icon { background: var(--primary-light); color: var(--primary); }
+  .cat-visual .category { border-color: var(--primary); }
+  .cat-reading .category-icon { background: var(--amber-light); color: var(--amber); }
+  .cat-reading .category { border-color: var(--amber); }
+  .cat-nav .category-icon { background: var(--green-light); color: var(--green); }
+  .cat-nav .category { border-color: var(--green); }
+  .cat-audio .category-icon { background: var(--purple-light); color: var(--purple); }
+  .cat-audio .category { border-color: var(--purple); }
+  .cat-profiles .category-icon { background: var(--cyan-light); color: var(--cyan); }
+  .cat-profiles .category { border-color: var(--cyan); }
+
+  .cat-visual .feature-icon { background: var(--primary-light); color: var(--primary); }
+  .cat-reading .feature-icon { background: var(--amber-light); color: var(--amber); }
+  .cat-nav .feature-icon { background: var(--green-light); color: var(--green); }
+  .cat-audio .feature-icon { background: var(--purple-light); color: var(--purple); }
+
+  /* ── TOC ── */
+  .toc {
+    background: #fff; border: 1px solid var(--gray-200); border-radius: 12px;
+    padding: 20px 28px; margin-bottom: 32px;
+  }
+  .toc h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--gray-800); }
+  .toc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px 20px; }
+  .toc a { color: var(--primary); text-decoration: none; font-size: 14px; padding: 3px 0; }
+  .toc a:hover { text-decoration: underline; }
+  html[dir="rtl"] .toc { direction: rtl; text-align: right; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--gray-900); color: var(--gray-300);
+    padding: 32px; text-align: center; font-size: 14px;
+    margin-top: 64px;
+  }
+  footer strong { color: #fff; }
+
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 32px; }
+    .hero-stats { gap: 20px; }
+    .container { padding: 32px 16px; }
+    .feature { padding: 20px; }
+    .topbar { padding: 0 16px; }
+  }
+
+  /* ═══════════════ Print / PDF styles ═══════════════ */
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    body { background: #fff; color: #000; font-size: 11pt; line-height: 1.5; }
+    .topbar, .lang-btn, .nav-btn, .pdf-btn, .toc { display: none !important; }
+    .hero {
+      background: #2563EB !important;
+      color: #fff !important;
+      padding: 24px 20px !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-after: avoid;
+    }
+    .hero h1 { font-size: 24pt; }
+    .hero p { font-size: 11pt; }
+    .hero-stats { margin-top: 16px; gap: 20px; }
+    .hero-stat-num { font-size: 20pt; }
+    .container { max-width: none; padding: 16px 0; }
+    .category {
+      page-break-after: avoid;
+      page-break-inside: avoid;
+      margin: 20px 0 12px;
+    }
+    .category h2 { font-size: 16pt; }
+    .category p { font-size: 10pt; }
+    .feature, .profile-card {
+      page-break-inside: avoid;
+      box-shadow: none !important;
+      border: 1px solid #d1d5db !important;
+      padding: 14px 16px !important;
+      margin-bottom: 10px;
+    }
+    .feature:hover, .profile-card:hover { transform: none !important; }
+    .feature-name { font-size: 13pt; }
+    .feature-body h4 { font-size: 9pt; margin: 8px 0 3px; }
+    .feature-body p, .feature-body li { font-size: 10pt; }
+    .feature-icon, .category-icon, .profile-icon {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .feature-tag {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .profile-features span {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    footer {
+      background: #1f2937 !important;
+      color: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      page-break-before: avoid;
+      padding: 16px;
+    }
+    a { color: #000; text-decoration: none; }
+  }
+
+  /* ═══════════════ Download PDF button ═══════════════ */
+  .pdf-btn {
+    background: #fff; color: var(--primary);
+    border: 1px solid rgba(255,255,255,0.4);
+    padding: 6px 16px; border-radius: 20px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .pdf-btn:hover { background: #fde68a; color: var(--gray-900); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════ TOPBAR ═══════════════════════ -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <span>♿</span>
+    <span id="brand-title">Insijam — Features</span>
+  </div>
+  <div class="topbar-actions">
+    <a href="demo.html" class="nav-btn" id="back-btn">← Back to Demo</a>
+    <button class="pdf-btn" id="pdf-btn" onclick="window.print()">⬇ PDF</button>
+    <button class="lang-btn" id="lang-btn" onclick="toggleLang()">🌐 AR</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="hero">
+  <h1 id="hero-title">Complete Features Documentation</h1>
+  <p id="hero-subtitle">Detailed technical reference for all 23 accessibility features and 6 quick-start profiles available in the Insijam widget.</p>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <div class="hero-stat-num">23</div>
+      <div class="hero-stat-lbl" id="stat-features">Accessibility Features</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">6</div>
+      <div class="hero-stat-lbl" id="stat-profiles">Quick-Start Profiles</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">2</div>
+      <div class="hero-stat-lbl" id="stat-languages">Full Languages (EN + AR)</div>
+    </div>
+    <div class="hero-stat">
+      <div class="hero-stat-num">WCAG 2.1</div>
+      <div class="hero-stat-lbl" id="stat-wcag">AA Compliant</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ MAIN ═══════════════════════ -->
+<div class="container">
+
+  <!-- ── Table of Contents ── -->
+  <div class="toc">
+    <h3 id="toc-title">📑 Table of Contents</h3>
+    <div class="toc-grid">
+      <a href="#cat-visual" id="toc-visual">🎨 Visual Adjustments (13)</a>
+      <a href="#cat-reading" id="toc-reading">📖 Reading Tools (5)</a>
+      <a href="#cat-nav" id="toc-nav">⌨️ Navigation (3)</a>
+      <a href="#cat-audio" id="toc-audio">🔊 Audio (2)</a>
+      <a href="#cat-profiles" id="toc-profiles">👤 Accessibility Profiles (6)</a>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ VISUAL ADJUSTMENTS ═══════════════════════ -->
+  <div class="cat-visual" id="cat-visual">
+    <div class="category">
+      <div class="category-icon">🎨</div>
+      <div>
+        <h2 id="cat-visual-title">Visual Adjustments</h2>
+        <p id="cat-visual-desc">Control how text and colors appear on the page — essential for users with low vision, color sensitivity, or reading difficulties.</p>
+      </div>
+    </div>
+
+    <!-- Feature 1: Font Size -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔠</div>
+        <div>
+          <div class="feature-name" data-k="f1-name">Font Size</div>
+          <span class="feature-tag">fontSize</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f1-desc">Scales all text on the page proportionally in 5 progressive steps (100% → 110% → 120% → 130% → 150%). Does not break layouts because scaling is applied via CSS custom properties on the body and respected by responsive designs.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f1-b1">Users with low vision, presbyopia, or aging eyesight</li>
+          <li data-k="f1-b2">Anyone reading on small screens or at a distance</li>
+          <li data-k="f1-b3">Users with mild visual fatigue from prolonged screen time</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f1-effect">Body text, headings, buttons, and labels all grow at a proportional rate. Clicking the feature cycles through 5 levels and then resets.</p>
+      </div>
+    </div>
+
+    <!-- Feature 2: Font Family -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔤</div>
+        <div>
+          <div class="feature-name" data-k="f2-name">Font Family</div>
+          <span class="feature-tag">fontFamily</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f2-desc">Replaces the page typeface with one of 4 alternatives: Default (site default), Readable (Atkinson Hyperlegible / high-legibility sans-serif), Dyslexia (OpenDyslexic-style font with weighted bottom letters), or Monospace (fixed-width for code-like clarity).</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f2-b1">Users with dyslexia, who benefit from letter-distinctive fonts</li>
+          <li data-k="f2-b2">Users who find decorative site fonts hard to read</li>
+          <li data-k="f2-b3">Users with visual processing differences</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f2-effect">All text across the page switches to the selected font while preserving size and structure.</p>
+      </div>
+    </div>
+
+    <!-- Feature 3: Line Height -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">↕️</div>
+        <div>
+          <div class="feature-name" data-k="f3-name">Line Height</div>
+          <span class="feature-tag">lineHeight</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f3-desc">Increases vertical spacing between lines of text in 3 steps (normal → 1.5× → 2×). Reduces visual crowding and makes it easier to track lines of running text.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f3-b1">Users with dyslexia or reading tracking difficulties</li>
+          <li data-k="f3-b2">Users with attention-related conditions (ADHD)</li>
+          <li data-k="f3-b3">Anyone reading long articles or dense content</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f3-effect">Paragraphs and lists become airier; lines no longer appear cramped, making vertical reading smoother.</p>
+      </div>
+    </div>
+
+    <!-- Feature 4: Letter Spacing -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔡</div>
+        <div>
+          <div class="feature-name" data-k="f4-name">Letter Spacing</div>
+          <span class="feature-tag">letterSpacing</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f4-desc">Spreads individual characters apart in 3 steps (normal → 0.05em → 0.1em). Prevents letters from visually merging, which is a common challenge in dyslexia and certain vision conditions.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f4-b1">Users with dyslexia who experience "letter crowding"</li>
+          <li data-k="f4-b2">Users with low vision or astigmatism</li>
+          <li data-k="f4-b3">Users learning a new language or script</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f4-effect">Each letter within every word becomes more distinct, reducing confusion between similar-looking characters (e.g., "rn" vs "m").</p>
+      </div>
+    </div>
+
+    <!-- Feature 5: Text Align -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">⬅️</div>
+        <div>
+          <div class="feature-name" data-k="f5-name">Text Alignment</div>
+          <span class="feature-tag">textAlign</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f5-desc">Forces all body text to left-align (or right-align in RTL/Arabic context). Eliminates "justified" text, which creates uneven word spacing — a well-documented barrier for dyslexic readers.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f5-b1">Users with dyslexia (WCAG strongly recommends avoiding justified text)</li>
+          <li data-k="f5-b2">Users who find uneven spacing distracting</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f5-effect">Paragraphs get even, predictable left/right edges; word spacing becomes uniform.</p>
+      </div>
+    </div>
+
+    <!-- Feature 6: High Contrast -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">⬛</div>
+        <div>
+          <div class="feature-name" data-k="f6-name">High Contrast</div>
+          <span class="feature-tag">highContrast</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f6-desc">Applies a black background with bright yellow text for all content. Produces the maximum possible contrast ratio (≈19.5:1), far exceeding WCAG AAA (7:1).</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f6-b1">Users with severe low vision or macular degeneration</li>
+          <li data-k="f6-b2">Users with photosensitivity or glare sensitivity</li>
+          <li data-k="f6-b3">Users reading in bright outdoor environments</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f6-effect">Entire page switches to black + yellow. Mutually exclusive with Dark Mode, Light Mode, Grayscale, Invert, and Mute Colors.</p>
+      </div>
+    </div>
+
+    <!-- Feature 7: Dark Mode -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🌙</div>
+        <div>
+          <div class="feature-name" data-k="f7-name">Dark Mode</div>
+          <span class="feature-tag">darkMode</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f7-desc">Inverts the lightness of the page: backgrounds become dark, text becomes light. Preserves hue and colors (unlike pure invert), so images and logos remain recognizable.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f7-b1">Users with light sensitivity or migraines</li>
+          <li data-k="f7-b2">Users reading at night or in low-light rooms</li>
+          <li data-k="f7-b3">Users who experience eye strain from bright whites</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f7-effect">Backgrounds turn near-black; text turns near-white. Mutually exclusive with High Contrast, Light Mode, Grayscale, Invert, and Mute Colors.</p>
+      </div>
+    </div>
+
+    <!-- Feature 8: Light Mode -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">☀️</div>
+        <div>
+          <div class="feature-name" data-k="f8-name">Light Mode</div>
+          <span class="feature-tag">lightMode</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f8-desc">Forces a bright white background with dark text, overriding any site theme. Useful when a site uses a dark theme that a user finds hard to read.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f8-b1">Users with cataracts (often struggle with dark backgrounds)</li>
+          <li data-k="f8-b2">Users who need maximum text clarity</li>
+          <li data-k="f8-b3">Users taking notes or studying from the page</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f8-effect">White background + black text applied globally. Mutually exclusive with High Contrast, Dark Mode, Grayscale, Invert, and Mute Colors.</p>
+      </div>
+    </div>
+
+    <!-- Feature 9: Grayscale -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">◐</div>
+        <div>
+          <div class="feature-name" data-k="f9-name">Grayscale</div>
+          <span class="feature-tag">grayscale</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f9-desc">Removes all color from the page, applying a 100% grayscale CSS filter. Content becomes a pure black-and-white image with preserved brightness relationships.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f9-b1">Users with color vision deficiency (colorblindness)</li>
+          <li data-k="f9-b2">Users distracted by bright colors (ADHD, cognitive sensitivities)</li>
+          <li data-k="f9-b3">Users whose sites convey meaning only via color</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f9-effect">Every element — images, icons, backgrounds — becomes grayscale. Mutually exclusive with the other color-mode toggles.</p>
+      </div>
+    </div>
+
+    <!-- Feature 10: Invert Colors -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔄</div>
+        <div>
+          <div class="feature-name" data-k="f10-name">Invert Colors</div>
+          <span class="feature-tag">invertColors</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f10-desc">Applies a full CSS invert filter to every visible color (e.g., black → white, red → cyan). Different from Dark Mode because it also flips image hues.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f10-b1">Users with severe light sensitivity</li>
+          <li data-k="f10-b2">Users preferring maximum visual differentiation</li>
+          <li data-k="f10-b3">Users with specific visual preferences unmet by dark mode</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f10-effect">Every color shifts to its opposite on the color wheel. Mutually exclusive with other color-mode toggles.</p>
+      </div>
+    </div>
+
+    <!-- Feature 11: Mute Colors -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🎭</div>
+        <div>
+          <div class="feature-name" data-k="f11-name">Mute Colors</div>
+          <span class="feature-tag">muteColors</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f11-desc">Desaturates colors by 60%, producing a softer, less intense palette without going fully grayscale. Ideal for reducing visual stimulation without losing color cues.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f11-b1">Users with sensory processing sensitivities or autism</li>
+          <li data-k="f11-b2">Users prone to seizures triggered by saturated colors</li>
+          <li data-k="f11-b3">Users with migraine-related visual triggers</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f11-effect">Colors become muted and pastel-like. Mutually exclusive with other color-mode toggles.</p>
+      </div>
+    </div>
+
+    <!-- Feature 12: Highlight Links -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔗</div>
+        <div>
+          <div class="feature-name" data-k="f12-name">Highlight Links</div>
+          <span class="feature-tag">highlightLinks</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f12-desc">Adds a bright yellow background and thick underline to every hyperlink on the page. Makes interactive elements immediately scannable.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f12-b1">Users with cognitive difficulties identifying clickable elements</li>
+          <li data-k="f12-b2">Users on sites with low-contrast or unconventional link styling</li>
+          <li data-k="f12-b3">Users with low vision who cannot easily spot subtle hover cues</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f12-effect">All &lt;a&gt; elements become visually distinct with yellow highlighting and a bold underline.</p>
+      </div>
+    </div>
+
+    <!-- Feature 13: Highlight Headings -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🏷️</div>
+        <div>
+          <div class="feature-name" data-k="f13-name">Highlight Headings</div>
+          <span class="feature-tag">highlightHeadings</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f13-desc">Adds a visible background and border to every heading (h1 through h6) on the page, making document structure scannable at a glance.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f13-b1">Users with cognitive differences who benefit from structural cues</li>
+          <li data-k="f13-b2">Users skimming long articles for specific sections</li>
+          <li data-k="f13-b3">Screen-reader users visually verifying heading hierarchy</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f13-effect">Each heading gets a colored background box, giving the page a more structured, outline-like appearance.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ READING TOOLS ═══════════════════════ -->
+  <div class="cat-reading" id="cat-reading">
+    <div class="category">
+      <div class="category-icon">📖</div>
+      <div>
+        <h2 id="cat-reading-title">Reading Tools</h2>
+        <p id="cat-reading-desc">Specialized tools for readers who need visual focus assistance or have learning differences.</p>
+      </div>
+    </div>
+
+    <!-- Feature 14: Reading Mask -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🎭</div>
+        <div>
+          <div class="feature-name" data-k="f14-name">Reading Mask</div>
+          <span class="feature-tag">readingMask</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f14-desc">Creates a horizontal "spotlight band" that follows the cursor vertically. The rest of the screen is dimmed via a dark box-shadow overlay, leaving only a narrow strip clearly visible.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f14-b1">Users with ADHD, autism, or attention difficulties</li>
+          <li data-k="f14-b2">Users with reading comprehension challenges</li>
+          <li data-k="f14-b3">Users who lose their place on long pages</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f14-effect">Only a horizontal strip (approximately 100px tall) around the cursor stays lit; the rest fades to dark, forcing visual focus onto one line.</p>
+      </div>
+    </div>
+
+    <!-- Feature 15: Reading Guide -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">📏</div>
+        <div>
+          <div class="feature-name" data-k="f15-name">Reading Guide</div>
+          <span class="feature-tag">readingGuide</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f15-desc">Draws a thin (2px) colored horizontal line that tracks the cursor, mimicking a physical reading ruler. Helps readers follow a specific line of text without losing place.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f15-b1">Users with dyslexia (line-tracking difficulties)</li>
+          <li data-k="f15-b2">Users with visual perception issues</li>
+          <li data-k="f15-b3">Children and adults learning to read</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f15-effect">A persistent blue line follows the mouse cursor horizontally, acting as a digital reading ruler without hiding any content.</p>
+      </div>
+    </div>
+
+    <!-- Feature 16: Focus Mode -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🎯</div>
+        <div>
+          <div class="feature-name" data-k="f16-name">Focus Mode</div>
+          <span class="feature-tag">focusMode</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f16-desc">Dims sidebars, navigation, ads, and non-primary content while keeping the main article or content column fully visible. Reduces distractions from peripheral page elements.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f16-b1">Users with ADHD or attention regulation challenges</li>
+          <li data-k="f16-b2">Users with autism who are overwhelmed by busy layouts</li>
+          <li data-k="f16-b3">Anyone trying to focus on a long article</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f16-effect">Non-essential elements (nav, aside, footer, ads) become ~20% opaque; the main content remains fully visible.</p>
+      </div>
+    </div>
+
+    <!-- Feature 17: Dyslexia Font -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🧠</div>
+        <div>
+          <div class="feature-name" data-k="f17-name">Dyslexia-Friendly Font</div>
+          <span class="feature-tag">dyslexiaFont</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f17-desc">One-click preset that applies a dyslexia-optimized typeface (OpenDyslexic-style) with weighted bottom letters that prevent characters from appearing to "flip" or merge — a common dyslexic reading challenge.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f17-b1">Users with dyslexia (primary use case)</li>
+          <li data-k="f17-b2">Users with broader reading or learning disabilities</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f17-effect">Full page switches to the dyslexia-friendly font. Equivalent to selecting "dyslexia" from the Font Family option, with a dedicated one-click toggle.</p>
+      </div>
+    </div>
+
+    <!-- Feature 18: Pause Animations -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">⏸️</div>
+        <div>
+          <div class="feature-name" data-k="f18-name">Pause Animations</div>
+          <span class="feature-tag">pauseAnimations</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f18-desc">Stops all CSS animations, transitions, auto-playing videos, GIFs, and carousels on the page. Respects prefers-reduced-motion semantics for a safer experience.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f18-b1">Users prone to seizures (photosensitive epilepsy)</li>
+          <li data-k="f18-b2">Users with vestibular disorders (motion sickness from movement)</li>
+          <li data-k="f18-b3">Users with ADHD distracted by movement</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f18-effect">All motion on the page stops immediately. Videos pause at current frame; carousels freeze; animations halt.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ NAVIGATION ═══════════════════════ -->
+  <div class="cat-nav" id="cat-nav">
+    <div class="category">
+      <div class="category-icon">⌨️</div>
+      <div>
+        <h2 id="cat-nav-title">Navigation &amp; Motor</h2>
+        <p id="cat-nav-desc">Tools for users navigating without a mouse or requiring larger interactive targets.</p>
+      </div>
+    </div>
+
+    <!-- Feature 19: Big Cursor -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🖱️</div>
+        <div>
+          <div class="feature-name" data-k="f19-name">Big Cursor</div>
+          <span class="feature-tag">bigCursor</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f19-desc">Replaces the default mouse cursor with a much larger (64×64 px) high-contrast black cursor delivered via inline SVG data URI. Easier to locate and track across the screen.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f19-b1">Users with low vision who lose track of the pointer</li>
+          <li data-k="f19-b2">Users with motor conditions (tremors, Parkinson's) needing larger targets</li>
+          <li data-k="f19-b3">Older users or anyone using a high-resolution display</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f19-effect">The mouse pointer becomes a prominent, easy-to-spot arrow visible across any background.</p>
+      </div>
+    </div>
+
+    <!-- Feature 20: Keyboard Navigation -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">⌨️</div>
+        <div>
+          <div class="feature-name" data-k="f20-name">Keyboard Navigation</div>
+          <span class="feature-tag">keyboardNav</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f20-desc">Enhances visible keyboard focus styles with a thick, high-contrast outline on every focusable element (buttons, links, inputs) — even if the original site suppresses default focus rings.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f20-b1">Users who cannot use a mouse (motor disabilities)</li>
+          <li data-k="f20-b2">Users who prefer keyboard navigation (power users, screen-reader users)</li>
+          <li data-k="f20-b3">Users on sites that violate WCAG 2.4.7 (Focus Visible)</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f20-effect">Every element reached via Tab/Shift-Tab gets a highly visible blue or yellow outline.</p>
+      </div>
+    </div>
+
+    <!-- Feature 21: Skip to Content -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">⏭️</div>
+        <div>
+          <div class="feature-name" data-k="f21-name">Skip to Content</div>
+          <span class="feature-tag">skipContent</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f21-desc">Injects a "Skip to main content" link as the first focusable element on the page. Pressing Tab once reveals it, allowing keyboard and screen-reader users to bypass repetitive navigation menus.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f21-b1">Screen-reader users (saves dozens of keystrokes per page)</li>
+          <li data-k="f21-b2">Keyboard-only users with motor disabilities</li>
+          <li data-k="f21-b3">Users on cognitively overwhelming pages</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f21-effect">A "Skip to main content" button appears at the top-left when focused, jumping the user directly to &lt;main&gt; or the primary content region.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ AUDIO ═══════════════════════ -->
+  <div class="cat-audio" id="cat-audio">
+    <div class="category">
+      <div class="category-icon">🔊</div>
+      <div>
+        <h2 id="cat-audio-title">Audio</h2>
+        <p id="cat-audio-desc">Text-to-speech and sound control tools that adapt the auditory experience.</p>
+      </div>
+    </div>
+
+    <!-- Feature 22: Text to Speech -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🗣️</div>
+        <div>
+          <div class="feature-name" data-k="f22-name">Text-to-Speech</div>
+          <span class="feature-tag">textToSpeech</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f22-desc">Activates click-to-read mode. Once enabled, clicking any text element on the page reads it aloud using the browser's built-in Web Speech API (SpeechSynthesis). Automatically selects Arabic (ar-SA) or English (en-US) voice based on the detected page language.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f22-b1">Users who are blind or have severe visual impairment</li>
+          <li data-k="f22-b2">Users with dyslexia or reading difficulties</li>
+          <li data-k="f22-b3">Non-native speakers learning pronunciation</li>
+          <li data-k="f22-b4">Users multitasking (listen while driving, cooking, etc.)</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f22-effect">When active, a ℹ️ cursor indicates clickable text; clicking triggers speech playback in the page language.</p>
+      </div>
+    </div>
+
+    <!-- Feature 23: Mute Sounds -->
+    <div class="feature">
+      <div class="feature-head">
+        <div class="feature-icon">🔇</div>
+        <div>
+          <div class="feature-name" data-k="f23-name">Mute Sounds</div>
+          <span class="feature-tag">muteSounds</span>
+        </div>
+      </div>
+      <div class="feature-body">
+        <h4 data-k="lbl-desc">Description</h4>
+        <p data-k="f23-desc">Instantly mutes every audio element, video, and embedded media player on the page by setting their muted property to true.</p>
+        <h4 data-k="lbl-benefit">Who Benefits</h4>
+        <ul>
+          <li data-k="f23-b1">Users in quiet environments (libraries, offices, public transport)</li>
+          <li data-k="f23-b2">Users with auditory sensitivities or misophonia</li>
+          <li data-k="f23-b3">Users with hearing aids who need consistent sound control</li>
+        </ul>
+        <h4 data-k="lbl-effect">Effect</h4>
+        <p data-k="f23-effect">All media on the page goes silent immediately; playback continues without sound.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════ PROFILES ═══════════════════════ -->
+  <div class="cat-profiles" id="cat-profiles">
+    <div class="category">
+      <div class="category-icon">👤</div>
+      <div>
+        <h2 id="cat-profiles-title">Accessibility Profiles</h2>
+        <p id="cat-profiles-desc">One-click presets that combine multiple features to address specific accessibility needs. Designed so users don't have to know which individual features help them.</p>
+      </div>
+    </div>
+
+    <!-- Profile 1: Visually Impaired -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--primary-light);color:var(--primary)">👁️</div>
+        <div class="profile-name" data-k="p1-name">Visually Impaired</div>
+      </div>
+      <p data-k="p1-desc">For users with low vision, macular degeneration, or partial sight loss. Enlarges text, maximizes contrast, and makes interactive elements easy to locate.</p>
+      <div class="profile-features">
+        <span>Font Size +2</span><span>High Contrast</span><span>Highlight Links</span>
+        <span>Big Cursor</span><span>Keyboard Nav</span>
+      </div>
+    </div>
+
+    <!-- Profile 2: Low Vision -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--amber-light);color:var(--amber)">🔍</div>
+        <div class="profile-name" data-k="p2-name">Low Vision</div>
+      </div>
+      <p data-k="p2-desc">For readers with mild-to-moderate vision reduction. Increases text size and spacing, switches to a highly readable font, and highlights page structure.</p>
+      <div class="profile-features">
+        <span>Font Size +3</span><span>Readable Font</span><span>Line Height ×2</span>
+        <span>High Contrast</span><span>Highlight Links</span><span>Highlight Headings</span>
+      </div>
+    </div>
+
+    <!-- Profile 3: Dyslexia -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--purple-light);color:var(--purple)">🧠</div>
+        <div class="profile-name" data-k="p3-name">Dyslexia</div>
+      </div>
+      <p data-k="p3-desc">For users with dyslexia or other reading differences. Applies a dyslexia-optimized font with increased spacing, and eliminates justified text that can be disorienting.</p>
+      <div class="profile-features">
+        <span>Dyslexia Font</span><span>Line Height ×2</span><span>Letter Spacing +2</span>
+        <span>Left Align</span><span>Highlight Links</span>
+      </div>
+    </div>
+
+    <!-- Profile 4: Seizure Safe -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--red-light);color:var(--red)">⚠️</div>
+        <div class="profile-name" data-k="p4-name">Seizure Safe</div>
+      </div>
+      <p data-k="p4-desc">For users with photosensitive epilepsy, migraines, or vestibular disorders. Stops all motion, reduces color saturation, and enforces a calm light interface.</p>
+      <div class="profile-features">
+        <span>Pause Animations</span><span>Mute Colors</span><span>Light Mode</span>
+      </div>
+    </div>
+
+    <!-- Profile 5: Cognitive -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--green-light);color:var(--green)">🧩</div>
+        <div class="profile-name" data-k="p5-name">Cognitive Support</div>
+      </div>
+      <p data-k="p5-desc">For users with ADHD, autism, or other cognitive needs. Reduces distractions, provides focus aids, and simplifies the reading experience.</p>
+      <div class="profile-features">
+        <span>Readable Font</span><span>Line Height +1</span><span>Focus Mode</span>
+        <span>Reading Guide</span><span>Pause Animations</span><span>Left Align</span>
+      </div>
+    </div>
+
+    <!-- Profile 6: Keyboard -->
+    <div class="profile-card">
+      <div class="profile-head">
+        <div class="profile-icon" style="background:var(--cyan-light);color:var(--cyan)">⌨️</div>
+        <div class="profile-name" data-k="p6-name">Keyboard Navigation</div>
+      </div>
+      <p data-k="p6-desc">For users who navigate without a mouse — including screen-reader users, motor-disabled users, and keyboard power users.</p>
+      <div class="profile-features">
+        <span>Keyboard Nav</span><span>Skip to Content</span><span>Highlight Links</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer>
+  <p><strong id="footer-brand">♿ Insijam</strong> v1.0.0 <span id="footer-dash">—</span> <span id="footer-tagline">Complete Bilingual Accessibility Widget for Any Website</span></p>
+  <p style="margin-top:8px;opacity:0.7;font-size:13px" id="footer-copy">© 2026 Insijam — Built for WCAG 2.1 AA compliance</p>
+</footer>
+
+<script>
+// ═══════════════════════ i18n ═══════════════════════
+const I18N = {
+  en: {
+    'brand-title': 'Insijam — Features',
+    'back-btn': '← Back to Demo',
+    'pdf-btn': '⬇ PDF',
+    'lang-btn': '🌐 AR',
+    'hero-title': 'Complete Features Documentation',
+    'hero-subtitle': 'Detailed technical reference for all 23 accessibility features and 6 quick-start profiles available in the Insijam widget.',
+    'stat-features': 'Accessibility Features',
+    'stat-profiles': 'Quick-Start Profiles',
+    'stat-languages': 'Full Languages (EN + AR)',
+    'stat-wcag': 'AA Compliant',
+    'toc-title': '📑 Table of Contents',
+    'toc-visual': '🎨 Visual Adjustments (13)',
+    'toc-reading': '📖 Reading Tools (5)',
+    'toc-nav': '⌨️ Navigation (3)',
+    'toc-audio': '🔊 Audio (2)',
+    'toc-profiles': '👤 Accessibility Profiles (6)',
+    'cat-visual-title': 'Visual Adjustments',
+    'cat-visual-desc': 'Control how text and colors appear on the page — essential for users with low vision, color sensitivity, or reading difficulties.',
+    'cat-reading-title': 'Reading Tools',
+    'cat-reading-desc': 'Specialized tools for readers who need visual focus assistance or have learning differences.',
+    'cat-nav-title': 'Navigation & Motor',
+    'cat-nav-desc': 'Tools for users navigating without a mouse or requiring larger interactive targets.',
+    'cat-audio-title': 'Audio',
+    'cat-audio-desc': 'Text-to-speech and sound control tools that adapt the auditory experience.',
+    'cat-profiles-title': 'Accessibility Profiles',
+    'cat-profiles-desc': "One-click presets that combine multiple features to address specific accessibility needs. Designed so users don't have to know which individual features help them.",
+    'lbl-desc': 'Description',
+    'lbl-benefit': 'Who Benefits',
+    'lbl-effect': 'Effect',
+    'footer-brand': '♿ Insijam',
+    'footer-tagline': 'Complete Bilingual Accessibility Widget for Any Website',
+    'footer-copy': '© 2026 Insijam — Built for WCAG 2.1 AA compliance',
+  },
+  ar: {
+    'brand-title': 'انسجام — الميزات',
+    'back-btn': '→ العودة للعرض التجريبي',
+    'pdf-btn': '⬇ PDF',
+    'lang-btn': '🌐 EN',
+    'hero-title': 'توثيق شامل للميزات',
+    'hero-subtitle': 'مرجع تقني تفصيلي لجميع ميزات إمكانية الوصول الـ٢٣ والملفات الشخصية السريعة الـ٦ المتوفرة في أداة انسجام.',
+    'stat-features': 'ميزة إمكانية وصول',
+    'stat-profiles': 'ملف شخصي سريع',
+    'stat-languages': 'لغتان كاملتان (عربي + إنجليزي)',
+    'stat-wcag': 'متوافق مع WCAG AA',
+    'toc-title': '📑 جدول المحتويات',
+    'toc-visual': '🎨 التعديلات البصرية (١٣)',
+    'toc-reading': '📖 أدوات القراءة (٥)',
+    'toc-nav': '⌨️ التنقل (٣)',
+    'toc-audio': '🔊 الصوت (٢)',
+    'toc-profiles': '👤 الملفات الشخصية (٦)',
+    'cat-visual-title': 'التعديلات البصرية',
+    'cat-visual-desc': 'التحكم في طريقة ظهور النص والألوان على الصفحة — ضروري للمستخدمين ذوي ضعف البصر أو حساسية الألوان أو صعوبات القراءة.',
+    'cat-reading-title': 'أدوات القراءة',
+    'cat-reading-desc': 'أدوات متخصصة للقراء الذين يحتاجون إلى مساعدة في التركيز البصري أو لديهم صعوبات تعلم.',
+    'cat-nav-title': 'التنقل والحركة',
+    'cat-nav-desc': 'أدوات للمستخدمين الذين يتنقلون بدون فأرة أو يحتاجون إلى أهداف تفاعلية أكبر.',
+    'cat-audio-title': 'الصوت',
+    'cat-audio-desc': 'أدوات تحويل النص إلى كلام والتحكم في الصوت لتكييف التجربة السمعية.',
+    'cat-profiles-title': 'الملفات الشخصية لإمكانية الوصول',
+    'cat-profiles-desc': 'إعدادات مسبقة بنقرة واحدة تجمع عدة ميزات لتلبية احتياجات إمكانية الوصول المحددة. مصممة لكي لا يحتاج المستخدمون إلى معرفة الميزات الفردية التي تساعدهم.',
+    'lbl-desc': 'الوصف',
+    'lbl-benefit': 'من يستفيد',
+    'lbl-effect': 'التأثير',
+    'footer-brand': '♿ انسجام',
+    'footer-tagline': 'أداة إمكانية وصول ثنائية اللغة شاملة لأي موقع ويب',
+    'footer-copy': '© ٢٠٢٦ انسجام — مبني للتوافق مع WCAG 2.1 AA',
+
+    // ─ Feature translations ─
+    'f1-name': 'حجم الخط',
+    'f1-desc': 'يُكبّر جميع النصوص على الصفحة بشكل متناسب عبر ٥ خطوات تدريجية (١٠٠٪ ← ١١٠٪ ← ١٢٠٪ ← ١٣٠٪ ← ١٥٠٪). لا يُسبب كسراً للتصميم لأن التكبير مطبق عبر خصائص CSS.',
+    'f1-b1': 'المستخدمون ذوو ضعف البصر أو كبار السن',
+    'f1-b2': 'القراء على شاشات صغيرة أو من مسافة بعيدة',
+    'f1-b3': 'من يعانون من إجهاد بصري بعد الاستخدام المطوّل',
+    'f1-effect': 'يكبر نص المحتوى والعناوين والأزرار بنسبة متناسقة. النقر يُبدّل بين ٥ مستويات ثم يعود للأصل.',
+
+    'f2-name': 'نوع الخط',
+    'f2-desc': 'يستبدل خط الصفحة بأحد ٤ بدائل: الافتراضي، قابل للقراءة (خط Atkinson Hyperlegible ذو الوضوح العالي)، خط عسر القراءة (OpenDyslexic بقاعدة ثقيلة)، أو Monospace (عرض ثابت للوضوح).',
+    'f2-b1': 'المصابون بعسر القراءة — يستفيدون من خطوط ذات حروف مميّزة',
+    'f2-b2': 'من يصعب عليهم قراءة الخطوط الزخرفية',
+    'f2-b3': 'من يعانون من اختلافات في المعالجة البصرية',
+    'f2-effect': 'جميع النصوص على الصفحة تتحول إلى الخط المختار مع الحفاظ على الحجم والبنية.',
+
+    'f3-name': 'ارتفاع السطر',
+    'f3-desc': 'يزيد المسافة العمودية بين أسطر النص عبر ٣ خطوات (عادي ← ١٫٥× ← ٢×). يقلل الازدحام البصري ويُسهّل متابعة الأسطر.',
+    'f3-b1': 'المصابون بعسر القراءة أو صعوبات متابعة الأسطر',
+    'f3-b2': 'المستخدمون المصابون باضطرابات الانتباه (ADHD)',
+    'f3-b3': 'أي شخص يقرأ مقالات طويلة أو محتوى كثيف',
+    'f3-effect': 'الفقرات والقوائم تصبح أكثر راحة، لم تعد الأسطر تبدو متلاصقة.',
+
+    'f4-name': 'تباعد الأحرف',
+    'f4-desc': 'يُباعد الحروف الفردية على ٣ خطوات (عادي ← ٠٫٠٥em ← ٠٫١em). يمنع الأحرف من الاندماج البصري، وهي مشكلة شائعة في عسر القراءة وبعض حالات البصر.',
+    'f4-b1': 'المصابون بعسر القراءة الذين يعانون من "ازدحام الأحرف"',
+    'f4-b2': 'ذوو ضعف البصر أو الاستجماتيزم',
+    'f4-b3': 'متعلمو لغة أو نظام كتابة جديد',
+    'f4-effect': 'كل حرف داخل كل كلمة يصبح أكثر تميزاً، مما يقلل الخلط بين الحروف المتشابهة.',
+
+    'f5-name': 'محاذاة النص',
+    'f5-desc': 'يُجبر كل نص الصفحة على المحاذاة لليسار (أو اليمين في سياق RTL). يُزيل النص المضبوط ("Justified") الذي يسبب تباعد كلمات غير منتظم — عائق موثّق لمرضى عسر القراءة.',
+    'f5-b1': 'المصابون بعسر القراءة (توصي WCAG بشدة بتجنب النص المضبوط)',
+    'f5-b2': 'من يجدون التباعد غير المنتظم مشتّتاً',
+    'f5-effect': 'الفقرات تكتسب حواف منتظمة ومتوقعة، وتباعد الكلمات يصبح موحّداً.',
+
+    'f6-name': 'تباين عالي',
+    'f6-desc': 'يُطبّق خلفية سوداء مع نص أصفر ساطع لكل المحتوى. ينتج أقصى نسبة تباين ممكنة (≈١٩٫٥:١)، متجاوزاً معيار WCAG AAA (٧:١).',
+    'f6-b1': 'المصابون بضعف بصر شديد أو الضمور البقعي',
+    'f6-b2': 'من يعانون من حساسية ضوئية',
+    'f6-b3': 'القارئون في بيئات خارجية ساطعة',
+    'f6-effect': 'الصفحة كلها تتحول إلى أسود + أصفر. متنافٍ مع: الوضع الداكن، الوضع الفاتح، الأبيض والأسود، عكس الألوان، تخفيف الألوان.',
+
+    'f7-name': 'الوضع الداكن',
+    'f7-desc': 'يعكس سطوع الصفحة: الخلفيات تصبح داكنة، والنصوص فاتحة. يحافظ على تدرج الألوان (بعكس العكس الكامل)، فتبقى الصور والشعارات قابلة للتمييز.',
+    'f7-b1': 'المصابون بحساسية للضوء أو الصداع النصفي',
+    'f7-b2': 'القارئون ليلاً أو في غرف خافتة',
+    'f7-b3': 'من يعانون من إجهاد بصري بسبب البياض الساطع',
+    'f7-effect': 'الخلفيات تصبح شبه سوداء، والنصوص شبه بيضاء. متنافٍ مع أوضاع الألوان الأخرى.',
+
+    'f8-name': 'الوضع الفاتح',
+    'f8-desc': 'يُجبر الصفحة على خلفية بيضاء مشرقة مع نص داكن، متجاوزاً أي قالب موقع. مفيد عندما يستخدم الموقع قالباً داكناً يصعب على المستخدم قراءته.',
+    'f8-b1': 'المصابون بإعتام عدسة العين (يعانون غالباً من الخلفيات الداكنة)',
+    'f8-b2': 'من يحتاجون أقصى درجة وضوح للنص',
+    'f8-b3': 'من يأخذون ملاحظات أو يدرسون من الصفحة',
+    'f8-effect': 'خلفية بيضاء ونص أسود مُطبّقان شاملاً. متنافٍ مع أوضاع الألوان الأخرى.',
+
+    'f9-name': 'أبيض وأسود',
+    'f9-desc': 'يُزيل كل الألوان من الصفحة عبر فلتر CSS بنسبة ١٠٠٪. المحتوى يصبح صورة أبيض وأسود نقي مع الحفاظ على علاقات السطوع.',
+    'f9-b1': 'المصابون بعمى الألوان',
+    'f9-b2': 'من يتشتتون بالألوان الساطعة (ADHD، الحساسيات الإدراكية)',
+    'f9-b3': 'مستخدمو المواقع التي تنقل المعنى عبر اللون فقط',
+    'f9-effect': 'كل عنصر — الصور والأيقونات والخلفيات — يتحول للرمادي. متنافٍ مع أوضاع الألوان الأخرى.',
+
+    'f10-name': 'عكس الألوان',
+    'f10-desc': 'يُطبّق فلتر عكس كامل على كل لون مرئي (مثال: أسود ← أبيض، أحمر ← سماوي). يختلف عن الوضع الداكن لأنه يقلب ألوان الصور أيضاً.',
+    'f10-b1': 'ذوو الحساسية الضوئية الشديدة',
+    'f10-b2': 'من يفضّلون أقصى تمايز بصري',
+    'f10-b3': 'أصحاب تفضيلات بصرية محددة لا يلبيها الوضع الداكن',
+    'f10-effect': 'كل لون يتحول إلى عكسه على دائرة الألوان. متنافٍ مع أوضاع الألوان الأخرى.',
+
+    'f11-name': 'تخفيف الألوان',
+    'f11-desc': 'يُقلل تشبع الألوان بنسبة ٦٠٪، منتجاً لوحة أنعم وأقل حدة دون التحول إلى الأبيض والأسود الكامل. مثالي لتقليل التحفيز البصري مع الاحتفاظ بالإشارات اللونية.',
+    'f11-b1': 'المستخدمون ذوو الحساسيات الحسية أو التوحد',
+    'f11-b2': 'المعرّضون لنوبات من الألوان المشبعة',
+    'f11-b3': 'المصابون بصداع نصفي ذي محفزات بصرية',
+    'f11-effect': 'الألوان تصبح خافتة وباهتة. متنافٍ مع أوضاع الألوان الأخرى.',
+
+    'f12-name': 'تمييز الروابط',
+    'f12-desc': 'يضيف خلفية صفراء ساطعة وتحتاً سميكاً لكل رابط على الصفحة. يجعل العناصر التفاعلية مرئية فوراً.',
+    'f12-b1': 'من لديهم صعوبات إدراكية في تمييز العناصر القابلة للنقر',
+    'f12-b2': 'مستخدمو المواقع ذات التباين المنخفض أو التنسيق غير التقليدي',
+    'f12-b3': 'ذوو ضعف البصر الذين لا يلاحظون إشارات التمرير الخفيفة',
+    'f12-effect': 'كل عنصر رابط يصبح مميزاً بخلفية صفراء وتحت سميك.',
+
+    'f13-name': 'تمييز العناوين',
+    'f13-desc': 'يضيف خلفية وإطاراً مرئيين لكل عنوان (h1 إلى h6) على الصفحة، مما يجعل بنية المستند قابلة للاستكشاف بنظرة.',
+    'f13-b1': 'المستخدمون ذوو الاختلافات الإدراكية الذين يستفيدون من الإشارات البنائية',
+    'f13-b2': 'من يتصفحون المقالات الطويلة بحثاً عن أقسام محددة',
+    'f13-b3': 'مستخدمو قارئات الشاشة الذين يتحققون بصرياً من التسلسل الهرمي',
+    'f13-effect': 'كل عنوان يحصل على مربع خلفية ملون، مما يعطي الصفحة مظهراً بنيوياً أكثر تنظيماً.',
+
+    'f14-name': 'قناع القراءة',
+    'f14-desc': 'يُنشئ "شريط ضوء" أفقياً يتبع المؤشر عمودياً. باقي الشاشة مُعتّمة عبر تدرج ظل داكن، ولا يبقى واضحاً إلا شريط ضيق.',
+    'f14-b1': 'المصابون بـ ADHD أو التوحد أو صعوبات الانتباه',
+    'f14-b2': 'من لديهم تحديات في فهم القراءة',
+    'f14-b3': 'من يفقدون مكانهم في الصفحات الطويلة',
+    'f14-effect': 'يظل مضاءً فقط شريط أفقي (~١٠٠ بكسل) حول المؤشر، والباقي يتلاشى للداكن لفرض التركيز البصري.',
+
+    'f15-name': 'مسطرة القراءة',
+    'f15-desc': 'يرسم خطاً أفقياً ملوّناً رفيعاً (٢ بكسل) يتتبع المؤشر، محاكياً مسطرة قراءة فيزيائية. يُساعد القراء على متابعة سطر معين دون فقدان المكان.',
+    'f15-b1': 'المصابون بعسر القراءة (صعوبات متابعة الأسطر)',
+    'f15-b2': 'من لديهم مشاكل في الإدراك البصري',
+    'f15-b3': 'الأطفال والبالغون في مرحلة تعلّم القراءة',
+    'f15-effect': 'خط أزرق ثابت يتبع مؤشر الفأرة أفقياً، مثل مسطرة قراءة رقمية دون إخفاء أي محتوى.',
+
+    'f16-name': 'وضع التركيز',
+    'f16-desc': 'يُعتّم الأشرطة الجانبية والتنقل والإعلانات والمحتوى الثانوي، مع إبقاء عمود المقال الرئيسي واضحاً بالكامل. يُقلل المشتتات من عناصر الصفحة المحيطية.',
+    'f16-b1': 'المستخدمون المصابون بـ ADHD أو تحديات تنظيم الانتباه',
+    'f16-b2': 'المصابون بالتوحد الذين يشعرون بالإرهاق من التصاميم المزدحمة',
+    'f16-b3': 'أي شخص يحاول التركيز على مقال طويل',
+    'f16-effect': 'العناصر غير الأساسية (nav، aside، footer، الإعلانات) تصبح ~٢٠٪ شفافة، والمحتوى الرئيسي يبقى واضحاً.',
+
+    'f17-name': 'خط صديق لعسر القراءة',
+    'f17-desc': 'زر واحد يُطبّق خطاً محسّناً لعسر القراءة (بأسلوب OpenDyslexic) بقاعدة حروف ثقيلة تمنع الأحرف من "الانقلاب" أو الاندماج — تحدٍّ شائع في القراءة عند المصابين بعسر القراءة.',
+    'f17-b1': 'المصابون بعسر القراءة (الاستخدام الأساسي)',
+    'f17-b2': 'من لديهم إعاقات قراءة أو تعلم أوسع',
+    'f17-effect': 'الصفحة كلها تتحول إلى الخط الصديق لعسر القراءة. يُعادل اختيار "dyslexia" من خيار نوع الخط بزر واحد مخصص.',
+
+    'f18-name': 'إيقاف الحركات',
+    'f18-desc': 'يوقف كل حركات CSS والانتقالات والفيديوهات التلقائية وصور GIF والعروض الدوّارة. يحترم prefers-reduced-motion لتجربة أكثر أماناً.',
+    'f18-b1': 'المعرّضون للنوبات (الصرع الضوئي)',
+    'f18-b2': 'المصابون باضطرابات توازن (دوار الحركة)',
+    'f18-b3': 'المصابون بـ ADHD الذين يتشتتون بالحركة',
+    'f18-effect': 'كل الحركة على الصفحة تتوقف فوراً. الفيديوهات تتوقف عند الإطار الحالي، والعروض الدوارة تتجمّد.',
+
+    'f19-name': 'مؤشر كبير',
+    'f19-desc': 'يستبدل مؤشر الفأرة الافتراضي بمؤشر أسود كبير (٦٤×٦٤ بكسل) عالي التباين، مُقدّم عبر SVG مضمّن. أسهل في التحديد والمتابعة عبر الشاشة.',
+    'f19-b1': 'ذوو ضعف البصر الذين يفقدون المؤشر',
+    'f19-b2': 'أصحاب الحالات الحركية (رعاش، باركنسون) الذين يحتاجون أهدافاً أكبر',
+    'f19-b3': 'كبار السن أو من يستخدمون شاشات عالية الدقة',
+    'f19-effect': 'مؤشر الفأرة يصبح سهماً بارزاً يمكن تمييزه عبر أي خلفية.',
+
+    'f20-name': 'التنقل بلوحة المفاتيح',
+    'f20-desc': 'يُعزّز أنماط التركيز المرئية بإطار سميك عالي التباين حول كل عنصر قابل للتركيز (الأزرار، الروابط، حقول الإدخال) — حتى لو كان الموقع الأصلي يُخفي إطارات التركيز.',
+    'f20-b1': 'من لا يستطيعون استخدام فأرة (إعاقات حركية)',
+    'f20-b2': 'من يفضّلون التنقل بلوحة المفاتيح (القراء الآليون، المحترفون)',
+    'f20-b3': 'مستخدمو المواقع التي تخالف WCAG 2.4.7 (تركيز مرئي)',
+    'f20-effect': 'كل عنصر يُوصَل إليه عبر Tab/Shift-Tab يحصل على إطار أزرق أو أصفر واضح للغاية.',
+
+    'f21-name': 'تخطي إلى المحتوى',
+    'f21-desc': 'يحقن رابط "تخطي إلى المحتوى الرئيسي" كأول عنصر قابل للتركيز في الصفحة. ضغطة Tab واحدة تُظهره، مما يسمح لمستخدمي لوحة المفاتيح وقارئات الشاشة بتجاوز قوائم التنقل المتكررة.',
+    'f21-b1': 'مستخدمو قارئات الشاشة (يوفر عشرات الضغطات في كل صفحة)',
+    'f21-b2': 'المستخدمون بلوحة المفاتيح فقط ذوو الإعاقات الحركية',
+    'f21-b3': 'من يتصفحون صفحات مرهقة إدراكياً',
+    'f21-effect': 'يظهر زر "تخطي إلى المحتوى الرئيسي" في أعلى اليسار عند التركيز عليه، وينقل المستخدم مباشرة إلى &lt;main&gt;.',
+
+    'f22-name': 'تحويل النص إلى كلام',
+    'f22-desc': 'يُفعّل وضع النقر للقراءة. بعد التفعيل، النقر على أي نص على الصفحة يقرأه بصوت مرتفع باستخدام Web Speech API المضمّنة في المتصفح. يختار تلقائياً صوت عربي (ar-SA) أو إنجليزي (en-US) بناءً على لغة الصفحة.',
+    'f22-b1': 'المكفوفون أو ذوو الإعاقة البصرية الشديدة',
+    'f22-b2': 'المصابون بعسر القراءة أو صعوبات القراءة',
+    'f22-b3': 'غير الناطقين بالأصل وهم يتعلمون النطق',
+    'f22-b4': 'من يستمعون أثناء القيام بأعمال أخرى (قيادة، طبخ...)',
+    'f22-effect': 'عند التفعيل يظهر مؤشر ℹ️ على النص القابل للنقر، والنقر يُشغّل قراءة صوتية بلغة الصفحة.',
+
+    'f23-name': 'كتم الأصوات',
+    'f23-desc': 'يكتم فوراً كل عنصر صوتي وفيديو ومشغل وسائط مضمّن على الصفحة عبر تعيين خاصية muted إلى true.',
+    'f23-b1': 'المستخدمون في بيئات هادئة (مكتبات، مكاتب، مواصلات عامة)',
+    'f23-b2': 'من لديهم حساسيات سمعية أو رهاب من الأصوات',
+    'f23-b3': 'مستخدمو أجهزة السمع الذين يحتاجون تحكماً ثابتاً',
+    'f23-effect': 'كل وسائط الصفحة تصمت فوراً، مع استمرار التشغيل بدون صوت.',
+
+    // ─ Profile translations ─
+    'p1-name': 'ضعف البصر',
+    'p1-desc': 'للمستخدمين ذوي ضعف البصر أو الضمور البقعي أو فقدان جزئي للنظر. يُكبّر النص ويُعظّم التباين ويجعل العناصر التفاعلية سهلة التحديد.',
+    'p2-name': 'ضعف الرؤية',
+    'p2-desc': 'للقرّاء ذوي انخفاض بصري خفيف إلى متوسط. يزيد حجم النص والمسافات، ويبدّل إلى خط شديد الوضوح، ويُبرز بنية الصفحة.',
+    'p3-name': 'عسر القراءة',
+    'p3-desc': 'للمصابين بعسر القراءة أو اختلافات قراءة أخرى. يُطبّق خط عسر القراءة بتباعد زائد، ويلغي النص المضبوط الذي قد يكون مربكاً.',
+    'p4-name': 'آمن من النوبات',
+    'p4-desc': 'للمصابين بالصرع الضوئي أو الصداع النصفي أو اضطرابات التوازن. يوقف كل الحركة ويقلل تشبع الألوان ويفرض واجهة فاتحة هادئة.',
+    'p5-name': 'الدعم الإدراكي',
+    'p5-desc': 'للمصابين بـ ADHD أو التوحد أو احتياجات إدراكية أخرى. يقلل المشتتات ويوفر مساعدات تركيز ويُبسّط تجربة القراءة.',
+    'p6-name': 'التنقل بلوحة المفاتيح',
+    'p6-desc': 'للمستخدمين الذين يتصفحون بدون فأرة — شاملاً مستخدمي قارئات الشاشة وذوي الإعاقات الحركية والمحترفين بلوحة المفاتيح.',
+  }
+};
+
+// Auto-populate I18N.en with the original English text from the DOM
+// so toggling back from Arabic correctly restores feature/profile content
+(function captureOriginalEnglish() {
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const key = el.getAttribute('data-k');
+    if (!(key in I18N.en)) I18N.en[key] = el.textContent;
+  });
+  // Also capture elements translated by id in the Arabic dictionary
+  Object.keys(I18N.ar).forEach(key => {
+    if (!(key in I18N.en)) {
+      const el = document.getElementById(key);
+      if (el) I18N.en[key] = el.textContent;
+    }
+  });
+})();
+
+function applyLang(lang) {
+  const t = I18N[lang];
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+
+  // Translate elements whose id matches a translation key
+  Object.keys(t).forEach(key => {
+    const el = document.getElementById(key);
+    if (el && !el.hasAttribute('data-k')) el.textContent = t[key];
+  });
+
+  // Translate all elements carrying a data-k attribute
+  document.querySelectorAll('[data-k]').forEach(el => {
+    const key = el.getAttribute('data-k');
+    if (t[key]) el.textContent = t[key];
+  });
+
+  localStorage.setItem('aw_ui_lang', lang);
+}
+
+function toggleLang() {
+  applyLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
+}
+
+// Apply language: URL override (?lang=ar) > saved > default
+const urlLang = new URLSearchParams(window.location.search).get('lang');
+applyLang(urlLang || localStorage.getItem('aw_ui_lang') || 'en');
+</script>
+
+</body>
+</html>

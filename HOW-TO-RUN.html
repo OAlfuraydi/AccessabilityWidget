@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AccessWidget — How to Run</title>
+  <title>Insijam — How to Run</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --primary: #2563EB; --bg: #0f172a; --surface: #1e293b; --border: #334155; --text: #e2e8f0; --muted: #94a3b8; --green: #22c55e; --yellow: #fbbf24; --red: #f87171; }
@@ -101,7 +101,7 @@
 
   <header>
     <div class="logo">♿</div>
-    <h1>How to Run AccessWidget</h1>
+    <h1>How to Run Insijam</h1>
     <p>Complete setup guide — static pages, API server, and database</p>
   </header>
 
@@ -122,7 +122,7 @@
     <div class="part-card">
       <div class="part-icon">🗄️</div>
       <div class="part-title">SQLite Database</div>
-      <div class="part-desc">File-based database at saas/api/data/accesswidget.db. Auto-created on first run. No external server.</div>
+      <div class="part-desc">File-based database at saas/api/data/insijam.db. Auto-created on first run. No external server.</div>
       <span class="part-badge badge-purple">Auto-created</span>
     </div>
   </div>
@@ -230,7 +230,7 @@
         <span class="label">✅ Server is running when you see:</span>
         <code style="font-size:12px;display:block;margin-top:6px;color:#86efac">
           URL  : http://localhost:3001<br>
-          DB   : SQLite → saas/api/data/accesswidget.db
+          DB   : SQLite → saas/api/data/insijam.db
         </code>
       </div>
     </div>
@@ -263,7 +263,7 @@
       <div class="step-header"><div class="step-dot"></div><h3>Sign in with demo credentials</h3></div>
       <p>Open <code>saas/dashboard/login.html</code> in your browser, then use:</p>
       <div class="cmd">
-        <span class="text">Email    : demo@accesswidget.io</span><br>
+        <span class="text">Email    : demo@insijam.io</span><br>
         <span class="text">Password : demo1234</span>
         <button class="cmd-copy" onclick="copy(this)">Copy</button>
       </div>
@@ -286,7 +286,7 @@
       <p>The database is a single file that is <strong>created automatically</strong> the first time you run the server. All customer data persists between server restarts.</p>
       <div class="cmd">
         <span class="comment"># Database file location:</span><br>
-        <span class="text">saas\api\data\accesswidget.db</span>
+        <span class="text">saas\api\data\insijam.db</span>
         <button class="cmd-copy" onclick="copy(this)">Copy</button>
       </div>
       <div class="ok">
@@ -355,10 +355,10 @@
 
     <div class="step">
       <div class="step-header"><div class="step-dot"></div><h3>View the database (optional)</h3></div>
-      <p>To browse the SQLite database visually, download <strong>DB Browser for SQLite</strong> (free) and open <code>saas/api/data/accesswidget.db</code>.</p>
+      <p>To browse the SQLite database visually, download <strong>DB Browser for SQLite</strong> (free) and open <code>saas/api/data/insijam.db</code>.</p>
       <div class="cmd">
         <span class="comment"># Or query it from the terminal:</span><br>
-        <span class="prompt">$ </span><span class="text">sqlite3 saas\api\data\accesswidget.db</span><br>
+        <span class="prompt">$ </span><span class="text">sqlite3 saas\api\data\insijam.db</span><br>
         <span class="text">sqlite&gt; SELECT email, plan, api_key FROM customers;</span><br>
         <span class="text">sqlite&gt; SELECT key, domain, status FROM licenses;</span><br>
         <span class="text">sqlite&gt; SELECT COUNT(*) FROM analytics WHERE type='activation';</span>
@@ -422,7 +422,7 @@
         <span class="text">http://localhost:3001/health</span><br>
         <span class="text">http://localhost:3001/api/v1/validate</span><br><br>
         <span class="comment"># Database file:</span><br>
-        <span class="text">saas/api/data/accesswidget.db</span>
+        <span class="text">saas/api/data/insijam.db</span>
         <button class="cmd-copy" onclick="copy(this)">Copy</button>
       </div>
     </div>

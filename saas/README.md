@@ -1,4 +1,4 @@
-# AccessWidget SaaS Platform
+# Insijam SaaS Platform
 
 A complete SaaS accessibility solution. Website owners embed a single `<script>` tag and get a fully featured, bilingual (Arabic + English) accessibility toolbar on their site — validated by license key, customizable per customer, and managed through a web-based admin panel.
 
@@ -74,9 +74,9 @@ cp .env.example .env   # if .env does not exist yet
 |----------|-------------|---------|
 | `DB_HOST` | MySQL server hostname | `localhost` |
 | `DB_PORT` | MySQL port | `3306` |
-| `DB_USER` | MySQL username | `accesswidget_user` |
+| `DB_USER` | MySQL username | `insijam_user` |
 | `DB_PASS` | MySQL password | `StrongPassword123!` |
-| `DB_NAME` | Database name | `accesswidget` |
+| `DB_NAME` | Database name | `insijam` |
 | `ADMIN_SECRET` | Admin panel secret key — **must be 32+ random characters** | *(generate below)* |
 
 ### Optional variables
@@ -109,7 +109,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASS=YourMySQLPassword
-DB_NAME=accesswidget
+DB_NAME=insijam
 
 PORT=3001
 NODE_ENV=development
@@ -130,7 +130,7 @@ ADMIN_SECRET=a3f9c2e1b8d4f7a0e5c3b2d1f8a4e7b0c9d3f2a1e6b5c8d4f1a7e3b0c2d9f5a8
 mysql -u root -p < saas/api/schema.sql
 ```
 
-This creates the `accesswidget` database with all 6 tables:
+This creates the `insijam` database with all 6 tables:
 
 | Table | Purpose |
 |-------|---------|
@@ -152,7 +152,7 @@ This creates a demo account with a properly bcrypt-hashed password:
 
 | Field | Value |
 |-------|-------|
-| Email | `demo@accesswidget.io` |
+| Email | `demo@insijam.io` |
 | Password | `Demo1234!` |
 | Plan | Professional |
 | API key | `aw_live_sk_a1b2c3d4e5f6g7h8i9j0demo` |
@@ -177,10 +177,10 @@ npm run dev
 
 ```
 ========================================
-  AccessWidget API Server  v2.0
+  Insijam API Server  v2.0
 ========================================
   URL      : http://localhost:3001
-  DB       : MySQL → accesswidget@localhost
+  DB       : MySQL → insijam@localhost
   Env      : development
 
   Dashboard  : http://localhost:3001/dashboard
@@ -372,7 +372,7 @@ Validation result is cached in `sessionStorage` — one API call per browser tab
 | `showProfiles` | boolean | `true` | Show/hide disability preset profiles. |
 | `showTTS` | boolean | `true` | Show/hide text-to-speech. |
 | `showReadingMask` | boolean | `true` | Show/hide reading mask. |
-| `devMode` | boolean | `false` | **Skip license validation. Local dev only — never use in production.** |
+| `devMode` | boolean | `false` | Skip license validation. **Only honored when `window.location.hostname` is `localhost`, `127.0.0.1`, or `file://`** — silently ignored on any real domain, so the flag cannot be abused to bypass licensing. |
 
 ### Development / local testing
 
@@ -388,7 +388,7 @@ When building locally (e.g. `http://localhost:8080`), the domain won't match any
 <script src="accessibility-widget.js"></script>
 ```
 
-> ⚠️ **Never deploy `devMode: true` to a live website.**
+> 🔒 **`devMode` is hostname-locked.** The widget ignores this flag on any domain other than `localhost`/`127.0.0.1`/`file://`. Leaving `devMode: true` in deployed code is harmless — it will have no effect — but you should still remove it for clarity.
 
 ---
 
@@ -469,7 +469,7 @@ When building locally (e.g. `http://localhost:8080`), the domain won't match any
 | Item | Notes |
 |------|-------|
 | HTTPS / TLS | Use a reverse proxy (nginx, Caddy) or a hosting platform that handles TLS |
-| Dedicated DB user | Create a MySQL user with only SELECT/INSERT/UPDATE/DELETE on `accesswidget`, not root |
+| Dedicated DB user | Create a MySQL user with only SELECT/INSERT/UPDATE/DELETE on `insijam`, not root |
 | Database backups | Automated daily backups with off-site storage |
 | Error monitoring | Sentry or similar for production error tracking |
 | API key expiry | Add `api_key_expires_at` column and rotate keys periodically |

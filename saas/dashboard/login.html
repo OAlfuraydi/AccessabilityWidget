@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AccessWidget — Sign In</title>
+  <title>Insijam — Sign In</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -168,7 +168,7 @@
     <div>
       <div class="brand-logo">
         <div class="brand-logo-icon">♿</div>
-        AccessWidget
+        <span id="brand-name">Insijam</span>
       </div>
       <div class="brand-tagline">Make Every Website Accessible</div>
       <div class="brand-sub">The leading SaaS platform for website accessibility — bilingual, easy to embed, and trusted by organizations worldwide.</div>
@@ -317,7 +317,7 @@
 
       <div class="demo-hint">
         <strong id="demo-hint-title">🧪 Demo Credentials</strong>
-        <div class="demo-cred"><span id="demo-email-label">Email:</span> <span class="demo-fill" onclick="fillDemo()">demo@accesswidget.io</span></div>
+        <div class="demo-cred"><span id="demo-email-label">Email:</span> <span class="demo-fill" onclick="fillDemo()">demo@insijam.io</span></div>
         <div class="demo-cred"><span id="demo-pwd-label">Password:</span> <span class="demo-fill" onclick="fillDemo()">Demo1234!</span></div>
       </div>
     </div>
@@ -355,7 +355,7 @@
   }
 
   function fillDemo() {
-    document.getElementById('login-email').value = 'demo@accesswidget.io';
+    document.getElementById('login-email').value = 'demo@insijam.io';
     document.getElementById('login-password').value = 'Demo1234!';
   }
 
@@ -445,6 +445,7 @@
   // ── i18n ──────────────────────────────────────
   const LOGIN_I18N = {
     en: {
+      'brand-name':'Insijam',
       'brand-tagline':'Make Every Website Accessible',
       'brand-sub':'The leading SaaS platform for website accessibility — bilingual, easy to embed, and trusted by organizations worldwide.',
       'tab-login':'Sign In','tab-reg':'Create Account',
@@ -464,6 +465,7 @@
       'lang-toggle':'🌐 AR',
     },
     ar: {
+      'brand-name':'انسجام',
       'brand-tagline':'اجعل كل موقع ويب متاحاً للجميع',
       'brand-sub':'المنصة الرائدة لإمكانية الوصول لمواقع الويب — ثنائية اللغة، سهلة التضمين، وموثوقة من قبل منظمات حول العالم.',
       'tab-login':'تسجيل الدخول','tab-reg':'إنشاء حساب',
@@ -491,6 +493,7 @@
     const s = (id, key) => { const el = document.getElementById(id); if (el && t[key]) el.textContent = t[key]; };
 
     // Brand panel
+    s('brand-name', 'brand-name');
     const bTag = document.querySelector('.brand-tagline'); if (bTag) bTag.textContent = t['brand-tagline'];
     const bSub = document.querySelector('.brand-sub'); if (bSub) bSub.textContent = t['brand-sub'];
 
