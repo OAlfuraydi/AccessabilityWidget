@@ -827,7 +827,9 @@
 'use strict';
 
 // ── API & Auth ─────────────────────────────────────────────────────────────────
-const API_BASE = window.location.port === '3001' ? '' : 'http://localhost:3001';
+// Use same-origin when served by a web server (dev on :3001 or production via nginx).
+// Fall back to http://localhost:3001 only when the file is opened directly (file://).
+const API_BASE = window.location.protocol === 'file:' ? 'http://localhost:3001' : '';
 let TOKEN = localStorage.getItem('aw_token');
 
 async function apiFetch(path, method = 'GET', body) {
