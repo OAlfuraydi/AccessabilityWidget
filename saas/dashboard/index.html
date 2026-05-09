@@ -4,6 +4,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Insijam — Customer Dashboard</title>
+  <!-- ── Auth gate (synchronous, runs before any HTML below renders) ── -->
+  <!-- Without this, users without a token see the dashboard briefly before
+       window.onload redirects them. The body is hidden until the gate passes. -->
+  <script>
+    (function () {
+      var token = null;
+      try { token = localStorage.getItem('aw_token'); } catch (_) {}
+      if (!token) {
+        // No token → redirect to login. Use replace() so the dashboard never
+        // ends up in browser history.
+        var loginPath = (window.location.port === '3001' || window.location.pathname.indexOf('/dashboard') === 0)
+          ? '/dashboard/login.html'
+          : 'login.html';
+        window.location.replace(loginPath);
+      }
+    })();
+  </script>
+  <style>
+    /* Body stays hidden until the JS auth flow finishes — defense-in-depth so a
+       network-slow redirect can't briefly leak the dashboard chrome. */
+    html.aw-locked body { visibility: hidden !important; }
+  </style>
+  <script>
+    // Lock visibility immediately. window.onload will unlock once auth + data
+    // load succeed; if the API returns 401, doLogout() redirects without unlocking.
+    document.documentElement.classList.add('aw-locked');
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -203,8 +230,6 @@
     #dash-toast { position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #fff; padding: 11px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none; max-width: 320px; }
     #dash-toast.show { opacity: 1; }
 
-    /* ── Subscription warning ── */
-    .sub-warning { background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 14px 18px; font-size: 13px; color: #92400e; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
 
     /* ── Empty state ── */
     .empty-state { text-align: center; padding: 60px 20px; }
@@ -262,7 +287,6 @@
     html[dir="rtl"] .form-group { text-align: right; }
     html[dir="rtl"] label { text-align: right; }
     html[dir="rtl"] .key-display { direction: rtl; flex-direction: row-reverse; }
-    html[dir="rtl"] .sub-warning { direction: rtl; flex-direction: row-reverse; }
   </style>
 </head>
 <body>
@@ -278,12 +302,12 @@
       </div>
     </div>
     <div class="sb-user">
-      <div class="sb-avatar">JD</div>
+      <div class="sb-avatar" id="sb-avatar">--</div>
       <div>
-        <div class="sb-user-name">John Demo</div>
-        <div class="sb-user-plan">Professional Plan</div>
+        <div class="sb-user-name">—</div>
+        <div class="sb-user-plan">—</div>
       </div>
-      <span class="sb-badge">PRO</span>
+      <span class="sb-badge">—</span>
     </div>
 
     <div class="sb-section">Main</div>
@@ -293,12 +317,10 @@
     <a class="sb-nav-item"       data-tab="analytics"  onclick="nav('analytics',this)"><span class="icon">📈</span> Analytics</a>
 
     <div class="sb-section">Account</div>
-    <a class="sb-nav-item" data-tab="subscription" onclick="nav('subscription',this)"><span class="icon">💳</span> Subscription</a>
-    <a class="sb-nav-item" data-tab="billing"      onclick="nav('billing',this)"><span class="icon">📄</span> Billing History</a>
     <a class="sb-nav-item" data-tab="settings"     onclick="nav('settings',this)"><span class="icon">🔧</span> Settings</a>
 
     <div class="sb-footer">
-      <a href="login.html" class="sb-logout">↩ Sign Out</a>
+      <a href="#" class="sb-logout" onclick="event.preventDefault(); doLogout();">↩ Sign Out</a>
       <div style="margin-top:8px;font-size:10px">© 2026 Insijam</div>
     </div>
   </aside>
@@ -324,35 +346,31 @@
 
       <!-- ═══════════════ OVERVIEW ═══════════════ -->
       <div class="tab-pane active" id="tab-overview">
-        <div class="sub-warning">
-          ⏰ Your <strong>Professional Plan</strong> renews on <strong>April 11, 2026</strong>.
-          <a href="#" onclick="nav('subscription',null)" style="color:#1d4ed8;font-weight:700;margin-left:auto">Manage →</a>
-        </div>
 
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">🖱️</div>
-            <div class="stat-value">12,847</div>
-            <div class="stat-label">Widget Activations (30d)</div>
-            <div class="stat-change stat-up">↑ 18% vs last month</div>
+            <div class="stat-value" id="stat-activations">—</div>
+            <div class="stat-label">Widget Activations</div>
+            <div class="stat-change" id="stat-activations-sub" style="color:var(--muted)">All time</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">👥</div>
-            <div class="stat-value">4,291</div>
+            <div class="stat-value" id="stat-users">—</div>
             <div class="stat-label">Unique Users (30d)</div>
-            <div class="stat-change stat-up">↑ 12%</div>
+            <div class="stat-change" style="color:var(--muted)">Approximate, by license + day</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">🌐</div>
-            <div class="stat-value">4 / 10</div>
+            <div class="stat-value" id="stat-websites">—</div>
             <div class="stat-label">Active Websites</div>
-            <div class="stat-change" style="color:var(--muted)">6 slots remaining</div>
+            <div class="stat-change" id="stat-websites-sub" style="color:var(--muted)">—</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">🔑</div>
-            <div class="stat-value">4</div>
+            <div class="stat-value" id="stat-active-keys">—</div>
             <div class="stat-label">Active License Keys</div>
-            <div class="stat-change stat-up">All valid</div>
+            <div class="stat-change" id="stat-active-keys-sub" style="color:var(--muted)">—</div>
           </div>
         </div>
 
@@ -416,9 +434,7 @@
                   <div class="form-group">
                     <label>Website</label>
                     <select id="cfg-site">
-                      <option value="1">mycompany.com</option>
-                      <option value="2">portal.mycompany.com</option>
-                      <option value="3">shop.mycompany.com</option>
+                      <option value="">— No websites yet —</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -525,176 +541,79 @@
 
       <!-- ═══════════════ ANALYTICS ═══════════════ -->
       <div class="tab-pane" id="tab-analytics">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-          <h2 style="font-size:20px;font-weight:800">Analytics & Insights</h2>
-          <select class="btn btn-outline" id="analytics-period" onchange="updateAnalytics()" style="width:140px;padding:7px 10px">
-            <option value="7">Last 7 days</option>
-            <option value="30" selected>Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <h2 style="font-size:20px;font-weight:800">Analytics &amp; Insights</h2>
+          <span style="font-size:12px;color:var(--muted);font-style:italic">All metrics derived from real visitor telemetry on your registered websites.</span>
         </div>
 
+        <!-- Top-line KPIs -->
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon">🖱️</div>
-            <div class="stat-value" id="an-activations">12,847</div>
-            <div class="stat-label">Total Activations</div>
+            <div class="stat-icon">👁️</div>
+            <div class="stat-value" id="an-pageviews">—</div>
+            <div class="stat-label">Pageviews where the widget loaded</div>
+            <div class="stat-change" id="an-pageviews-sub" style="color:var(--muted)">—</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">👥</div>
-            <div class="stat-value" id="an-users">4,291</div>
-            <div class="stat-label">Unique Users</div>
+            <div class="stat-value" id="an-users">—</div>
+            <div class="stat-label">Unique visitors (last 30d)</div>
+            <div class="stat-change" style="color:var(--muted)">Distinct (license × day)</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-value" id="an-sessions">38%</div>
-            <div class="stat-label">Session with Widget Used</div>
+            <div class="stat-icon">🪟</div>
+            <div class="stat-value" id="an-opens">—</div>
+            <div class="stat-label">Widget panel opens</div>
+            <div class="stat-change" id="an-engagement" style="color:var(--muted)">—</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">⏱️</div>
-            <div class="stat-value" id="an-dwell">+22%</div>
-            <div class="stat-label">Avg Dwell Time Increase</div>
+            <div class="stat-icon">⚙️</div>
+            <div class="stat-value" id="an-interactions">—</div>
+            <div class="stat-label">Total adjustments made</div>
+            <div class="stat-change" id="an-adj-rate" style="color:var(--muted)">—</div>
           </div>
         </div>
 
+        <!-- Daily activity timeline -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Activity over the last 14 days</span>
+            <span style="font-size:11px;color:var(--muted)">pageviews · interactions per day</span>
+          </div>
+          <div class="card-body">
+            <div id="an-timeline" style="display:flex;align-items:flex-end;gap:6px;height:140px"></div>
+            <div id="an-timeline-axis" style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--muted);font-family:monospace"></div>
+          </div>
+        </div>
+
+        <!-- Feature & profile breakdown -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
           <div class="card">
-            <div class="card-header"><span class="card-title">Feature Adoption</span></div>
+            <div class="card-header">
+              <span class="card-title">Most-used features</span>
+              <span id="an-feature-empty" style="font-size:11px;color:var(--muted)"></span>
+            </div>
             <div class="card-body bar-chart" id="analytics-feature-chart"></div>
           </div>
           <div class="card">
-            <div class="card-header"><span class="card-title">Profile Usage</span></div>
+            <div class="card-header">
+              <span class="card-title">Most-used profiles</span>
+              <span id="an-profile-empty" style="font-size:11px;color:var(--muted)"></span>
+            </div>
             <div class="card-body bar-chart" id="analytics-profile-chart"></div>
           </div>
         </div>
 
+        <!-- Per-site breakdown -->
         <div class="card">
           <div class="card-header">
-            <span class="card-title">Usage by Website</span>
+            <span class="card-title">Per-site engagement</span>
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Website</th><th>Activations</th><th>Users</th><th>Top Feature</th><th>Engagement</th></tr></thead>
+              <thead><tr><th>Website</th><th>Pageviews</th><th>Activations</th><th>Visitors (30d)</th><th>Last activity</th><th>Share</th></tr></thead>
               <tbody id="analytics-site-table"></tbody>
             </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══════════════ SUBSCRIPTION ═══════════════ -->
-      <div class="tab-pane" id="tab-subscription">
-        <!-- Current plan -->
-        <div class="card" style="margin-bottom:24px">
-          <div class="card-header">
-            <span class="card-title">Current Subscription</span>
-            <span class="badge badge-green">Active</span>
-          </div>
-          <div class="card-body">
-            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-              <div>
-                <div style="font-size:26px;font-weight:900">Professional Plan</div>
-                <div style="color:var(--muted);font-size:13px;margin-top:4px">10 websites · 23 features · Arabic & English · Analytics</div>
-              </div>
-              <div style="margin-left:auto;text-align:right">
-                <div style="font-size:28px;font-weight:900">$79 <span style="font-size:14px;font-weight:400;color:var(--muted)">/month</span></div>
-                <div style="font-size:12px;color:var(--muted)">Renews April 11, 2026</div>
-              </div>
-            </div>
-            <div style="margin-top:16px">
-              <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin-bottom:6px">
-                <span>Websites Used</span><span>4 / 10</span>
-              </div>
-              <div class="progress"><div class="progress-fill" style="width:40%"></div></div>
-            </div>
-            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-              <button class="btn btn-primary" onclick="nav('subscription',null)">Upgrade Plan</button>
-              <button class="btn btn-outline" onclick="showToast('Renewal confirmation sent to your email')">Renew Early</button>
-              <button class="btn btn-outline" style="color:var(--danger);border-color:var(--danger)" onclick="showToast('Cancellation requires email confirmation')">Cancel Subscription</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Plan comparison -->
-        <div class="card">
-          <div class="card-header"><span class="card-title">Available Plans</span></div>
-          <div class="card-body">
-            <div class="plan-cards">
-              <div class="plan-card">
-                <div class="plan-name">Starter</div>
-                <div style="font-size:12px;color:var(--muted)">For small businesses</div>
-                <div class="plan-price"><sup>$</sup>29<sub>/mo</sub></div>
-                <ul class="plan-features">
-                  <li>3 websites</li>
-                  <li>23 accessibility features</li>
-                  <li>Arabic & English</li>
-                  <li>Basic analytics</li>
-                  <li>Email support</li>
-                </ul>
-                <button class="btn btn-outline" style="width:100%">Downgrade</button>
-              </div>
-              <div class="plan-card popular current">
-                <div class="plan-name" style="color:var(--primary)">Professional</div>
-                <div style="font-size:12px;color:var(--muted)">Your current plan</div>
-                <div class="plan-price" style="color:var(--primary)"><sup>$</sup>79<sub>/mo</sub></div>
-                <ul class="plan-features">
-                  <li>10 websites</li>
-                  <li>All 23 features</li>
-                  <li>Full analytics</li>
-                  <li>Custom branding</li>
-                  <li>Priority support</li>
-                  <li>Billing history</li>
-                </ul>
-                <button class="btn btn-primary" style="width:100%" disabled>Current Plan</button>
-              </div>
-              <div class="plan-card">
-                <div class="plan-name">Enterprise</div>
-                <div style="font-size:12px;color:var(--muted)">For large organizations</div>
-                <div class="plan-price"><sup>$</sup>199<sub>/mo</sub></div>
-                <ul class="plan-features">
-                  <li>Unlimited websites</li>
-                  <li>All features</li>
-                  <li>Advanced analytics</li>
-                  <li>White-label option</li>
-                  <li>Dedicated support</li>
-                  <li>SLA guarantee</li>
-                  <li>Custom integration</li>
-                </ul>
-                <button class="btn btn-primary" style="width:100%" onclick="showToast('Redirecting to upgrade checkout…')">Upgrade Now</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ═══════════════ BILLING ═══════════════ -->
-      <div class="tab-pane" id="tab-billing">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">Billing History</span>
-            <button class="btn btn-outline btn-sm" onclick="showToast('Downloading all invoices…')">⬇ Download All</button>
-          </div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Invoice</th><th>Date</th><th>Plan</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
-              <tbody id="billing-table"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header"><span class="card-title">Payment Method</span></div>
-          <div class="card-body">
-            <div style="display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--border);border-radius:10px">
-              <div style="font-size:28px">💳</div>
-              <div>
-                <div style="font-weight:700">Visa ending in 4242</div>
-                <div style="font-size:12px;color:var(--muted)">Expires 08/2027</div>
-              </div>
-              <div style="margin-left:auto;display:flex;gap:8px">
-                <button class="btn btn-outline btn-sm">Edit</button>
-                <button class="btn btn-outline btn-sm" onclick="showToast('New card form coming soon')">+ Add Card</button>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -702,61 +621,24 @@
       <!-- ═══════════════ SETTINGS ═══════════════ -->
       <div class="tab-pane" id="tab-settings">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-          <div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">Profile</span></div>
-              <div class="card-body">
-                <div class="form-group"><label>First Name</label><input type="text" value="John"></div>
-                <div class="form-group"><label>Last Name</label><input type="text" value="Demo"></div>
-                <div class="form-group"><label>Organization</label><input type="text" value="Demo Corp Ltd."></div>
-                <div class="form-group"><label>Email</label><input type="email" value="demo@insijam.io"></div>
-                <button class="btn btn-primary" onclick="showToast('Profile saved')">Save Changes</button>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-header"><span class="card-title">Security</span></div>
-              <div class="card-body">
-                <div class="form-group"><label>Current Password</label><input type="password" placeholder="••••••••"></div>
-                <div class="form-group"><label>New Password</label><input type="password" placeholder="Min 8 characters"></div>
-                <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="••••••••"></div>
-                <button class="btn btn-primary" onclick="showToast('Password updated successfully')">Update Password</button>
-              </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Profile</span></div>
+            <div class="card-body">
+              <div class="form-group"><label>First Name</label><input type="text" id="settings-firstname"></div>
+              <div class="form-group"><label>Last Name</label><input type="text" id="settings-lastname"></div>
+              <div class="form-group"><label>Organization</label><input type="text" id="settings-org"></div>
+              <div class="form-group"><label>Email</label><input type="email" id="settings-email" disabled></div>
+              <button class="btn btn-primary" id="settings-save-profile">Save Changes</button>
             </div>
           </div>
 
-          <div>
-            <div class="card">
-              <div class="card-header"><span class="card-title">API Access</span></div>
-              <div class="card-body">
-                <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Use your API key to query analytics data or manage licenses programmatically.</p>
-                <div class="form-group">
-                  <label>API Key</label>
-                  <div class="key-display">
-                    <span id="api-key-val">aw_live_sk_a1b2c3d4e5f6g7h8i9j0</span>
-                    <button class="key-copy" onclick="copyText('aw_live_sk_a1b2c3d4e5f6g7h8i9j0')">Copy</button>
-                  </div>
-                </div>
-                <div style="display:flex;gap:8px">
-                  <button class="btn btn-outline btn-sm" onclick="showToast('New API key generated')">Regenerate</button>
-                  <button class="btn btn-outline btn-sm" style="color:var(--danger)" onclick="showToast('Key revoked')">Revoke</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-header"><span class="card-title">Notifications</span></div>
-              <div class="card-body">
-                <div id="notif-settings"></div>
-              </div>
-            </div>
-
-            <div class="card">
-              <div class="card-header"><span class="card-title">Danger Zone</span></div>
-              <div class="card-body">
-                <p style="font-size:13px;color:var(--muted);margin-bottom:14px">These actions are irreversible.</p>
-                <button class="btn btn-danger btn-sm" onclick="showToast('Please contact support to delete your account')">Delete Account</button>
-              </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Security</span></div>
+            <div class="card-body">
+              <div class="form-group"><label>Current Password</label><input type="password" id="settings-pw-current" placeholder="••••••••"></div>
+              <div class="form-group"><label>New Password</label><input type="password" id="settings-pw-new" placeholder="Min 10 characters"></div>
+              <div class="form-group"><label>Confirm New Password</label><input type="password" id="settings-pw-confirm" placeholder="••••••••"></div>
+              <button class="btn btn-primary" id="settings-save-password">Update Password</button>
             </div>
           </div>
         </div>
@@ -846,7 +728,8 @@ async function apiFetch(path, method = 'GET', body) {
 
 function doLogout() {
   localStorage.removeItem('aw_token');
-  window.location.href = window.location.port === '3001' ? '/dashboard/login.html' : 'login.html';
+  // Keep aw-locked class so the dashboard never flashes during the redirect.
+  window.location.replace(window.location.port === '3001' ? '/dashboard/login.html' : 'login.html');
 }
 
 // ── Live data (populated on init) ─────────────────────────────────────────────
@@ -854,7 +737,6 @@ let ME   = null;
 let SUB  = null;
 let CFG  = null;
 let SITES = [];
-let BILLING_DATA = [];
 let ANALYTICS_DATA = null;
 
 function mapLicense(l) {
@@ -862,14 +744,22 @@ function mapLicense(l) {
            activations: 0, users: 0, status: l.status, topFeature: '—',
            favicon: '🌐', added: fmtDate(l.created_at), plan: l.plan };
 }
-function mapInvoice(i) {
-  const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-  return { id: i.invoice_id, date: fmtDate(i.created_at), plan: cap(i.plan),
-           amount: '$' + (i.amount_cents / 100).toFixed(2), status: i.status };
-}
 function fmtDate(d) {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+}
+
+// HTML-escape any user-supplied string before injecting into innerHTML.
+// Customer-controlled fields (license name, domain, customer name/org, etc.)
+// must always go through this when they appear in a template literal.
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
 // ── Mock data (static — used only as fallback / charts placeholders) ───────────
@@ -898,33 +788,6 @@ const FEATURES = [
   { key:'muteSounds',    label:'Mute Sounds',        enabled:true },
 ];
 
-const BILLING = [
-  { id:'INV-2026-003', date:'Mar 11, 2026', plan:'Professional', amount:'$79.00', status:'paid' },
-  { id:'INV-2026-002', date:'Feb 11, 2026', plan:'Professional', amount:'$79.00', status:'paid' },
-  { id:'INV-2026-001', date:'Jan 11, 2026', plan:'Professional', amount:'$79.00', status:'paid' },
-  { id:'INV-2025-012', date:'Dec 11, 2025', plan:'Starter',      amount:'$29.00', status:'paid' },
-  { id:'INV-2025-011', date:'Nov 11, 2025', plan:'Starter',      amount:'$29.00', status:'paid' },
-];
-
-const FEATURE_USAGE = [
-  { label:'Font Size',       pct:78, color:'#2563EB' },
-  { label:'High Contrast',   pct:64, color:'#7c3aed' },
-  { label:'Dark Mode',       pct:59, color:'#0891b2' },
-  { label:'Dyslexia Font',   pct:42, color:'#059669' },
-  { label:'Reading Guide',   pct:38, color:'#d97706' },
-  { label:'Text-to-Speech',  pct:31, color:'#dc2626' },
-  { label:'Focus Mode',      pct:27, color:'#be185d' },
-  { label:'Reading Mask',    pct:22, color:'#0f766e' },
-];
-
-const PROFILE_USAGE = [
-  { label:'👁️ Visually Impaired', pct:37, color:'#2563EB' },
-  { label:'📖 Dyslexia Support',  pct:30, color:'#7c3aed' },
-  { label:'🔍 Low Vision',        pct:19, color:'#0891b2' },
-  { label:'🧠 Cognitive Support', pct:11, color:'#059669' },
-  { label:'⌨️ Keyboard Nav',      pct: 3, color:'#d97706' },
-];
-
 // ── Navigation ─────────────────────────────────────────────────────────────────
 function nav(tab, el) {
   document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
@@ -934,7 +797,7 @@ function nav(tab, el) {
   else document.querySelector(`[data-tab="${tab}"]`)?.classList.add('active');
   const lang = document.documentElement.lang || 'en';
   const tr = DASH_I18N[lang] || DASH_I18N.en;
-  const titleKeys = { overview:'sb-overview', websites:'sb-websites', widgetcfg:'sb-widgetcfg', analytics:'sb-analytics', subscription:'sb-subscription', billing:'sb-billing', settings:'sb-settings' };
+  const titleKeys = { overview:'sb-overview', websites:'sb-websites', widgetcfg:'sb-widgetcfg', analytics:'sb-analytics', settings:'sb-settings' };
   document.getElementById('page-title').textContent = tr[titleKeys[tab]] || tab;
 }
 
@@ -942,26 +805,39 @@ function nav(tab, el) {
 window.onload = async function() {
   if (!TOKEN) { doLogout(); return; }
 
+  // Validate the token server-side before showing any dashboard content.
+  // /api/v1/account is the cheapest authed call and tells us the token is real.
+  // If it fails (401/403/network), redirect to login WITHOUT unlocking the body.
+  let acctData;
   try {
-    const [acct, licData, subData, anData, billData, cfgData] = await Promise.allSettled([
-      apiFetch('/api/v1/account'),
+    acctData = await apiFetch('/api/v1/account');
+    if (!acctData) return;     // apiFetch() already triggered doLogout on 401
+  } catch (_) {
+    doLogout();
+    return;
+  }
+
+  // Token is valid → safe to show the dashboard.
+  document.documentElement.classList.remove('aw-locked');
+
+  try {
+    const [licData, anData, cfgData] = await Promise.allSettled([
       apiFetch('/api/v1/licenses'),
-      apiFetch('/api/v1/subscription'),
       apiFetch('/api/v1/analytics'),
-      apiFetch('/api/v1/billing'),
       apiFetch('/api/v1/widget-config'),
     ]);
 
-    ME           = acct.value?.customer || null;
-    SUB          = acct.value?.subscription || subData.value?.subscription || null;
+    ME           = acctData.customer || null;
+    SUB          = acctData.subscription || null;
     SITES        = (licData.value?.licenses  || []).map(mapLicense);
     ANALYTICS_DATA = anData.value || null;
-    BILLING_DATA = (billData.value?.invoices || []).map(mapInvoice);
     CFG          = cfgData.value?.config || null;
 
     populateSidebar();
-    populateSubscription();
+    populateSiteDropdown();
     populateSettings();
+    populateAnalyticsStats();
+    mergePerLicenseStats();
     if (CFG) applyWidgetBuilderConfig(CFG);
   } catch(e) {
     showToast('Error loading data: ' + e.message);
@@ -972,67 +848,168 @@ window.onload = async function() {
   buildOverviewSites();
   buildSitesList();
   buildFeatureToggles();
-  buildBillingTable();
   buildAnalyticsCharts();
+  buildTimelineChart();
   buildAnalyticsSiteTable();
-  buildNotifSettings();
   updateSnippet();
 };
+
+// Map server feature keys to human-readable labels for the charts
+const FEATURE_LABEL = {
+  fontSize: 'Font Size', fontFamily: 'Font Family', lineHeight: 'Line Height',
+  letterSpacing: 'Letter Spacing', textAlign: 'Text Align',
+  highContrast: 'High Contrast', darkMode: 'Dark Mode', lightMode: 'Light Mode',
+  grayscale: 'Grayscale', invertColors: 'Invert Colors', muteColors: 'Mute Colors',
+  highlightLinks: 'Highlight Links', highlightHeadings: 'Highlight Headings',
+  readingMask: 'Reading Mask', readingGuide: 'Reading Guide', focusMode: 'Focus Mode',
+  dyslexiaFont: 'Dyslexia Font', pauseAnimations: 'Pause Animations',
+  bigCursor: 'Big Cursor', keyboardNav: 'Keyboard Nav',
+  textToSpeech: 'Text-to-Speech', muteSounds: 'Mute Sounds', skipContent: 'Skip Content',
+};
+const PROFILE_LABEL = {
+  visuallyImpaired: '👁️ Visually Impaired', lowVision: '🔍 Low Vision',
+  dyslexia: '📖 Dyslexia Support', seizureSafe: '🛡️ Seizure Safe',
+  cognitive: '🧠 Cognitive Support', keyboard: '⌨️ Keyboard Nav',
+};
+const CHART_PALETTE = ['#2563EB','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#be185d','#0f766e'];
+
+// ── Stats panels populated from /api/v1/analytics ─────────────────────────────
+function populateAnalyticsStats() {
+  const a = ANALYTICS_DATA || {};
+  const fmt = n => (n || 0).toLocaleString();
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+  // Overview tab
+  setText('stat-activations', fmt(a.totalActivations));
+  setText('stat-users',       fmt(a.uniqueUsers));
+
+  // Analytics tab — KPIs
+  setText('an-pageviews',     fmt(a.pageviews));
+  setText('an-users',         fmt(a.uniqueUsers));
+  setText('an-opens',         fmt(a.widgetOpens));
+  setText('an-interactions',  fmt(a.interactions));
+
+  // Subline insights
+  setText('an-pageviews-sub',
+    a.pageviews > 0 ? `${SITES.length} site${SITES.length === 1 ? '' : 's'} reporting` : 'Embed the widget on any registered site to start.');
+  setText('an-engagement',
+    a.pageviews > 0
+      ? `${a.opensPerPageview} open${a.opensPerPageview === 1 ? '' : 's'} per pageview`
+      : '—');
+  setText('an-adj-rate',
+    a.widgetOpens > 0
+      ? `${a.adjustmentsPerOpen} adjustment${a.adjustmentsPerOpen === 1 ? '' : 's'} per open`
+      : '—');
+
+  const limit = SUB?.website_limit || 3;
+  setText('stat-websites',     `${SITES.length} / ${limit}`);
+  setText('stat-websites-sub', `${Math.max(0, limit - SITES.length)} slot${(limit - SITES.length) === 1 ? '' : 's'} remaining`);
+
+  // Active license keys: real count + breakdown of inactive ones
+  const active    = SITES.filter(s => s.status === 'active').length;
+  const suspended = SITES.filter(s => s.status === 'suspended').length;
+  const expired   = SITES.filter(s => s.status === 'expired').length;
+  setText('stat-active-keys', fmt(active));
+  let sub = 'All keys active';
+  if (suspended || expired) {
+    const parts = [];
+    if (suspended) parts.push(`${suspended} suspended`);
+    if (expired)   parts.push(`${expired} expired`);
+    sub = parts.join(' · ');
+  } else if (active === 0) {
+    sub = 'Add a website to get a key';
+  }
+  setText('stat-active-keys-sub', sub);
+}
+
+// Merge per-license activation/user counts into SITES so cards/tables show real numbers
+function mergePerLicenseStats() {
+  const map = {};
+  for (const r of (ANALYTICS_DATA?.perLicense || [])) {
+    map[r.license_key] = {
+      activations: Number(r.activations) || 0,
+      users:       Number(r.users) || 0,
+      pageviews:   Number(r.pageviews) || 0,
+      lastTs:      r.last_activity_ts ? Number(r.last_activity_ts) : null,
+    };
+  }
+  for (const s of SITES) {
+    const m = map[s.key];
+    if (m) {
+      s.activations = m.activations;
+      s.users       = m.users;
+      s.pageviews   = m.pageviews;
+      s.lastTs      = m.lastTs;
+    }
+  }
+}
+
+// Format a Unix-seconds timestamp as a relative "2h ago" / "3d ago" string.
+function fmtRelative(ts) {
+  if (!ts) return '—';
+  const diff = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+  if (diff < 60)        return 'just now';
+  if (diff < 3600)      return Math.floor(diff / 60)   + 'm ago';
+  if (diff < 86400)     return Math.floor(diff / 3600) + 'h ago';
+  if (diff < 86400 * 7) return Math.floor(diff / 86400) + 'd ago';
+  return new Date(ts * 1000).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
 
 function populateSidebar() {
   if (!ME) return;
   const nameEl = document.querySelector('.sb-user-name');
-  if (nameEl) nameEl.textContent = ME.name;
+  if (nameEl) nameEl.textContent = ME.name || '—';
   const subEl = document.querySelector('.sb-user-plan');
-  if (subEl) subEl.textContent = ME.org || ME.email;
+  if (subEl) subEl.textContent = ME.org || ME.email || '—';
   const badgeEl = document.querySelector('.sb-badge');
   if (badgeEl) badgeEl.textContent = (SUB?.plan || ME.plan || 'starter').toUpperCase();
-  // Update API key in settings
-  const akEl = document.getElementById('api-key-val');
-  if (akEl) { akEl.textContent = ME.api_key; akEl.onclick = () => copyText(ME.api_key); }
-  const copyBtn = akEl?.nextElementSibling;
-  if (copyBtn) copyBtn.onclick = () => copyText(ME.api_key);
+  // Avatar initials from real name (max 2 chars)
+  const av = document.getElementById('sb-avatar');
+  if (av) {
+    const initials = (ME.name || ME.email || '?').split(/\s+/).map(s => s[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?';
+    av.textContent = initials;
+  }
 }
 
-function populateSubscription() {
-  if (!SUB) return;
-  const planNames = { starter:'Starter Plan', professional:'Professional Plan', enterprise:'Enterprise Plan' };
-  const planPrices = { starter:'$29', professional:'$79', enterprise:'$199' };
-  const planEl = document.querySelector('#tab-subscription .card-body [style*="26px"]');
-  if (planEl) planEl.textContent = planNames[SUB.plan] || SUB.plan;
-  const priceEl = document.querySelector('#tab-subscription [style*="28px"]');
-  if (priceEl) priceEl.innerHTML = `${planPrices[SUB.plan] || '—'} <span style="font-size:14px;font-weight:400;color:var(--muted)">/month</span>`;
-  const renewEl = document.querySelector('#tab-subscription [style*="12px;color:var(--muted)"]');
-  if (renewEl && SUB.expires_at) renewEl.textContent = 'Renews ' + fmtDate(SUB.expires_at);
-  // Websites progress
-  const used = SITES.length;
-  const max  = SUB.website_limit || 3;
-  const usedLabel = document.querySelector('#tab-subscription [style*="justify-content:space-between"] span:last-child');
-  if (usedLabel) usedLabel.textContent = `${used} / ${max}`;
-  const progressFill = document.querySelector('#tab-subscription .progress .progress-fill');
-  if (progressFill) progressFill.style.width = Math.min((used / max) * 100, 100) + '%';
+// Populate the widget-builder website dropdown from real licenses
+function populateSiteDropdown() {
+  const sel = document.getElementById('cfg-site');
+  if (!sel) return;
+  if (!SITES.length) {
+    sel.innerHTML = '<option value="">— Add a website to get started —</option>';
+    return;
+  }
+  sel.innerHTML = SITES.map(s => `<option value="${esc(s.key)}">${esc(s.domain)}</option>`).join('');
 }
 
 function populateSettings() {
   if (!ME) return;
-  const inputs = document.querySelectorAll('#tab-settings .card:first-child input');
-  if (inputs[0]) inputs[0].value = ME.name || '';
-  if (inputs[1]) inputs[1].value = '';  // last name not stored separately
-  if (inputs[2]) inputs[2].value = ME.org || '';
-  if (inputs[3]) inputs[3].value = ME.email || '';
-  // Wire save buttons
-  const saveBtn = document.querySelector('#tab-settings .card:first-child .btn-primary');
+  // Split full name into first / last for the form
+  const parts = (ME.name || '').trim().split(/\s+/);
+  const first = parts.shift() || '';
+  const last  = parts.join(' ');
+  const fn = document.getElementById('settings-firstname');
+  const ln = document.getElementById('settings-lastname');
+  const og = document.getElementById('settings-org');
+  const em = document.getElementById('settings-email');
+  if (fn) fn.value = first;
+  if (ln) ln.value = last;
+  if (og) og.value = ME.org || '';
+  if (em) em.value = ME.email || '';
+  // Wire save buttons by ID (the markup no longer relies on positional :nth-child).
+  const saveBtn = document.getElementById('settings-save-profile');
   if (saveBtn) saveBtn.onclick = saveProfile;
-  const pwdBtn = document.querySelector('#tab-settings .card:nth-child(2) .btn-primary');
+  const pwdBtn = document.getElementById('settings-save-password');
   if (pwdBtn) pwdBtn.onclick = changePassword;
 }
 
 async function saveProfile() {
-  const inputs = document.querySelectorAll('#tab-settings .card:first-child input');
-  const name = inputs[0]?.value.trim() || ME?.name;
-  const org  = inputs[2]?.value.trim() || '';
+  const fn = document.getElementById('settings-firstname')?.value.trim() || '';
+  const ln = document.getElementById('settings-lastname')?.value.trim()  || '';
+  const og = document.getElementById('settings-org')?.value.trim()       || '';
+  const name = (fn + ' ' + ln).trim() || ME?.name;
   try {
-    const data = await apiFetch('/api/v1/account', 'PUT', { name, org });
+    const data = await apiFetch('/api/v1/account', 'PUT', { name, org: og });
     ME = data.customer;
     populateSidebar();
     showToast('✅ Profile saved');
@@ -1040,18 +1017,19 @@ async function saveProfile() {
 }
 
 async function changePassword() {
-  const cards = document.querySelectorAll('#tab-settings .card');
-  const inputs = cards[1]?.querySelectorAll('input');
-  const cur = inputs?.[0]?.value;
-  const nw  = inputs?.[1]?.value;
-  const cnf = inputs?.[2]?.value;
+  const curEl = document.getElementById('settings-pw-current');
+  const nwEl  = document.getElementById('settings-pw-new');
+  const cnfEl = document.getElementById('settings-pw-confirm');
+  const cur = curEl?.value;
+  const nw  = nwEl?.value;
+  const cnf = cnfEl?.value;
   if (!cur || !nw) { showToast('Please fill in all password fields'); return; }
   if (nw !== cnf)  { showToast('New passwords do not match'); return; }
   try {
     await apiFetch('/api/v1/account/password', 'PUT', { currentPassword: cur, newPassword: nw });
-    if (inputs[0]) inputs[0].value = '';
-    if (inputs[1]) inputs[1].value = '';
-    if (inputs[2]) inputs[2].value = '';
+    if (curEl) curEl.value = '';
+    if (nwEl)  nwEl.value  = '';
+    if (cnfEl) cnfEl.value = '';
     showToast('✅ Password updated');
   } catch(e) { showToast('Error: ' + e.message); }
 }
@@ -1079,16 +1057,45 @@ function applyWidgetBuilderConfig(cfg) {
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 function buildOverviewChart() {
-  buildBarChart('overview-chart', FEATURE_USAGE.slice(0,5));
+  const rows = (ANALYTICS_DATA?.topFeatures || []).slice(0, 5);
+  buildBarChart('overview-chart', toFeaturePctChartData(rows, FEATURE_LABEL));
+}
+
+// Convert [{feature, count}] from server into [{label, pct, color}] for buildBarChart.
+// pct is normalized to the most-used row (so the top bar is always 100%).
+function toFeaturePctChartData(rows, labelMap) {
+  if (!rows.length) return [];
+  // Bar WIDTH is still proportional to the top item, but the LABEL on the bar
+  // is the raw count — that's what customers actually want to see ("clicked 7
+  // times" vs the meaningless "100% of the most-used profile").
+  const max = Math.max(...rows.map(r => Number(r.count) || 0)) || 1;
+  return rows.map((r, i) => ({
+    label: (labelMap && labelMap[r.feature]) || r.feature,
+    count: Number(r.count) || 0,
+    pct:   Math.round((Number(r.count) || 0) * 100 / max),
+    color: CHART_PALETTE[i % CHART_PALETTE.length],
+  }));
 }
 
 function buildActivityFeed() {
   const events = ANALYTICS_DATA?.recentEvents || [];
-  const typeLabel = { activation:'Widget activated', validate:'License validated' };
-  const items = events.slice(0, 6).map(e => ({
-    text: `${typeLabel[e.type] || e.type} on <strong>${e.domain || 'unknown domain'}</strong>`,
-    time: new Date(e.ts * 1000).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
-  }));
+  const typeLabel = {
+    activation:   'Widget activated',
+    validate:     'License validated',
+    pageview:     'Pageview',
+    widget_open:  'Visitor opened the panel',
+    feature_used: 'Feature used',
+    profile_used: 'Profile applied',
+    tts_used:     'Text-to-speech started',
+  };
+  const items = events.slice(0, 6).map(e => {
+    const label = typeLabel[e.type] || e.type;
+    const detail = e.feature ? ` (${esc(FEATURE_LABEL[e.feature] || PROFILE_LABEL[e.feature] || e.feature)})` : '';
+    return {
+      text: `${esc(label)}${detail} on <strong>${esc(e.domain || 'unknown domain')}</strong>`,
+      time: new Date(e.ts * 1000).toLocaleString('en-US', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
+    };
+  });
   if (!items.length) items.push({ text: 'No recent activity yet', time: '' });
   document.getElementById('activity-feed').innerHTML = items.map(i => `
     <div class="activity-item">
@@ -1103,11 +1110,11 @@ function buildActivityFeed() {
 function buildOverviewSites() {
   document.getElementById('overview-sites').innerHTML = SITES.map(s => `
     <tr>
-      <td><span style="font-weight:600">${s.domain}</span></td>
-      <td><span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${s.status}</span></td>
-      <td>${s.activations.toLocaleString()}</td>
-      <td>${s.topFeature}</td>
-      <td>Today</td>
+      <td><span style="font-weight:600">${esc(s.domain)}</span></td>
+      <td><span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${esc(s.status)}</span></td>
+      <td>${(s.activations || 0).toLocaleString()}</td>
+      <td>${esc(s.topFeature || '—')}</td>
+      <td>${esc(fmtRelative(s.lastTs))}</td>
     </tr>`).join('');
 }
 
@@ -1125,13 +1132,13 @@ function buildSitesList() {
 
   html += SITES.map(s => `
     <div class="site-card">
-      <div class="site-favicon">${s.favicon}</div>
+      <div class="site-favicon">${esc(s.favicon)}</div>
       <div class="site-info">
-        <div class="site-domain">${s.domain}</div>
-        <div class="site-meta">${s.name} · Added ${s.added}</div>
+        <div class="site-domain">${esc(s.domain)}</div>
+        <div class="site-meta">${esc(s.name)} · Added ${esc(s.added)}</div>
         <div style="margin-top:6px">
-          <span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${s.status}</span>
-          &nbsp;<span style="font-size:11px;color:var(--muted);font-family:monospace">${s.key}</span>
+          <span class="badge ${s.status==='active'?'badge-green':'badge-red'}">${esc(s.status)}</span>
+          &nbsp;<span style="font-size:11px;color:var(--muted);font-family:monospace">${esc(s.key)}</span>
         </div>
       </div>
       <div class="site-stats">
@@ -1152,8 +1159,10 @@ function buildSitesList() {
 function viewKey(id) {
   const s = SITES.find(x => x.id === id);
   document.getElementById('modal-key-val').textContent = s.key;
+  // Single-line install snippet — license key in the URL gates the JS download.
+  const widgetUrl = window.location.origin + '/accessibility-widget.js?key=' + encodeURIComponent(s.key);
   document.getElementById('key-snippet-val').textContent =
-    `<script>\n  window.AccessibilityWidgetConfig = {\n    licenseKey: '${s.key}',\n    lang: 'auto'\n  };\n<\/script>\n<script src="https://cdn.insijam.io/widget.js" defer><\/script>`;
+    `<script src="${widgetUrl}" defer><\/script>`;
   document.getElementById('modal-add-site').classList.remove('open');
   document.getElementById('modal-view-key').classList.add('open');
 }
@@ -1179,7 +1188,7 @@ async function deleteSite(id) {
     SITES.splice(SITES.findIndex(x => x.id === id), 1);
     buildSitesList();
     buildOverviewSites();
-    populateSubscription();
+    populateAnalyticsStats();
     showToast('Website removed');
   } catch(e) { showToast('Error: ' + e.message); }
 }
@@ -1200,7 +1209,7 @@ async function addSite() {
     closeModal('modal-add-site');
     buildSitesList();
     buildOverviewSites();
-    populateSubscription();
+    populateAnalyticsStats();
     updateSnippet();
     showToast(`✅ ${data.license.domain} added. Key: ${data.license.key}`);
   } catch(e) { showToast('Error: ' + e.message); }
@@ -1280,7 +1289,12 @@ function updateSnippet() {
     ? ''
     : ',\n    features: {\n' + Object.entries(feats).map(([k,v]) => `      ${k}: ${v}`).join(',\n') + '\n    }';
 
-  const snip = `&lt;!-- Insijam --&gt;\n&lt;<span class="kw">script</span>&gt;\nwindow.AccessibilityWidgetConfig = {\n  licenseKey: <span class="str">'${site?.key || 'YOUR-KEY-HERE'}'</span>,\n  lang: <span class="str">'${lang}'</span>,\n  position: <span class="str">'${pos}'</span>,\n  primaryColor: <span class="str">'${color}'</span>,\n  buttonIcon: <span class="str">'${icon}'</span>${featStr}\n};\n&lt;/<span class="kw">script</span>&gt;\n&lt;<span class="kw">script</span> src=<span class="str">"https://cdn.insijam.io/widget.js"</span> defer&gt;&lt;/<span class="kw">script</span>&gt;`;
+  // Two-line snippet: a config block for visual/feature overrides + the
+  // license-gated script tag. If you don't need overrides, the script tag
+  // alone is enough — the widget reads `key` from its own src URL.
+  const k = site?.key || 'YOUR-KEY-HERE';
+  const widgetUrl = window.location.origin + '/accessibility-widget.js?key=' + encodeURIComponent(k);
+  const snip = `&lt;!-- Insijam --&gt;\n&lt;<span class="kw">script</span>&gt;\nwindow.AccessibilityWidgetConfig = {\n  lang: <span class="str">'${lang}'</span>,\n  position: <span class="str">'${pos}'</span>,\n  primaryColor: <span class="str">'${color}'</span>,\n  buttonIcon: <span class="str">'${icon}'</span>${featStr}\n};\n&lt;/<span class="kw">script</span>&gt;\n&lt;<span class="kw">script</span> src=<span class="str">"${widgetUrl}"</span> defer&gt;&lt;/<span class="kw">script</span>&gt;`;
   document.getElementById('snip-content').innerHTML = snip;
 }
 
@@ -1311,71 +1325,116 @@ async function saveConfig() {
 function buildBarChart(containerId, data) {
   const el = document.getElementById(containerId);
   if (!el) return;
-  el.innerHTML = data.map(f => `
+  if (!data || !data.length) {
+    el.innerHTML = '<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px">No data yet — analytics will appear once visitors use your widget.</div>';
+    return;
+  }
+  // Show the raw count (number of times that feature/profile was used) rather
+  // than a percentage. The bar's WIDTH is still proportional to the most-used
+  // item — but the visible label is the count, which is what customers want.
+  // If `count` isn't present we fall back to the old percentage display so
+  // any other caller of buildBarChart keeps working.
+  el.innerHTML = data.map(f => {
+    const display = (typeof f.count === 'number') ? f.count.toLocaleString() : (f.pct + '%');
+    return `
     <div class="bar-row">
-      <div class="bar-label">${f.label}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${f.color}">${f.pct}%</div></div>
-      <div class="bar-val">${f.pct}%</div>
-    </div>`).join('');
+      <div class="bar-label">${esc(f.label)}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${f.pct}%;background:${f.color}">${display}</div></div>
+      <div class="bar-val">${display}</div>
+    </div>`;
+  }).join('');
 }
 
 function buildAnalyticsCharts() {
-  buildBarChart('analytics-feature-chart', FEATURE_USAGE);
-  buildBarChart('analytics-profile-chart', PROFILE_USAGE);
+  const tf = ANALYTICS_DATA?.topFeatures || [];
+  const tp = ANALYTICS_DATA?.topProfiles || [];
+  buildBarChart('analytics-feature-chart', toFeaturePctChartData(tf, FEATURE_LABEL));
+  buildBarChart('analytics-profile-chart', toFeaturePctChartData(tp, PROFILE_LABEL));
+  // Show how many distinct features/profiles have been recorded next to the
+  // chart titles, so an empty chart isn't ambiguous.
+  const fEmpty = document.getElementById('an-feature-empty');
+  const pEmpty = document.getElementById('an-profile-empty');
+  if (fEmpty) fEmpty.textContent = tf.length ? `${tf.length} different feature${tf.length === 1 ? '' : 's'} used` : 'No feature toggles yet';
+  if (pEmpty) pEmpty.textContent = tp.length ? `${tp.length} different profile${tp.length === 1 ? '' : 's'} used` : 'No profile presets yet';
 }
 
+// Per-site engagement table — pageviews + activations + visitors + last activity + share-of-traffic bar
 function buildAnalyticsSiteTable() {
-  document.getElementById('analytics-site-table').innerHTML = SITES.map(s => `
+  const totalPv = SITES.reduce((sum, s) => sum + (s.pageviews || 0), 0) || 1;
+  document.getElementById('analytics-site-table').innerHTML = SITES.map(s => {
+    const sharePct = Math.round(((s.pageviews || 0) / totalPv) * 100);
+    return `
     <tr>
-      <td><span style="font-weight:600">${s.domain}</span></td>
-      <td>${s.activations.toLocaleString()}</td>
-      <td>${s.users.toLocaleString()}</td>
-      <td>${s.topFeature}</td>
+      <td><span style="font-weight:600">${esc(s.domain)}</span></td>
+      <td>${(s.pageviews   || 0).toLocaleString()}</td>
+      <td>${(s.activations || 0).toLocaleString()}</td>
+      <td>${(s.users       || 0).toLocaleString()}</td>
+      <td style="color:var(--muted);font-size:12px">${esc(fmtRelative(s.lastTs))}</td>
       <td>
-        <div class="progress" style="width:120px"><div class="progress-fill" style="width:${Math.round((s.activations/12847)*100)}%"></div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="progress" style="width:120px"><div class="progress-fill" style="width:${sharePct}%"></div></div>
+          <span style="font-size:11px;color:var(--muted);min-width:32px;text-align:right">${sharePct}%</span>
+        </div>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">Add a website on the My Websites tab to start collecting data.</td></tr>`;
+}
+
+// 14-day mini-bar-chart showing pageviews + interactions stacked per day.
+function buildTimelineChart() {
+  const wrap = document.getElementById('an-timeline');
+  const axis = document.getElementById('an-timeline-axis');
+  if (!wrap || !axis) return;
+
+  const rows = ANALYTICS_DATA?.timeline || [];
+  if (!rows.length) {
+    wrap.innerHTML = '<div style="margin:auto;color:var(--muted);font-size:13px">No data yet — analytics will appear once visitors use your widget.</div>';
+    axis.innerHTML = '';
+    return;
+  }
+
+  // Fill in any missing days with zeros so the bar chart shows a consistent 14-day window
+  const today = Math.floor(Date.now() / 1000 / 86400);
+  const map = {};
+  for (const r of rows) {
+    const t = Date.parse(r.day + 'T00:00:00Z');
+    if (!isNaN(t)) map[Math.floor(t / 1000 / 86400)] = r;
+  }
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const dayKey = today - i;
+    const r = map[dayKey] || { pageviews: 0, features: 0, profiles: 0 };
+    days.push({
+      label: new Date(dayKey * 86400 * 1000).toLocaleDateString('en-US', { day:'numeric', month:'short' }),
+      pv:   Number(r.pageviews) || 0,
+      ix:  (Number(r.features)  || 0) + (Number(r.profiles) || 0),
+    });
+  }
+  const max = Math.max(1, ...days.map(d => d.pv + d.ix));
+
+  wrap.innerHTML = days.map(d => {
+    const pvH = (d.pv / max) * 100;
+    const ixH = (d.ix / max) * 100;
+    const total = d.pv + d.ix;
+    const tip = `${d.label} · ${d.pv} pageview${d.pv === 1 ? '' : 's'} · ${d.ix} interaction${d.ix === 1 ? '' : 's'}`;
+    return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:1px;height:100%;min-width:8px" title="${esc(tip)}">
+      <div style="background:#7c3aed;height:${ixH}%;border-radius:2px 2px 0 0;min-height:${d.ix > 0 ? '2px' : '0'}"></div>
+      <div style="background:#2563EB;height:${pvH}%;border-radius:${d.ix > 0 ? '0' : '2px 2px 0 0'};min-height:${d.pv > 0 ? '2px' : '0'}"></div>
+    </div>`;
+  }).join('') +
+    `<div style="position:absolute;right:0;top:0;display:flex;gap:14px;font-size:10px;color:var(--muted);font-family:monospace">
+      <span><span style="display:inline-block;width:8px;height:8px;background:#2563EB;border-radius:2px;margin-right:4px"></span>pageviews</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;margin-right:4px"></span>interactions</span>
+    </div>`;
+  // Axis labels — only show first, middle, last to avoid clutter
+  axis.innerHTML = `<span>${esc(days[0].label)}</span><span>${esc(days[7].label)}</span><span>${esc(days[13].label)}</span>`;
 }
 
 function updateAnalytics() {
-  const p = document.getElementById('analytics-period').value;
-  const multi = { 7: 0.22, 30: 1, 90: 3.2 }[p] || 1;
-  document.getElementById('an-activations').textContent = Math.round(12847 * multi).toLocaleString();
-  document.getElementById('an-users').textContent       = Math.round(4291  * multi).toLocaleString();
-}
-
-// ── Billing ───────────────────────────────────────────────────────────────────
-function buildBillingTable() {
-  const data = BILLING_DATA.length ? BILLING_DATA : [];
-  if (!data.length) {
-    document.getElementById('billing-table').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No invoices yet</td></tr>';
-    return;
-  }
-  document.getElementById('billing-table').innerHTML = data.map(b => `
-    <tr>
-      <td style="font-family:monospace;font-size:12px">${b.id}</td>
-      <td>${b.date}</td>
-      <td>${b.plan}</td>
-      <td style="font-weight:700">${b.amount}</td>
-      <td><span class="badge badge-green">${b.status}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="showToast('Downloading invoice ${b.id}…')">⬇ PDF</button></td>
-    </tr>`).join('');
-}
-
-// ── Notifications settings ────────────────────────────────────────────────────
-function buildNotifSettings() {
-  const items = [
-    { label:'Subscription renewal reminders', on:true },
-    { label:'License key validation failures', on:true },
-    { label:'Weekly analytics digest',         on:true },
-    { label:'Feature usage alerts',            on:false },
-    { label:'New version announcements',       on:true },
-  ];
-  document.getElementById('notif-settings').innerHTML = items.map(n => `
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f1f5f9">
-      <span style="font-size:13px">${n.label}</span>
-      <label class="toggle"><input type="checkbox" ${n.on?'checked':''}><span class="toggle-slider"></span></label>
-    </div>`).join('');
+  populateAnalyticsStats();
+  buildAnalyticsCharts();
+  buildTimelineChart();
+  buildAnalyticsSiteTable();
 }
 
 // ── Modal helpers ─────────────────────────────────────────────────────────────
@@ -1399,8 +1458,7 @@ const DASH_I18N = {
     'brand-name':'Insijam','brand-ver':'Customer Portal v1.0',
     'sb-main':'Main','sb-overview':'Overview','sb-websites':'My Websites',
     'sb-widgetcfg':'Widget Builder','sb-analytics':'Analytics',
-    'sb-account':'Account','sb-subscription':'Subscription',
-    'sb-billing':'Billing History','sb-settings':'Settings','sb-signout':'↩ Sign Out',
+    'sb-account':'Account','sb-settings':'Settings','sb-signout':'↩ Sign Out',
     'add-website-btn':'+ Add Website','lang-toggle':'🌐 AR',
     // Overview tab
     'stat-activations':'Widget Activations (30d)','stat-users':'Unique Users (30d)',
@@ -1419,16 +1477,8 @@ const DASH_I18N = {
     'analytics-site-table':'Usage by Website',
     'analytics-col-site':'Website','analytics-col-act':'Activations','analytics-col-users':'Users',
     'analytics-col-feat':'Top Feature','analytics-col-eng':'Engagement',
-    // Subscription tab
-    'sub-current-title':'Current Subscription','sub-available':'Available Plans',
-    // Billing tab
-    'billing-title':'Billing History','billing-dl-all':'⬇ Download All',
-    'billing-col-inv':'Invoice','billing-col-date':'Date','billing-col-plan':'Plan',
-    'billing-col-amount':'Amount','billing-col-status':'Status','billing-col-action':'Action',
-    'payment-title':'Payment Method',
     // Settings tab
-    'settings-profile':'Profile','settings-security':'Security','settings-api':'API Access',
-    'settings-notif':'Notifications','settings-danger':'Danger Zone',
+    'settings-profile':'Profile','settings-security':'Security',
     // Widget builder
     'wb-appearance':'Widget Appearance','wb-feature-ctrl':'Feature Control',
     'wb-embed':'Embed Code','wb-preview':'Live Preview',
@@ -1439,8 +1489,7 @@ const DASH_I18N = {
     'brand-name':'انسجام','brand-ver':'بوابة العملاء v1.0',
     'sb-main':'الرئيسية','sb-overview':'نظرة عامة','sb-websites':'مواقعي',
     'sb-widgetcfg':'منشئ الأداة','sb-analytics':'التحليلات',
-    'sb-account':'الحساب','sb-subscription':'الاشتراك',
-    'sb-billing':'سجل الفواتير','sb-settings':'الإعدادات','sb-signout':'تسجيل الخروج ↩',
+    'sb-account':'الحساب','sb-settings':'الإعدادات','sb-signout':'تسجيل الخروج ↩',
     'add-website-btn':'+ إضافة موقع','lang-toggle':'🌐 EN',
     'stat-activations':'تفعيلات الأداة (٣٠ يوماً)','stat-users':'مستخدمون فريدون (٣٠ يوماً)',
     'stat-sites':'المواقع النشطة','stat-keys':'مفاتيح ترخيص نشطة',
@@ -1456,13 +1505,7 @@ const DASH_I18N = {
     'analytics-site-table':'الاستخدام حسب الموقع',
     'analytics-col-site':'الموقع','analytics-col-act':'التفعيلات','analytics-col-users':'المستخدمون',
     'analytics-col-feat':'أبرز ميزة','analytics-col-eng':'التفاعل',
-    'sub-current-title':'الاشتراك الحالي','sub-available':'الخطط المتاحة',
-    'billing-title':'سجل الفواتير','billing-dl-all':'⬇ تحميل الكل',
-    'billing-col-inv':'الفاتورة','billing-col-date':'التاريخ','billing-col-plan':'الخطة',
-    'billing-col-amount':'المبلغ','billing-col-status':'الحالة','billing-col-action':'إجراء',
-    'payment-title':'طريقة الدفع',
-    'settings-profile':'الملف الشخصي','settings-security':'الأمان','settings-api':'وصول API',
-    'settings-notif':'الإشعارات','settings-danger':'منطقة الخطر',
+    'settings-profile':'الملف الشخصي','settings-security':'الأمان',
     'wb-appearance':'مظهر الأداة','wb-feature-ctrl':'التحكم في الميزات',
     'wb-embed':'كود التضمين','wb-preview':'معاينة مباشرة',
     'wb-save':'💾 حفظ الإعدادات',
@@ -1485,8 +1528,7 @@ function applyDashLang(lang) {
 
   // Sidebar nav items (by data-tab attr)
   const navMap = { overview:'sb-overview', websites:'sb-websites', widgetcfg:'sb-widgetcfg',
-                   analytics:'sb-analytics', subscription:'sb-subscription', billing:'sb-billing',
-                   settings:'sb-settings' };
+                   analytics:'sb-analytics', settings:'sb-settings' };
   Object.entries(navMap).forEach(([tab, key]) => {
     const el = document.querySelector(`.sb-nav-item[data-tab="${tab}"]`);
     if (el && t[key]) {
@@ -1535,25 +1577,9 @@ function applyDashLang(lang) {
   const anThKeys = ['analytics-col-site','analytics-col-act','analytics-col-users','analytics-col-feat','analytics-col-eng'];
   anThs.forEach((th, i) => { if (t[anThKeys[i]]) th.textContent = t[anThKeys[i]]; });
 
-  // Subscription tab
-  const subCards = document.querySelectorAll('#tab-subscription .card-title');
-  if (subCards[0]) subCards[0].textContent = t['sub-current-title'];
-  if (subCards[1]) subCards[1].textContent = t['sub-available'];
-
-  // Billing tab
-  const billTitle = document.querySelector('#tab-billing .card-title');
-  if (billTitle) billTitle.textContent = t['billing-title'];
-  const dlBtn = document.querySelector('#tab-billing .btn-outline');
-  if (dlBtn) dlBtn.textContent = t['billing-dl-all'];
-  const billThs = document.querySelectorAll('#tab-billing thead th');
-  const billThKeys = ['billing-col-inv','billing-col-date','billing-col-plan','billing-col-amount','billing-col-status','billing-col-action'];
-  billThs.forEach((th, i) => { if (t[billThKeys[i]]) th.textContent = t[billThKeys[i]]; });
-  const payTitle = document.querySelectorAll('#tab-billing .card-title')[1];
-  if (payTitle) payTitle.textContent = t['payment-title'];
-
   // Settings tab
   const settCards = document.querySelectorAll('#tab-settings .card-title');
-  const settKeys = ['settings-profile','settings-security','settings-api','settings-notif','settings-danger'];
+  const settKeys = ['settings-profile','settings-security'];
   settCards.forEach((el, i) => { if (t[settKeys[i]]) el.textContent = t[settKeys[i]]; });
 
   // Widget builder tab

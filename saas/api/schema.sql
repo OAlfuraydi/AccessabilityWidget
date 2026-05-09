@@ -27,6 +27,9 @@ CREATE TABLE IF NOT EXISTS customers (
 ) ENGINE=InnoDB;
 
 -- ── subscriptions ──────────────────────────────────────────
+-- One subscription per customer — UNIQUE(customer_id) prevents the
+-- duplicate rows we'd otherwise see if seed.js (or a stripe webhook,
+-- or any retry loop) inserts twice.
 CREATE TABLE IF NOT EXISTS subscriptions (
   id              INT AUTO_INCREMENT PRIMARY KEY,
   customer_id     VARCHAR(50) NOT NULL,
@@ -35,6 +38,7 @@ CREATE TABLE IF NOT EXISTS subscriptions (
   website_limit   INT DEFAULT 3,
   expires_at      DATETIME,
   created_at      DATETIME DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT uq_subscriptions_customer UNIQUE (customer_id),
   FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

@@ -1,828 +1,1260 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" dir="ltr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Accessibility Widget — Live Demo</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#5B4FE8" />
+<meta name="format-detection" content="telephone=no" />
+<title>Insijam — Web accessibility, in harmony</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --paper: #FFFFFF;
+    --paper-2: #F5F5F8;
+    --paper-3: #E4E4EA;
+    --ink: #0E0E14;
+    --ink-2: #2A2A33;
+    --ink-3: #5A5A66;
+    --accent: #5B4FE8;
+    --accent-soft: #E8E5FB;
+    --accent-ink: #FFFFFF;
+    --focus: #5B4FE8;
+    --good: #1F7A4A;
+    --warn: #8A5A00;
 
-    :root {
-      --primary: #2563EB;
-      --text: #1e293b;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --bg: #f8fafc;
-      --surface: #ffffff;
-    }
+    --serif: "Fraunces", "Times New Roman", serif;
+    --sans: "Inter Tight", system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --arabic: "IBM Plex Sans Arabic", "Noto Naskh Arabic", "Tahoma", sans-serif;
 
-    html { scroll-behavior: smooth; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text); background: var(--bg); line-height: 1.6; }
+    --radius: 4px;
+    --radius-lg: 10px;
+    --max: 1280px;
+    --gutter: clamp(20px, 4vw, 56px);
+  }
 
-    /* ── Navigation ── */
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 48px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 8px rgba(0,0,0,0.06);
-    }
-    .nav-brand { font-size: 20px; font-weight: 800; color: var(--primary); }
-    .nav-links { display: flex; gap: 28px; }
-    .nav-links a { text-decoration: none; color: var(--muted); font-size: 14px; font-weight: 500; transition: color 0.15s; }
-    .nav-links a:hover { color: var(--primary); }
-    .nav-cta {
-      background: var(--primary);
-      color: #fff;
-      padding: 8px 18px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-    }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 
-    /* ── Hero ── */
-    .hero {
-      background: linear-gradient(135deg, #1e40af 0%, #2563EB 50%, #7c3aed 100%);
-      color: #fff;
-      padding: 96px 48px;
-      text-align: center;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,0.15);
-      border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 24px;
-    }
-    .hero h1 { font-size: 52px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; }
-    .hero p { font-size: 20px; opacity: 0.85; max-width: 640px; margin: 0 auto 36px; line-height: 1.6; }
-    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-    .btn-white {
-      background: #fff;
-      color: var(--primary);
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 700;
-      text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-      display: inline-block;
-    }
-    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
-    .btn-ghost {
-      background: rgba(255,255,255,0.15);
-      color: #fff;
-      padding: 12px 28px;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      text-decoration: none;
-      border: 1px solid rgba(255,255,255,0.3);
-      display: inline-block;
-    }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 17px;
+    line-height: 1.55;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  html[dir="rtl"] body { font-family: var(--arabic); }
 
-    /* ── Container ── */
-    .container { max-width: 1100px; margin: 0 auto; padding: 0 48px; }
+  .skip {
+    position: absolute; left: 12px; top: 12px;
+    background: var(--ink); color: var(--paper);
+    padding: 12px 16px; border-radius: var(--radius);
+    transform: translateY(-200%);
+    transition: transform .15s ease;
+    z-index: 100;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .skip:focus { transform: translateY(0); }
 
-    /* ── Section ── */
-    section { padding: 80px 0; }
-    .section-tag { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); margin-bottom: 10px; }
-    h2 { font-size: 36px; font-weight: 800; color: var(--text); margin-bottom: 16px; line-height: 1.2; }
-    .section-lead { font-size: 18px; color: var(--muted); max-width: 640px; line-height: 1.6; margin-bottom: 48px; }
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
 
-    /* ── Feature Grid ── */
-    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .feature-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .feature-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .feature-icon { font-size: 32px; margin-bottom: 14px; display: block; }
-    .feature-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .feature-card p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin: 0;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+  html[dir="rtl"] :is(h1,h2,h3,h4) { font-family: var(--arabic); letter-spacing: 0; line-height: 1.25; }
 
-    /* ── Profiles Section ── */
-    .profiles-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .profile-card {
-      background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      text-align: center;
-      transition: all 0.15s;
-      cursor: default;
-    }
-    .profile-card:hover { border-color: var(--primary); box-shadow: 0 4px 20px rgba(37,99,235,0.12); }
-    .profile-card .p-icon { font-size: 40px; margin-bottom: 12px; display: block; }
-    .profile-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-    .profile-card p { font-size: 12px; color: var(--muted); line-height: 1.4; }
-    .profile-card .p-tags { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin-top: 12px; }
-    .p-tag { font-size: 10px; background: #eff6ff; color: var(--primary); padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+  p { margin: 0; text-wrap: pretty; }
+  a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 
-    /* ── Content Article ── */
-    #main {
-      background: var(--surface);
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      padding: 48px;
-      margin: 40px 0;
-    }
-    #main h1 { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
-    #main h2 { font-size: 24px; margin-bottom: 14px; margin-top: 32px; }
-    #main h3 { font-size: 18px; margin-bottom: 10px; margin-top: 24px; }
-    #main p { margin-bottom: 16px; font-size: 16px; line-height: 1.7; color: #374151; }
-    #main ul, #main ol { margin: 0 0 16px 24px; }
-    #main li { margin-bottom: 6px; font-size: 15px; line-height: 1.7; color: #374151; }
-    #main a { color: var(--primary); }
-    #main blockquote {
-      border-left: 4px solid var(--primary);
-      padding: 12px 20px;
-      background: #eff6ff;
-      border-radius: 0 10px 10px 0;
-      margin: 20px 0;
-      font-style: italic;
-    }
+  .container { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
 
-    /* ── How it works ── */
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .step {
-      text-align: center;
-      padding: 32px 24px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-    }
-    .step-num {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: #fff;
-      font-size: 20px;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-    }
-    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-    .step p { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 24px; height: 1px;
+    background: currentColor;
+    display: inline-block;
+  }
 
-    /* ── Languages ── */
-    .lang-split { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
-    .lang-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-    .lang-card-header {
-      padding: 16px 24px;
-      font-weight: 700;
-      font-size: 15px;
-      border-bottom: 1px solid var(--border);
-    }
-    .lang-card-body { padding: 24px; font-size: 15px; line-height: 1.8; }
-    .lang-card.ar .lang-card-body { direction: rtl; text-align: right; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 22px;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
+    font: 500 15px var(--sans);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .15s, background .15s, color .15s, border-color .15s;
+    white-space: nowrap;
+  }
+  .btn--primary { background: var(--ink); color: var(--paper); }
+  .btn--primary:hover { background: var(--accent); color: var(--accent-ink); }
+  .btn--ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .btn--ghost:hover { background: var(--ink); color: var(--paper); }
+  .btn--accent { background: var(--accent); color: var(--accent-ink); }
+  .btn--accent:hover { filter: brightness(0.95); }
 
-    /* ── CTA Section ── */
-    .cta-section {
-      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-      padding: 80px 48px;
-      text-align: center;
-      color: #fff;
-    }
-    .cta-section h2 { font-size: 40px; margin-bottom: 16px; color: #fff; }
-    .cta-section p { font-size: 18px; opacity: 0.75; margin-bottom: 36px; }
+  /* HEADER */
+  .site-head {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .site-head-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding: 18px 0;
+  }
+  .logo { color: var(--ink); flex-shrink: 0; display:inline-flex; align-items: center; gap: 10px; text-decoration: none; }
+  .logo-mark { width: 32px; height: 32px; }
+  .logo-text { font-family: var(--serif); font-size: 20px; font-weight: 500; letter-spacing: -0.02em; }
+  .site-nav { display: flex; gap: 28px; align-items: center; }
+  .site-nav a { text-decoration: none; color: var(--ink-2); font-size: 14px; font-weight: 500; transition: color .15s; }
+  .site-nav a:hover { color: var(--accent); }
+  .site-head-actions { display: flex; gap: 12px; align-items: center; }
+  .lang-toggle {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid var(--paper-3);
+    border-radius: 999px;
+    font: 500 13px var(--mono);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+  .lang-toggle:hover { border-color: var(--ink); color: var(--ink); }
 
-    /* ── Footer ── */
-    footer {
-      background: #0f172a;
-      color: #94a3b8;
-      padding: 40px 48px;
-      text-align: center;
-      font-size: 13px;
-    }
+  /* Hamburger button — hidden by default, shown on tablet/phone */
+  .nav-burger {
+    display: none;
+    width: 40px; height: 40px;
+    align-items: center; justify-content: center;
+    background: transparent;
+    border: 1px solid var(--paper-3);
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .nav-burger:hover { border-color: var(--ink); }
+  .nav-burger svg { transition: transform .2s; }
+  .nav-burger.is-open svg { transform: rotate(90deg); }
 
-    /* ── Demo Banner ── */
-    .demo-banner {
-      background: #fef3c7;
-      border-bottom: 1px solid #fde68a;
-      padding: 10px 48px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 600;
-      color: #92400e;
-    }
-    .demo-banner a { color: #1d4ed8; }
+  /* Mobile menu panel — full-width drawer below the header */
+  .nav-mobile {
+    display: none;
+    position: fixed;
+    top: 64px; left: 0; right: 0;
+    z-index: 49;
+    background: var(--paper);
+    border-bottom: 1px solid var(--paper-3);
+    box-shadow: 0 16px 32px -16px rgba(20,17,13,.18);
+    padding: 14px var(--gutter) 22px;
+    flex-direction: column;
+    gap: 4px;
+    max-height: calc(100vh - 64px);
+    max-height: calc(100dvh - 64px);
+    overflow-y: auto;
+  }
+  .nav-mobile.is-open { display: flex; }
+  .nav-mobile a {
+    display: flex; align-items: center;
+    padding: 14px 12px;
+    text-decoration: none;
+    color: var(--ink-2);
+    font: 500 16px var(--sans);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  html[dir="rtl"] .nav-mobile a { font-family: var(--arabic); }
+  .nav-mobile a:hover { color: var(--accent); }
+  .nav-mobile a:last-child { border-bottom: 0; }
+  .nav-mobile .btn { margin-top: 12px; justify-content: center; }
 
-    @media (max-width: 768px) {
-      nav { padding: 0 20px; }
-      .nav-links { display: none; }
-      .hero { padding: 64px 24px; }
-      .hero h1 { font-size: 32px; }
-      .hero p { font-size: 16px; }
-      .container { padding: 0 24px; }
-      section { padding: 56px 0; }
-      .features-grid { grid-template-columns: 1fr 1fr; }
-      .profiles-grid { grid-template-columns: 1fr 1fr; }
-      .steps { grid-template-columns: 1fr; }
-      .lang-split { grid-template-columns: 1fr; }
-      #main { padding: 28px; }
-    }
+  @media (max-width: 880px) {
+    .site-nav { display: none; }
+    .nav-burger { display: inline-flex; }
+    /* Hide the duplicate header CTA — it now lives at the bottom of the mobile menu */
+    .site-head-actions > .btn--primary { display: none; }
+  }
 
-    /* ── Language Toggle ── */
-    .lang-btn {
-      background: var(--bg); border: 1px solid var(--border);
-      border-radius: 20px; padding: 6px 14px;
-      font-size: 12px; font-weight: 700; cursor: pointer;
-      color: var(--text); transition: all 0.15s;
-    }
-    .lang-btn:hover { background: #e2e8f0; }
+  /* HERO */
+  .hero { padding: clamp(48px, 9vw, 120px) 0 clamp(40px, 7vw, 96px); }
+  .hero-inner {
+    display: grid; grid-template-columns: 1.05fr 1fr;
+    gap: clamp(40px, 6vw, 96px); align-items: center;
+  }
+  .hero-title {
+    font-size: clamp(44px, 6.4vw, 96px);
+    font-weight: 400;
+    margin: 24px 0 28px;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--accent);
+    font-feature-settings: "ss01";
+  }
+  .hero-lede {
+    font-size: clamp(17px, 1.4vw, 21px);
+    color: var(--ink-2);
+    max-width: 52ch;
+    line-height: 1.55;
+  }
+  .hero-actions {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin: 36px 0 28px;
+  }
+  .hero-meta {
+    display: flex; gap: 24px; flex-wrap: wrap;
+    padding-top: 24px;
+    border-top: 1px solid var(--paper-3);
+  }
+  .hero-meta-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font: 500 13px var(--mono);
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .hero-meta-item svg { color: var(--accent); }
 
-    /* ── RTL layout overrides ── */
-    html[dir="rtl"] nav { direction: rtl; }
-    html[dir="rtl"] .nav-links { flex-direction: row-reverse; }
-    html[dir="rtl"] .hero { direction: rtl; }
-    html[dir="rtl"] .container { direction: rtl; }
-    html[dir="rtl"] .section-tag,
-    html[dir="rtl"] h2,
-    html[dir="rtl"] .section-lead { text-align: right; }
-    html[dir="rtl"] .feature-card,
-    html[dir="rtl"] .profile-card { text-align: right; }
-    html[dir="rtl"] .step { direction: rtl; text-align: right; }
-    html[dir="rtl"] .cta-section { direction: rtl; }
-    html[dir="rtl"] footer { direction: rtl; }
-    html[dir="rtl"] .demo-banner { direction: rtl; }
-    html[dir="rtl"] #main { direction: rtl; text-align: right; }
-    html[dir="rtl"] #main ul,
-    html[dir="rtl"] #main ol { margin: 0 24px 16px 0; padding: 0; }
-    html[dir="rtl"] #main blockquote {
-      border-left: none; border-right: 4px solid var(--primary);
-      border-radius: 10px 0 0 10px;
-    }
-    html[dir="rtl"] .lang-split { direction: rtl; }
-    html[dir="rtl"] .lang-card-header { direction: rtl; text-align: right; }
-  </style>
+  .hero-demo { position: relative; }
+  .hero-demo-frame {
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: var(--paper-2);
+    border: 1px solid var(--paper-3);
+    box-shadow: 0 30px 80px -30px rgba(20,17,13,.18), 0 4px 16px rgba(20,17,13,.04);
+    overflow: hidden;
+  }
+  .hero-demo-chrome {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--paper-3);
+    background: color-mix(in srgb, var(--paper) 50%, var(--paper-2));
+  }
+  .hero-demo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--paper-3); }
+  .hero-demo-url { margin-inline-start: 12px; font: 500 12px var(--mono); color: var(--ink-3); }
+  .hero-demo-page { padding: 32px 28px 48px; }
+  .hero-demo-page-h { font-family: var(--serif); font-size: 32px; color: var(--ink); margin-bottom: 10px; }
+  .hero-demo-page-p { color: var(--ink-2); font-size: 16px; margin-bottom: 22px; max-width: 38ch; line-height: 1.55; }
+  .hero-demo-page-row { display: flex; gap: 8px; }
+  .hero-demo-pill {
+    padding: 5px 12px; border-radius: 999px;
+    background: var(--paper); border: 1px solid var(--paper-3);
+    font: 500 11px var(--mono); color: var(--ink-2);
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .wg-summary {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 22px;
+    padding: 8px 14px;
+    background: var(--paper);
+    border: 1px solid var(--paper-3);
+    border-radius: 999px;
+    font: 500 12px var(--mono);
+    color: var(--ink-2);
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .wg-summary-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--good);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 20%, transparent);
+  }
+  @media (max-width: 1100px) { .hero-inner { grid-template-columns: 1fr; } }
+
+  /* SECTION */
+  .section { padding: clamp(72px, 10vw, 140px) 0; }
+  .section-head { max-width: 760px; margin-bottom: clamp(40px, 5vw, 72px); }
+  .section-title { font-size: clamp(36px, 4.6vw, 64px); font-weight: 400; margin-top: 16px; }
+  .section-sub { font-size: clamp(16px, 1.2vw, 19px); color: var(--ink-2); margin-top: 18px; max-width: 60ch; }
+
+  /* FEATURES */
+  .features { background: var(--paper); border-top: 1px solid var(--paper-3); }
+  .features-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--paper-3);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+  .feature {
+    background: var(--paper);
+    padding: clamp(28px, 3vw, 44px);
+    position: relative;
+    transition: background .2s;
+  }
+  .feature:hover { background: var(--paper-2); }
+  .feature-num {
+    position: absolute; top: 18px; inset-inline-end: 18px;
+    font: 500 11px var(--mono); color: var(--ink-3); letter-spacing: .08em;
+  }
+  .feature-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    background: var(--paper-2);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--accent);
+    margin-bottom: 24px;
+  }
+  .feature:hover .feature-icon { background: var(--accent); color: var(--accent-ink); }
+  .feature-title { font-size: 24px; font-family: var(--serif); font-weight: 500; margin-bottom: 10px; }
+  .feature-desc { color: var(--ink-2); font-size: 15px; line-height: 1.6; margin-bottom: 18px; }
+  .feature-tools { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .feature-tools li {
+    font: 500 11px var(--mono); color: var(--ink-3);
+    padding: 4px 10px; border: 1px solid var(--paper-3);
+    border-radius: 999px;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+  @media (max-width: 980px) { .features-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 600px) { .features-grid { grid-template-columns: 1fr; } }
+
+  /* TRY IT */
+  .tryit { background: var(--paper-2); border-top: 1px solid var(--paper-3); }
+  .tryit-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(32px, 4vw, 64px); align-items: start; }
+  .tryit-sample {
+    background: var(--paper);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-lg);
+    padding: clamp(28px, 4vw, 56px);
+    color: var(--ink);
+  }
+  .tryit-sample-eyebrow { font: 500 11px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 18px; }
+  .tryit-sample h3 { font-size: clamp(28px, 3vw, 40px); margin-bottom: 16px; }
+  .tryit-sample h4 { font-size: 20px; margin: 28px 0 10px; }
+  .tryit-sample p { color: var(--ink-2); margin-bottom: 16px; line-height: 1.7; max-width: 60ch; }
+  .tryit-sample ul, .tryit-sample ol { margin: 0 0 18px; padding-inline-start: 22px; color: var(--ink-2); line-height: 1.8; }
+  .tryit-sample blockquote {
+    margin: 28px 0 0;
+    padding: 18px 22px;
+    border-inline-start: 3px solid var(--accent);
+    background: var(--paper-2);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    font-family: var(--serif);
+    font-size: 19px;
+    font-style: italic;
+    color: var(--ink);
+  }
+  html[dir="rtl"] .tryit-sample blockquote { border-radius: var(--radius) 0 0 var(--radius); }
+  .tryit-sample blockquote cite {
+    display: block; margin-top: 8px;
+    font-family: var(--mono); font-size: 12px; font-style: normal;
+    color: var(--ink-3); text-transform: uppercase; letter-spacing: .08em;
+  }
+  .tryit-aside-card {
+    background: var(--paper);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-lg);
+    padding: 28px 26px;
+    position: sticky; top: 96px;
+  }
+  .tryit-aside-card h4 { font-family: var(--serif); font-size: 22px; margin-bottom: 10px; }
+  .tryit-aside-card p { font-size: 14px; color: var(--ink-2); line-height: 1.7; margin-bottom: 18px; }
+  .tryit-aside-card .btn { width: 100%; justify-content: center; }
+  .tryit-aside-list { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .tryit-aside-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--ink-2); }
+  .tryit-aside-list svg { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+  @media (max-width: 980px) { .tryit-grid { grid-template-columns: 1fr; } .tryit-aside-card { position: static; } }
+
+  /* COMPLIANCE */
+  .compliance { border-top: 1px solid var(--paper-3); }
+  .compliance-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .compliance-card {
+    padding: 28px;
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    position: relative;
+  }
+  .compliance-code { font-family: var(--serif); font-size: 32px; font-weight: 500; color: var(--ink); letter-spacing: -0.02em; }
+  .compliance-label { font: 500 12px var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: .08em; margin-top: 4px; }
+  .compliance-body { color: var(--ink-2); font-size: 14px; line-height: 1.6; margin-top: 14px; }
+  .compliance-tick {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 18px;
+    font: 500 11px var(--mono);
+    color: var(--good);
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  @media (max-width: 880px) { .compliance-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .compliance-grid { grid-template-columns: 1fr; } }
+
+  /* INSTALL */
+  .install { background: var(--ink); color: var(--paper); }
+  .install .eyebrow, .install .section-sub { color: color-mix(in srgb, var(--paper) 60%, transparent); }
+  .install .section-title { color: var(--paper); }
+  .install-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 5vw, 80px); align-items: center; }
+  .install-steps { list-style: none; padding: 0; margin: 36px 0 0; }
+  .install-steps li {
+    display: flex; gap: 18px; align-items: flex-start;
+    padding: 20px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--paper) 12%, transparent);
+  }
+  .install-num {
+    font: 500 12px var(--mono); color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    padding: 4px 10px; border-radius: 999px; flex-shrink: 0;
+  }
+  .install-step-t { font-family: var(--serif); font-size: 22px; margin-bottom: 4px; color: var(--paper); }
+  .install-step-d { color: color-mix(in srgb, var(--paper) 65%, transparent); font-size: 14px; line-height: 1.6; }
+  .install-code {
+    background: #0A0907;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--paper) 12%, transparent);
+  }
+  .install-code-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 18px;
+    border-bottom: 1px solid color-mix(in srgb, var(--paper) 10%, transparent);
+  }
+  .install-code-dot { width: 10px; height: 10px; border-radius: 50%; background: color-mix(in srgb, var(--paper) 18%, transparent); }
+  .install-code-file { margin-inline-start: 8px; font: 500 12px var(--mono); color: color-mix(in srgb, var(--paper) 50%, transparent); }
+  .install-code-pre {
+    margin: 0;
+    padding: 24px;
+    font: 13px/1.7 var(--mono);
+    color: color-mix(in srgb, var(--paper) 82%, transparent);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .install-copy-btn {
+    position: absolute; top: 12px; inset-inline-end: 12px;
+    padding: 6px 14px;
+    font: 500 11px var(--mono);
+    background: color-mix(in srgb, var(--paper) 12%, transparent);
+    color: var(--paper);
+    border: 1px solid color-mix(in srgb, var(--paper) 18%, transparent);
+    border-radius: 999px;
+    cursor: pointer;
+    text-transform: uppercase; letter-spacing: .08em;
+  }
+  .install-copy-btn:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  @media (max-width: 880px) { .install-grid { grid-template-columns: 1fr; } }
+
+  /* BILINGUAL */
+  .bilingual { border-top: 1px solid var(--paper-3); }
+  .bilingual-head { max-width: 760px; margin-bottom: 56px; }
+  .bilingual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .bilingual-card {
+    background: var(--paper-2);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-lg);
+    padding: clamp(36px, 4vw, 60px);
+    position: relative;
+  }
+  .bilingual-card-tag { font: 500 11px var(--mono); color: var(--ink-3); text-transform: uppercase; letter-spacing: .12em; margin-bottom: 24px; }
+  .bilingual-card h3 { font-size: clamp(28px, 3vw, 40px); font-weight: 500; margin-bottom: 16px; color: var(--ink); }
+  .bilingual-card p { color: var(--ink-2); font-size: 17px; line-height: 1.7; }
+  @media (max-width: 880px) { .bilingual-grid { grid-template-columns: 1fr; } }
+
+  /* CTA */
+  .cta-section {
+    background: var(--paper-2);
+    border-top: 1px solid var(--paper-3);
+    padding: clamp(72px, 10vw, 140px) 0;
+    text-align: center;
+  }
+  .cta-inner { max-width: 720px; margin: 0 auto; position: relative; }
+  .cta-aleph {
+    position: relative;
+    display: flex; gap: 24px; align-items: center; justify-content: center;
+    margin-bottom: 36px;
+    color: var(--accent);
+    font-family: var(--serif);
+  }
+  .cta-aleph-en { font-size: 96px; font-weight: 400; line-height: 1; }
+  .cta-aleph-ar { font-size: 96px; font-family: var(--arabic); line-height: 1; }
+  .cta-aleph::before {
+    content: "";
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 1px; height: 80px;
+    background: var(--paper-3);
+  }
+  .cta-title { font-size: clamp(36px, 5vw, 72px); margin-bottom: 18px; }
+  .cta-sub { font-size: 18px; color: var(--ink-2); margin-bottom: 36px; }
+  .cta-actions { display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+  /* FOOTER */
+  .site-foot {
+    background: var(--paper);
+    border-top: 1px solid var(--paper-3);
+    padding: 64px 0 32px;
+  }
+  .site-foot-inner { display: grid; grid-template-columns: 1fr 2fr; gap: 56px; margin-bottom: 56px; }
+  .site-foot-brand p { margin-top: 14px; color: var(--ink-3); font-size: 14px; max-width: 28ch; }
+  .site-foot-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+  .site-foot-h { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .12em; color: var(--ink-3); margin-bottom: 14px; }
+  .site-foot-cols a {
+    display: block; text-decoration: none;
+    color: var(--ink-2); font-size: 14px;
+    padding: 4px 0; transition: color .15s;
+  }
+  .site-foot-cols a:hover { color: var(--accent); }
+  .site-foot-fine {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--paper-3);
+    font: 500 12px var(--mono);
+    color: var(--ink-3);
+    text-transform: uppercase; letter-spacing: .08em;
+    flex-wrap: wrap; gap: 12px;
+  }
+  @media (max-width: 720px) {
+    .site-foot-inner { grid-template-columns: 1fr; }
+    .site-foot-cols { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* DEMO BANNER */
+  .demo-banner {
+    background: var(--accent-soft);
+    color: var(--ink);
+    padding: 10px 24px;
+    text-align: center;
+    font: 500 13px var(--mono);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .demo-banner a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .demo-banner a:hover { text-decoration: underline; }
+  html[dir="rtl"] .demo-banner { font-family: var(--arabic); }
+
+  /* ── Universal responsive rules (tablet + phone) ── */
+  img, svg, video { max-width: 100%; height: auto; }
+  pre, code { white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere; }
+  .install-code-pre { white-space: pre-wrap; word-break: break-word; }
+
+  /* Tablets (≤ 1024px) */
+  @media (max-width: 1024px) {
+    :root { --gutter: clamp(16px, 4vw, 40px); }
+    .site-nav { gap: 18px; }
+    .hero-meta { gap: 14px 22px; }
+  }
+
+  /* Tablets / large phones (≤ 880px) */
+  @media (max-width: 880px) {
+    .site-head-inner { padding: 14px 0; gap: 12px; }
+    .site-head-actions { gap: 8px; }
+    .site-head-actions .btn { padding: 10px 16px; font-size: 13px; }
+    .lang-toggle { padding: 7px 11px; font-size: 12px; }
+    .demo-banner { padding: 9px 16px; font-size: 12px; line-height: 1.5; }
+    .hero { padding: 56px 0 48px; }
+    .hero-actions .btn { flex: 1 1 auto; justify-content: center; min-width: 0; }
+    .install-code-pre { padding: 18px; font-size: 12px; }
+    .install-copy-btn { top: 10px; }
+  }
+
+  /* Phones (≤ 600px) */
+  @media (max-width: 600px) {
+    body { font-size: 16px; }
+    .demo-banner { padding: 9px 14px; font-size: 11px; }
+    .demo-banner a { display: inline-block; }
+    .site-head-inner { gap: 8px; }
+    /* CTA already lives inside the burger menu, hide the header copy */
+    .lang-toggle span { display: inline; }
+    .hero-title { font-size: clamp(34px, 9vw, 52px); margin: 18px 0 22px; }
+    .hero-lede { font-size: 16px; }
+    .hero-actions { gap: 10px; margin: 28px 0 22px; }
+    .hero-actions .btn { width: 100%; justify-content: center; }
+    .hero-meta { gap: 10px 18px; padding-top: 18px; }
+    .hero-meta-item { font-size: 11px; }
+    .hero-demo-page { padding: 22px 18px 32px; }
+    .hero-demo-page-h { font-size: 24px; }
+    .hero-demo-page-p { font-size: 14px; }
+    .section-title { font-size: clamp(28px, 7.5vw, 40px); }
+    .section-sub { font-size: 15px; }
+    .feature { padding: 24px 22px; }
+    .feature-title { font-size: 20px; }
+    .feature-icon { width: 44px; height: 44px; margin-bottom: 18px; }
+    .tryit-sample { padding: 26px 22px; }
+    .tryit-sample h3 { font-size: 24px; }
+    .tryit-sample h4 { font-size: 17px; margin: 22px 0 8px; }
+    .tryit-sample p, .tryit-sample li { font-size: 15px; }
+    .tryit-sample blockquote { padding: 14px 16px; font-size: 16px; }
+    .tryit-aside-card { padding: 22px; }
+    .compliance-card { padding: 22px; }
+    .compliance-code { font-size: 28px; }
+    .install-steps li { padding: 16px 0; gap: 12px; }
+    .install-step-t { font-size: 19px; }
+    .install-code-head { padding: 12px 14px; }
+    .install-code-pre { padding: 16px; font-size: 11.5px; line-height: 1.6; }
+    .install-copy-btn { padding: 5px 11px; font-size: 10px; }
+    .bilingual-card { padding: 28px 22px; }
+    .bilingual-card h3 { font-size: 24px; }
+    .bilingual-card p { font-size: 15px; }
+    .cta-aleph-en, .cta-aleph-ar { font-size: 64px; }
+    .cta-aleph::before { height: 56px; }
+    .cta-title { font-size: clamp(30px, 8vw, 48px); }
+    .cta-sub { font-size: 16px; margin-bottom: 28px; }
+    .cta-actions .btn { width: 100%; justify-content: center; }
+    .site-foot { padding: 48px 0 24px; }
+    .site-foot-inner { gap: 36px; margin-bottom: 36px; }
+    .site-foot-fine { font-size: 11px; flex-direction: column; align-items: flex-start; gap: 8px; }
+    html[dir="rtl"] .site-foot-fine { align-items: flex-end; }
+  }
+
+  /* Small phones (≤ 420px) */
+  @media (max-width: 420px) {
+    :root { --gutter: 14px; }
+    .logo-text { font-size: 17px; }
+    .lang-toggle { padding: 6px 10px; font-size: 11px; }
+    .lang-toggle svg { display: none; }
+    .hero-demo-chrome { padding: 10px 14px; }
+    .hero-demo-chrome .hero-demo-url { font-size: 11px; }
+    .feature-num { top: 14px; inset-inline-end: 14px; font-size: 10px; }
+    .feature-tools li { font-size: 10px; padding: 3px 8px; }
+    .site-foot-cols { grid-template-columns: 1fr; gap: 22px; }
+    .install-num { padding: 3px 8px; font-size: 11px; }
+  }
+
+  /* Landscape phones with little vertical room */
+  @media (max-height: 520px) and (orientation: landscape) {
+    .hero { padding: 36px 0; }
+    .section { padding: 56px 0; }
+    .cta-section { padding: 56px 0; }
+  }
+</style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to main content</a>
 
 <div class="demo-banner" id="demo-banner">
-  🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">Open Admin Panel →</a>
+  Live demo — click the accessibility button (bottom-right) to try every feature on this page. <a href="/dashboard/login.html">Open Admin Panel →</a>
 </div>
 
-<!-- Navigation -->
-<nav>
-  <div class="nav-brand" id="nav-brand">♿ Insijam</div>
-  <div class="nav-links">
-    <a href="#features" id="nav-features">Features</a>
-    <a href="#profiles" id="nav-profiles">Profiles</a>
-    <a href="#content" id="nav-content">Sample Content</a>
-    <a href="#integration" id="nav-integration">Integration</a>
-    <a href="features-docs.html" id="nav-docs">Documentation</a>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px">
-    <button class="lang-btn" id="lang-toggle" onclick="toggleLang()">🌐 AR</button>
-    <a href="saas/dashboard/login.html" class="nav-cta" id="nav-cta">Admin Panel</a>
-  </div>
-</nav>
-
-<!-- Hero -->
-<div class="hero">
-  <div class="hero-badge">🌍 Bilingual Arabic & English Support</div>
-  <h1>Make Every Website<br>Accessible to Everyone</h1>
-  <p>A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.</p>
-  <div class="hero-actions">
-    <a href="#content" class="btn-white">Try the Widget Below ↓</a>
-    <a href="saas/dashboard/login.html" class="btn-ghost">Admin Dashboard</a>
-  </div>
-</div>
-
-<!-- Features -->
-<section id="features">
-  <div class="container">
-    <div class="section-tag">Core Features</div>
-    <h2>Every Accessibility Need, Covered</h2>
-    <p class="section-lead">23 built-in accessibility features organized into 4 categories, with 6 one-click profiles for the most common accessibility requirements.</p>
-
-    <div class="features-grid">
-      <div class="feature-card">
-        <span class="feature-icon">🔠</span>
-        <h3>Font & Text Controls</h3>
-        <p>Resize text from 110% to 170%, switch to readable or dyslexic-friendly fonts, adjust line height, letter spacing, and text alignment.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🌓</span>
-        <h3>Contrast & Color Modes</h3>
-        <p>High contrast, dark mode, light mode, grayscale, inverted colors, and muted colors — applied instantly across the entire page.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔍</span>
-        <h3>Visual Enhancements</h3>
-        <p>Highlight links, highlight headings, large cursor, and visual indicators that make navigation easier for low-vision users.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">📖</span>
-        <h3>Reading Aids</h3>
-        <p>Reading mask (spotlight band), reading guide (line cursor), focus mode to reduce distractions, and pause all page animations.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">⌨️</span>
-        <h3>Keyboard & Navigation</h3>
-        <p>Enhanced keyboard focus indicators, skip-to-content button, and improved tab navigation for keyboard-only users.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🔊</span>
-        <h3>Text-to-Speech</h3>
-        <p>Read the entire page aloud using the Web Speech API in Arabic or English. Supports stop, start, and browser-native voice selection.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">🌐</span>
-        <h3>Arabic & English</h3>
-        <p>Full RTL and LTR support. Switch between Arabic and English widget interfaces with one click. Auto-detects page language.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">💾</span>
-        <h3>Persistent Settings</h3>
-        <p>User preferences are saved to localStorage and restored automatically on every future visit. No account needed.</p>
-      </div>
-      <div class="feature-card">
-        <span class="feature-icon">⚡</span>
-        <h3>Zero Dependencies</h3>
-        <p>Single JavaScript file, no external libraries, no frameworks required. Works on HTML, PHP, WordPress, React, Angular, Vue, Shopify, and more.</p>
-      </div>
+<!-- HEADER -->
+<header class="site-head">
+  <div class="container site-head-inner">
+    <a href="#" class="logo" aria-label="Insijam home">
+      <svg class="logo-mark" viewBox="0 0 286 286" fill="currentColor" aria-hidden="true">
+        <path d="M261 183l-1 10-1 8-3 12-2 5-1 3-5 10c-1 0-1 1-1 1l-2 4c-1 0-1 1-1 1l-2 3-5 6-1 1c-9 9-19 17-31 23-19 8-39 12-59 10-7-1-13-2-19-4l-2-1-4-1-2-1-12-5c-1 0-1 0-2-1-1-1-1-1-2-1l-2-1-3-1-1-1-2-2-2-1c-1-1-1-1-1-1l-2-1c0 0 0-1-1-1l-6-3c-6-4-12-8-18-13l-14-13-1-1-6-7c-3-3-5-6-7-10l1-6c2-12 5-23 11-34l7-13 6-9 5-6c15-16 31-29 52-37 17-6 36-9 54-6 16 3 31 11 41 24 7 9 11 20 12 32 1 5 1 10 0 15-1 11-4 22-10 32-9 17-24 30-41 37-12 5-24 6-37 4-4-1-7-2-11-3-13-5-24-14-31-26-8-15-10-34-2-50l1-1c10-19 28-30 49-29 12 1 22 6 30 15 11 13 14 31 4 45-5 7-11 11-19 13-4 1-9 1-13 1-8-2-14-5-19-12l-1-2c-2-3-3-6-4-9-1-5-1-10 1-15 0 0 0-1 1-1-1 2-2 5-2 7 0 4 1 7 3 10 3 7 10 11 17 12 12 1 22-9 22-21 0-12-7-21-18-24-6-2-13-1-19 2-16 8-23 26-16 43 2 4 4 8 6 11 3 3 6 6 10 8 5 3 10 5 15 5 10 2 19 1 27-3 11-5 19-13 26-22l2-3c4-6 7-14 8-21l1-3c0-3 1-5 1-8 0-8-2-16-5-23-3-6-7-10-12-14l-5-3c-9-4-18-6-27-6-8 0-16 1-24 4-21 6-39 18-53 35-6 7-11 14-15 22-8 17-12 35-9 53 1 7 3 13 6 20 4 8 8 16 14 22 7 8 14 15 23 21 7 4 14 7 22 9 14 4 28 5 42 3 19-3 36-12 50-25 16-15 25-34 28-55 1-11 1-22-2-33-2-9-5-17-9-25-7-11-15-21-25-29-15-11-32-17-50-19-15-2-30-1-44 4-26 8-49 23-68 43-9 9-17 19-23 31-9 17-13 35-13 54l1 7-1-1-5-7v-1l-2-3v-1l-3-6c-1-2-2-4-2-6l-1-2-3-9-1-3-3-12-1-3v-2c-1-5-1-9-1-13 0-7 0-14 1-21l1-3 2-12 1-3 1-3 4-12c0-1 0-1 1-2 1-3 2-6 3-8l4-9 9-15 6-9 1-1c11-14 24-26 39-35 16-9 33-15 50-18 1 0 2 0 3-1 1 0 2-1 3-1l5-1c4-1 8-1 12-2l13-1c4 0 7 0 11-1l4-1c2 0 5 1 7 1l5 1 6 1c11 1 22 4 33 7 11 4 22 9 32 16 19 13 35 30 45 51 5 9 8 19 11 29 4 17 4 33 1 50z"/>
+        <path d="M124 94c-3-1-5-3-6-6L98 12c0-1 0-2 0-3 0-5 4-8 8-9 4-1 9 2 11 6l20 76c1 3 0 7-2 9-2 3-7 4-10 3zM168 63v-2l1-6 1-13v-3l1-14 1-10c0-2 1-4 3-6 3-3 8-3 11-1 3 2 5 5 5 9l-1 18-3 47c0 3-3 6-5 8-4 2-7 1-10-1-3-2-4-4-4-7l1-9 1-10zM90 101c2 3 2 7 0 10-2 3-5 4-8 4-3 0-6-2-8-4L49 73 39 56c-2-3-2-7 0-10 2-5 9-6 14-3 1 1 2 1 3 2l34 53 1 2zM31 145l-7-7-2-2-17-16c-4-3-6-8-4-13l1-2c2-2 4-3 7-3s6 2 8 3l2 3 6 5 24 22c3 2 4 5 4 9 0 3-1 6-4 8-4 2-8 2-11-1l-6-5z"/>
+      </svg>
+      <span class="logo-text" data-i18n="brand">Insijam</span>
+    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="#features" data-i18n="nav-features">Features</a>
+      <a href="#try" data-i18n="nav-try">Try it</a>
+      <a href="#compliance" data-i18n="nav-compliance">Compliance</a>
+      <a href="#install" data-i18n="nav-install">Install</a>
+      <a href="/features-docs.html" data-i18n="nav-docs">Documentation</a>
+    </nav>
+    <div class="site-head-actions">
+      <button type="button" class="lang-toggle" id="lang-toggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>
+        <span id="lang-toggle-text">العربية</span>
+      </button>
+      <a href="/dashboard/login.html" class="btn btn--primary" data-i18n="cta-start">Get started</a>
+      <button type="button" class="nav-burger" id="nav-burger" aria-label="Menu" aria-expanded="false" aria-controls="nav-mobile">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/>
+        </svg>
+      </button>
     </div>
   </div>
-</section>
+  <nav class="nav-mobile" id="nav-mobile" aria-label="Mobile">
+    <a href="#features" data-i18n="nav-features">Features</a>
+    <a href="#try" data-i18n="nav-try">Try it</a>
+    <a href="#compliance" data-i18n="nav-compliance">Compliance</a>
+    <a href="#install" data-i18n="nav-install">Install</a>
+    <a href="/features-docs.html" data-i18n="nav-docs">Documentation</a>
+    <a href="/dashboard/login.html" class="btn btn--primary" data-i18n="cta-start">Get started</a>
+  </nav>
+</header>
 
-<!-- Profiles -->
-<section id="profiles" style="background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="container">
-    <div class="section-tag">Accessibility Profiles</div>
-    <h2>One-Click Presets for Common Needs</h2>
-    <p class="section-lead">Profiles apply multiple accessibility settings at once, making it easy for users to get started without configuring every option individually.</p>
+<!-- HERO -->
+<section class="hero" id="main">
+  <div class="container hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow" data-i18n="hero-eyebrow">Insijam · إنسجام</span>
+      <h1 class="hero-title" id="hero-title">
+        The web, <em>in harmony</em><br>with every human.
+      </h1>
+      <p class="hero-lede" data-i18n="hero-lede">
+        One small script makes any website conform to WCAG 2.2 and reach every visitor — no rewrites, no developers required. One minute to install.
+      </p>
+      <div class="hero-actions">
+        <a href="#try" class="btn btn--primary" data-i18n="hero-btn1">
+          Try it on this page
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="#install" class="btn btn--ghost" data-i18n="hero-btn2">See how it works</a>
+      </div>
+      <div class="hero-meta">
+        <span class="hero-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg> WCAG 2.2 AA</span>
+        <span class="hero-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg> ADA · EAA · SDAIA</span>
+        <span class="hero-meta-item"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="hero-langs">Arabic + English</span></span>
+      </div>
+    </div>
 
-    <div class="profiles-grid">
-      <div class="profile-card">
-        <span class="p-icon">👁️</span>
-        <h3>Visually Impaired</h3>
-        <p>Large text, high contrast, highlighted links, big cursor, and keyboard navigation enabled.</p>
-        <div class="p-tags">
-          <span class="p-tag">Large Font</span>
-          <span class="p-tag">High Contrast</span>
-          <span class="p-tag">Big Cursor</span>
+    <div class="hero-demo" aria-label="Live widget demo">
+      <div class="hero-demo-frame">
+        <div class="hero-demo-chrome">
+          <span class="hero-demo-dot"></span><span class="hero-demo-dot"></span><span class="hero-demo-dot"></span>
+          <span class="hero-demo-url">your-website.com</span>
         </div>
-      </div>
-      <div class="profile-card">
-        <span class="p-icon">🔍</span>
-        <h3>Low Vision</h3>
-        <p>Maximum font size, readable font, increased line height, high contrast, and heading highlights.</p>
-        <div class="p-tags">
-          <span class="p-tag">Max Font</span>
-          <span class="p-tag">Readable Font</span>
-          <span class="p-tag">Highlights</span>
-        </div>
-      </div>
-      <div class="profile-card">
-        <span class="p-icon">📖</span>
-        <h3>Dyslexia Support</h3>
-        <p>OpenDyslexic font, increased letter spacing, larger line height, left-aligned text, and link highlights.</p>
-        <div class="p-tags">
-          <span class="p-tag">Dyslexia Font</span>
-          <span class="p-tag">Letter Spacing</span>
-          <span class="p-tag">Line Height</span>
-        </div>
-      </div>
-      <div class="profile-card">
-        <span class="p-icon">🛡️</span>
-        <h3>Seizure Safe</h3>
-        <p>All animations paused, colors muted, and light mode forced to minimize flashing and visual triggers.</p>
-        <div class="p-tags">
-          <span class="p-tag">No Animations</span>
-          <span class="p-tag">Muted Colors</span>
-          <span class="p-tag">Light Mode</span>
-        </div>
-      </div>
-      <div class="profile-card">
-        <span class="p-icon">🧠</span>
-        <h3>Cognitive Support</h3>
-        <p>Clean readable font, focus mode to reduce distractions, reading guide, no animations, left-aligned text.</p>
-        <div class="p-tags">
-          <span class="p-tag">Focus Mode</span>
-          <span class="p-tag">Reading Guide</span>
-          <span class="p-tag">No Animations</span>
-        </div>
-      </div>
-      <div class="profile-card">
-        <span class="p-icon">⌨️</span>
-        <h3>Keyboard Navigation</h3>
-        <p>Enhanced focus outlines, skip to content button, and highlighted links for complete keyboard-only browsing.</p>
-        <div class="p-tags">
-          <span class="p-tag">Focus Outlines</span>
-          <span class="p-tag">Skip Content</span>
-          <span class="p-tag">Link Highlights</span>
+        <div class="hero-demo-page">
+          <div class="hero-demo-page-h" data-i18n="demo-h">Your website</div>
+          <div class="hero-demo-page-p" data-i18n="demo-p">Click the accessibility button in the bottom-right and watch this page change live.</div>
+          <div class="hero-demo-page-row">
+            <span class="hero-demo-pill">A11y</span>
+            <span class="hero-demo-pill">Aa</span>
+            <span class="hero-demo-pill" data-i18n="demo-pill-contrast">Contrast</span>
+          </div>
+          <div class="wg-summary">
+            <span class="wg-summary-dot" aria-hidden="true"></span>
+            <span data-i18n="demo-active">Widget active on this page</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Sample Content -->
-<section id="content">
+<!-- FEATURES -->
+<section class="features section" id="features">
   <div class="container">
-    <div class="section-tag">Try It Live</div>
-    <h2>Sample Page Content</h2>
-    <p class="section-lead">The article below is real page content. Use the accessibility widget (♿ button, bottom-right) to try different settings and see their effect.</p>
-
-    <main id="main">
-      <h1>The Importance of Web Accessibility</h1>
-      <p>
-        Web accessibility means designing and developing websites, tools, and technologies so that people with disabilities can use them effectively. More than one billion people worldwide live with some form of disability, which represents about 15% of the global population. Making the web accessible is not just a legal obligation — it is a fundamental right and a mark of inclusive design.
-      </p>
-
-      <blockquote>
-        "The power of the Web is in its universality. Access by everyone regardless of disability is an essential aspect." — Tim Berners-Lee, Inventor of the World Wide Web
-      </blockquote>
-
-      <h2>Types of Disabilities Addressed</h2>
-      <p>
-        Web accessibility encompasses a wide range of disabilities that affect how people use the internet:
-      </p>
-      <ul>
-        <li><strong>Visual impairments</strong> — including blindness, low vision, and color blindness</li>
-        <li><strong>Hearing impairments</strong> — including deafness and hard of hearing</li>
-        <li><strong>Motor disabilities</strong> — affecting the ability to use a mouse or keyboard</li>
-        <li><strong>Cognitive disabilities</strong> — including dyslexia, ADHD, and memory difficulties</li>
-        <li><strong>Seizure disorders</strong> — triggered by flashing content or animations</li>
-        <li><strong>Speech disabilities</strong> — affecting voice-based interactions</li>
-      </ul>
-
-      <h2>Why Every Website Needs Accessibility</h2>
-      <p>
-        Beyond compliance with laws such as the ADA, WCAG 2.1, Section 508, and EN 301 549, web accessibility delivers real business value. Accessible websites rank better in search engines, load faster, and convert more users. They also reduce legal liability and demonstrate corporate social responsibility.
-      </p>
-      <p>
-        Consider that temporary disabilities — such as a broken arm, bright sunlight on a screen, or a noisy environment — affect people occasionally. Accessibility features designed for people with permanent disabilities benefit all users in these temporary situations.
-      </p>
-
-      <h3>Key Accessibility Guidelines</h3>
-      <ol>
-        <li>Provide text alternatives for non-text content (images, audio, video)</li>
-        <li>Ensure all functionality is available via keyboard alone</li>
-        <li>Make text readable and understandable</li>
-        <li>Help users avoid and correct mistakes</li>
-        <li>Ensure content does not cause seizures or physical reactions</li>
-        <li>Provide enough time for users to read and use content</li>
-        <li>Provide ways to help users navigate, find content, and determine where they are</li>
-      </ol>
-
-      <h2>The Role of Assistive Technology</h2>
-      <p>
-        Assistive technology plays a crucial role in web accessibility. Screen readers like NVDA, JAWS, and VoiceOver convert digital text into synthesized speech. Screen magnifiers help low-vision users zoom into content. Alternative input devices like switch controls and eye-tracking systems allow people with motor disabilities to navigate websites without a mouse or keyboard.
-      </p>
-      <p>
-        Accessibility widgets like this one serve as a bridge — providing immediate, client-side customization that empowers users to adapt the interface to their needs without requiring custom software. This makes them particularly valuable for public-facing websites where visitors may have diverse accessibility requirements.
-      </p>
-
-      <h2>Arabic Language Accessibility</h2>
-      <p>
-        Special consideration is given to Arabic-language websites and bilingual environments. Arabic is a right-to-left (RTL) language, and proper accessibility support must account for directionality, text rendering, and culturally appropriate design patterns. This widget fully supports Arabic and English interfaces, with seamless switching between RTL and LTR layouts.
-      </p>
-
-      <h3>Getting Started</h3>
-      <p>
-        You can explore this widget right now. Click the <strong>♿ accessibility button</strong> in the bottom-right corner of this page to open the accessibility panel. Try adjusting the font size, enabling dark mode, activating the dyslexia profile, or turning on the reading mask. All changes are applied instantly and saved for your next visit.
-      </p>
-      <p>
-        <a href="saas/dashboard/login.html">Visit the Admin Panel →</a> to configure the widget for your own website, generate an embed code, and review usage analytics.
-      </p>
-    </main>
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="feat-eyebrow">01 — Features</span>
+      <h2 class="section-title" data-i18n="feat-title">Twenty-three tools. Six profiles. Zero code.</h2>
+      <p class="section-sub" data-i18n="feat-sub">Every tool flips on with one click. Visitor preferences persist across sessions automatically.</p>
+    </div>
+    <div class="features-grid" id="features-grid"></div>
   </div>
 </section>
 
-<!-- Bilingual Demo -->
-<section id="bilingual" style="background: #fff; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+<!-- TRY IT -->
+<section class="tryit section" id="try">
   <div class="container">
-    <div class="section-tag">Bilingual Support</div>
-    <h2>Arabic & English — Fully Supported</h2>
-    <p class="section-lead">The widget interface switches seamlessly between English (LTR) and Arabic (RTL). It auto-detects your page language or can be set manually.</p>
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="try-eyebrow">02 — Try it</span>
+      <h2 class="section-title" data-i18n="try-title">This isn't a screenshot.</h2>
+      <p class="section-sub" data-i18n="try-sub">Open the accessibility button in the bottom-right corner. Every toggle below applies to this real page in real time.</p>
+    </div>
 
-    <div class="lang-split">
-      <div class="lang-card">
-        <div class="lang-card-header">🇬🇧 English Interface (LTR)</div>
-        <div class="lang-card-body">
-          <p>The accessibility widget supports a full English interface with left-to-right layout, English labels, and English text-to-speech voice.</p>
-          <p>All feature names, profile titles, and button labels are displayed clearly in English for users who prefer it.</p>
+    <div class="tryit-grid">
+      <article class="tryit-sample" aria-label="Sample article">
+        <div class="tryit-sample-eyebrow" data-i18n="article-meta">Sample article · 4 min read</div>
+        <h3 data-i18n="article-h">Accessibility is a right, not a feature.</h3>
+        <p data-i18n="article-p1">About 1.3 billion people live with a disability. When your site is accessible, you're not just avoiding legal risk — you're welcoming a large audience that would have otherwise quietly left.</p>
+        <h4 data-i18n="article-h2">What Insijam audits</h4>
+        <ul id="article-list">
+          <li data-i18n="art-li1">Color contrast (WCAG 1.4.3)</li>
+          <li data-i18n="art-li2">Heading and landmark structure</li>
+          <li data-i18n="art-li3">Image alt text</li>
+          <li data-i18n="art-li4">Keyboard focus order</li>
+          <li data-i18n="art-li5">Form labels and errors</li>
+        </ul>
+        <p data-i18n="article-p2">Try it now: enlarge the text, switch to a readable font, or enable high contrast. Every adjustment applies live to this entire page.</p>
+        <h4 data-i18n="article-h3">Why every site needs it</h4>
+        <p data-i18n="article-p3">Beyond compliance with the ADA, WCAG 2.1, Section 508, and EN 301 549, accessible sites rank better in search, load faster, and convert more users — while reducing legal exposure.</p>
+        <h4 data-i18n="article-h4">Bilingual by birth</h4>
+        <p data-i18n="article-p4">Arabic is right-to-left. Insijam handles directionality, glyph rendering, and culturally appropriate layouts without configuration.</p>
+        <blockquote>
+          <span id="quote-text">"Insijam closed 94% of our accessibility complaints in the first month."</span>
+          <cite>— Layla Othman, Web Lead at Aramco Digital</cite>
+        </blockquote>
+      </article>
+
+      <aside>
+        <div class="tryit-aside-card">
+          <span class="eyebrow" data-i18n="aside-eyebrow">How to try</span>
+          <h4 data-i18n="aside-h">Open the panel.</h4>
+          <p data-i18n="aside-p">Click the accessibility button at the bottom-right. The widget runs on this page right now — every toggle is live.</p>
+          <ul class="tryit-aside-list">
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-1">Six one-click profiles</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-2">Bilingual EN / AR interface</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-3">Saved preferences across visits</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-4">Read-aloud in your language</span></li>
+          </ul>
+          <a href="/dashboard/login.html" class="btn btn--accent" style="margin-top:22px" data-i18n="aside-cta">Open Admin Panel</a>
         </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- COMPLIANCE -->
+<section class="compliance section" id="compliance">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow" data-i18n="comp-eyebrow">03 — Compliance</span>
+      <h2 class="section-title" data-i18n="comp-title">Conformant with every standard that matters.</h2>
+    </div>
+    <div class="compliance-grid" id="compliance-grid"></div>
+  </div>
+</section>
+
+<!-- INSTALL -->
+<section class="install section" id="install">
+  <div class="container">
+    <div class="install-grid">
+      <div class="install-copy">
+        <span class="eyebrow" data-i18n="install-eyebrow">04 — Install</span>
+        <h2 class="section-title" data-i18n="install-title">Three minutes. One line.</h2>
+        <ol class="install-steps" id="install-steps"></ol>
       </div>
-      <div class="lang-card ar">
-        <div class="lang-card-header" style="direction:rtl;text-align:right">🇸🇦 واجهة عربية (RTL)</div>
-        <div class="lang-card-body">
-          <p>تدعم أداة إمكانية الوصول واجهة عربية كاملة مع تخطيط من اليمين إلى اليسار، وتسميات عربية، وصوت تحويل النص إلى كلام باللغة العربية.</p>
-          <p>جميع أسماء الميزات وعناوين الملفات الشخصية وتسميات الأزرار معروضة بوضوح باللغة العربية للمستخدمين الذين يفضلونها.</p>
+      <div class="install-code">
+        <div class="install-code-head">
+          <span class="install-code-dot"></span><span class="install-code-dot"></span><span class="install-code-dot"></span>
+          <span class="install-code-file">index.html</span>
         </div>
+        <pre class="install-code-pre" dir="ltr"><code id="install-snippet">&lt;!-- Insijam · accessibility widget (hosted, license-gated) --&gt;
+&lt;script
+  src="https://insijam.ipioneersco.com/accessibility-widget.js?key=AW-XXXX-XXXX-XXXX-XXXX"
+  defer&gt;&lt;/script&gt;</code></pre>
+        <button type="button" class="install-copy-btn" id="install-copy" data-i18n="install-copy">Copy</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- Integration -->
-<section id="integration">
+<!-- BILINGUAL -->
+<section class="bilingual section">
   <div class="container">
-    <div class="section-tag">Easy Integration</div>
-    <h2>Add to Any Website in 2 Minutes</h2>
-    <p class="section-lead">One script tag is all it takes. Works with every framework, CMS, and hosting platform.</p>
-
-    <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <h3>Copy the Script</h3>
-        <p>Download <code>accessibility-widget.js</code> and host it on your server, or reference it from a CDN.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">2</div>
-        <h3>Add Config (Optional)</h3>
-        <p>Set your preferred language, position, primary color, and which features to enable using a simple config object.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">3</div>
-        <h3>Paste Before &lt;/body&gt;</h3>
-        <p>Drop the script tag into your HTML layout file. The widget loads automatically on every page.</p>
-      </div>
+    <div class="bilingual-head">
+      <span class="eyebrow" data-i18n="bi-eyebrow">05 — Bilingual</span>
+      <h2 class="section-title" data-i18n="bi-title">Bilingual by birth. RTL and LTR, not as an afterthought.</h2>
     </div>
-
-    <div style="background:#0f172a;color:#e2e8f0;border-radius:14px;padding:28px;margin-top:32px;font-family:'Courier New',monospace;font-size:14px;line-height:1.8;position:relative">
-      <span style="color:#475569">/* 1. Optional config */</span><br>
-      <span style="color:#7dd3fc">window</span>.AccessibilityWidgetConfig = {<br>
-      &nbsp;&nbsp;lang: <span style="color:#86efac">'auto'</span>,<br>
-      &nbsp;&nbsp;position: <span style="color:#86efac">'bottom-right'</span>,<br>
-      &nbsp;&nbsp;primaryColor: <span style="color:#86efac">'#2563EB'</span><br>
-      };<br><br>
-      <span style="color:#475569">/* 2. Load widget */</span><br>
-      &lt;<span style="color:#7dd3fc">script</span> src=<span style="color:#86efac">"accessibility-widget.js"</span>&gt;&lt;/<span style="color:#7dd3fc">script</span>&gt;
+    <div class="bilingual-grid">
+      <div class="bilingual-card" dir="ltr" lang="en">
+        <div class="bilingual-card-tag">EN · ltr</div>
+        <h3 style="font-family:var(--serif)">Make every site accessible.</h3>
+        <p>The web should work the same way for the person who sees it, the person who hears it, and the person who reads it with their fingers.</p>
+      </div>
+      <div class="bilingual-card" dir="rtl" lang="ar">
+        <div class="bilingual-card-tag">AR · rtl</div>
+        <h3 style="font-family:var(--arabic)">اجعل كل موقع متاحًا.</h3>
+        <p>يجب أن يعمل الويب بالطريقة نفسها لمن يراه، ومن يسمعه، ومن يقرأه بأصابعه.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<div class="cta-section">
-  <h2>Ready to Make Your Website Accessible?</h2>
-  <p>Configure your widget, generate an embed code, and go live today.</p>
-  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-    <a href="saas/dashboard/login.html" class="btn-white">Open Admin Panel →</a>
+<section class="cta-section" id="cta">
+  <div class="container cta-inner">
+    <div class="cta-aleph" aria-hidden="true">
+      <span class="cta-aleph-en">Aa</span>
+      <span class="cta-aleph-ar">أ</span>
+    </div>
+    <h2 class="cta-title" data-i18n="cta-title">Bring your site into harmony.</h2>
+    <p class="cta-sub" data-i18n="cta-sub">14-day free trial. No card required. 3-minute install.</p>
+    <div class="cta-actions">
+      <a href="/dashboard/login.html" class="btn btn--accent" data-i18n="cta-trial">Start free trial
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </a>
+      <a href="/features-docs.html" class="btn btn--ghost" data-i18n="cta-talk">Read the docs</a>
+    </div>
   </div>
-</div>
+</section>
 
-<!-- Footer -->
-<footer>
-  <p>♿ <strong>Insijam</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website</p>
-  <p style="margin-top:8px">Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal</p>
+<!-- FOOTER -->
+<footer class="site-foot">
+  <div class="container site-foot-inner">
+    <div class="site-foot-brand">
+      <a href="#" class="logo">
+        <svg class="logo-mark" style="width:24px;height:24px" viewBox="0 0 286 286" fill="currentColor" aria-hidden="true">
+          <path d="M261 183l-1 10-1 8-3 12-2 5-1 3-5 10c-1 0-1 1-1 1l-2 4c-1 0-1 1-1 1l-2 3-5 6-1 1c-9 9-19 17-31 23-19 8-39 12-59 10-7-1-13-2-19-4l-2-1-4-1-2-1-12-5c-1 0-1 0-2-1-1-1-1-1-2-1l-2-1-3-1-1-1-2-2-2-1c-1-1-1-1-1-1l-2-1c0 0 0-1-1-1l-6-3c-6-4-12-8-18-13l-14-13-1-1-6-7c-3-3-5-6-7-10l1-6c2-12 5-23 11-34l7-13 6-9 5-6c15-16 31-29 52-37 17-6 36-9 54-6 16 3 31 11 41 24 7 9 11 20 12 32 1 5 1 10 0 15-1 11-4 22-10 32-9 17-24 30-41 37-12 5-24 6-37 4-4-1-7-2-11-3-13-5-24-14-31-26-8-15-10-34-2-50l1-1c10-19 28-30 49-29 12 1 22 6 30 15 11 13 14 31 4 45-5 7-11 11-19 13-4 1-9 1-13 1-8-2-14-5-19-12l-1-2c-2-3-3-6-4-9-1-5-1-10 1-15 0 0 0-1 1-1-1 2-2 5-2 7 0 4 1 7 3 10 3 7 10 11 17 12 12 1 22-9 22-21 0-12-7-21-18-24-6-2-13-1-19 2-16 8-23 26-16 43 2 4 4 8 6 11 3 3 6 6 10 8 5 3 10 5 15 5 10 2 19 1 27-3 11-5 19-13 26-22l2-3c4-6 7-14 8-21l1-3c0-3 1-5 1-8 0-8-2-16-5-23-3-6-7-10-12-14l-5-3c-9-4-18-6-27-6-8 0-16 1-24 4-21 6-39 18-53 35-6 7-11 14-15 22-8 17-12 35-9 53 1 7 3 13 6 20 4 8 8 16 14 22 7 8 14 15 23 21 7 4 14 7 22 9 14 4 28 5 42 3 19-3 36-12 50-25 16-15 25-34 28-55 1-11 1-22-2-33-2-9-5-17-9-25-7-11-15-21-25-29-15-11-32-17-50-19-15-2-30-1-44 4-26 8-49 23-68 43-9 9-17 19-23 31-9 17-13 35-13 54l1 7-1-1-5-7v-1l-2-3v-1l-3-6c-1-2-2-4-2-6l-1-2-3-9-1-3-3-12-1-3v-2c-1-5-1-9-1-13 0-7 0-14 1-21l1-3 2-12 1-3 1-3 4-12c0-1 0-1 1-2 1-3 2-6 3-8l4-9 9-15 6-9 1-1c11-14 24-26 39-35 16-9 33-15 50-18 1 0 2 0 3-1 1 0 2-1 3-1l5-1c4-1 8-1 12-2l13-1c4 0 7 0 11-1l4-1c2 0 5 1 7 1l5 1 6 1c11 1 22 4 33 7 11 4 22 9 32 16 19 13 35 30 45 51 5 9 8 19 11 29 4 17 4 33 1 50z"/>
+        </svg>
+        <span class="logo-text" style="font-size:18px" data-i18n="brand">Insijam</span>
+      </a>
+      <p data-i18n="foot-tagline">Digital harmony for everyone.</p>
+    </div>
+    <div class="site-foot-cols">
+      <div>
+        <div class="site-foot-h" data-i18n="foot-product">Product</div>
+        <a href="#features" data-i18n="nav-features">Features</a>
+        <a href="#try" data-i18n="nav-try">Try it</a>
+        <a href="#install" data-i18n="nav-install">Install</a>
+        <a href="/features-docs.html" data-i18n="nav-docs">Documentation</a>
+      </div>
+      <div>
+        <div class="site-foot-h" data-i18n="foot-compliance">Compliance</div>
+        <a href="#">WCAG 2.2 report</a>
+        <a href="#">ADA · EAA</a>
+        <a href="#">SDAIA · 508</a>
+        <a href="#">VPAT export</a>
+      </div>
+      <div>
+        <div class="site-foot-h" data-i18n="foot-company">Company</div>
+        <a href="/dashboard/login.html" data-i18n="foot-admin">Admin Panel</a>
+        <a href="#" data-i18n="foot-about">About</a>
+        <a href="#" data-i18n="foot-contact">Contact</a>
+        <a href="#" data-i18n="foot-privacy">Privacy</a>
+      </div>
+    </div>
+  </div>
+  <div class="container site-foot-fine">
+    <span>© 2026 Insijam · إنسجام</span>
+    <span data-i18n="foot-made">Made in harmony · Riyadh &amp; </span>
+  </div>
 </footer>
 
-<!-- ── Load the Widget ── -->
-
+<!-- ── Load the Widget — license is gated by the ?key= query param. ── -->
+<!-- The script tag below is the only thing a customer needs to embed; the optional
+     config block sets visual / behavioral overrides (the runtime /validate call
+     also returns customer-saved branding from the dashboard). -->
 <script>
   window.AccessibilityWidgetConfig = {
-    apiEndpoint: 'http://localhost:3001/api/v1/validate',
     lang: 'auto',
     position: 'bottom-right',
-    primaryColor: '#2563EB',
+    primaryColor: '#5B4FE8',
     showProfiles: true,
     showTTS: true,
-    devMode: true,  // demo page has no license key — validation skipped
+    devMode: true, // honored only on localhost; ignored on real domains
   };
 </script>
-<script src="accessibility-widget.js"></script>
+<!-- Absolute root path so it works whether you visit /demo or /demo/ — relative
+     paths break under the trailing-slash URL because they resolve to /demo/… -->
+<script src="/accessibility-widget.js?key=AW-DEMO-B596-6219-9F52" defer></script>
 
+<!-- ── Demo page i18n + dynamic content ── -->
 <script>
-// ── Demo page i18n ──────────────────────────────────────────
-const DEMO_I18N = {
-  en: {
-    'brand-name':'♿ Insijam',
-    'nav-features':'Features','nav-profiles':'Profiles','nav-content':'Sample Content',
-    'nav-integration':'Integration','nav-docs':'Documentation','nav-cta':'Admin Panel','lang-toggle':'🌐 AR',
-    'hero-badge':'🌍 Bilingual Arabic & English Support',
-    'hero-h1':'Make Every Website<br>Accessible to Everyone',
-    'hero-p':'A lightweight, plug-and-play accessibility widget that works on any website. Add it in minutes. Empower millions.',
-    'hero-btn1':'Try the Widget Below ↓','hero-btn2':'Admin Dashboard',
-    'sec1-tag':'Core Features','sec1-h2':'Every Accessibility Need, Covered',
-    'sec1-lead':'23 built-in accessibility features organized into 4 categories, with 6 one-click profiles for the most common accessibility requirements.',
-    'f1-h3':'Font & Text Controls','f1-p':'Resize text from 110% to 170%, switch to readable or dyslexic-friendly fonts, adjust line height, letter spacing, and text alignment.',
-    'f2-h3':'Contrast & Color Modes','f2-p':'High contrast, dark mode, light mode, grayscale, inverted colors, and muted colors — applied instantly across the entire page.',
-    'f3-h3':'Visual Enhancements','f3-p':'Highlight links, highlight headings, large cursor, and visual indicators that make navigation easier for low-vision users.',
-    'f4-h3':'Reading Aids','f4-p':'Reading mask (spotlight band), reading guide (line cursor), focus mode to reduce distractions, and pause all page animations.',
-    'f5-h3':'Keyboard & Navigation','f5-p':'Enhanced keyboard focus indicators, skip-to-content button, and improved tab navigation for keyboard-only users.',
-    'f6-h3':'Text-to-Speech','f6-p':'Read the entire page aloud using the Web Speech API in Arabic or English. Supports stop, start, and browser-native voice selection.',
-    'f7-h3':'Arabic & English','f7-p':'Full RTL and LTR support. Switch between Arabic and English widget interfaces with one click. Auto-detects page language.',
-    'f8-h3':'Persistent Settings','f8-p':'User preferences are saved to localStorage and restored automatically on every future visit. No account needed.',
-    'f9-h3':'Zero Dependencies','f9-p':'Single JavaScript file, no external libraries, no frameworks required. Works on HTML, PHP, WordPress, React, Angular, Vue, Shopify, and more.',
-    'sec2-tag':'Accessibility Profiles','sec2-h2':'One-Click Presets for Common Needs',
-    'sec2-lead':'Profiles apply multiple accessibility settings at once, making it easy for users to get started without configuring every option individually.',
-    'p1-h3':'Visually Impaired','p1-p':'Large text, high contrast, highlighted links, big cursor, and keyboard navigation enabled.',
-    'p2-h3':'Low Vision','p2-p':'Maximum font size, readable font, increased line height, high contrast, and heading highlights.',
-    'p3-h3':'Dyslexia Support','p3-p':'OpenDyslexic font, increased letter spacing, larger line height, left-aligned text, and link highlights.',
-    'p4-h3':'Seizure Safe','p4-p':'All animations paused, colors muted, and light mode forced to minimize flashing and visual triggers.',
-    'p5-h3':'Cognitive Support','p5-p':'Clean readable font, focus mode to reduce distractions, reading guide, no animations, left-aligned text.',
-    'p6-h3':'Keyboard Navigation','p6-p':'Enhanced focus outlines, skip to content button, and highlighted links for complete keyboard-only browsing.',
-    'sec3-tag':'Try It Live','sec3-h2':'Sample Page Content',
-    'sec3-lead':'The article below is real page content. Use the accessibility widget (♿ button, bottom-right) to try different settings and see their effect.',
-    'article-h1':'The Importance of Web Accessibility',
-    'sec4-tag':'Bilingual Support','sec4-h2':'Arabic & English — Fully Supported',
-    'sec4-lead':'The widget interface switches seamlessly between English (LTR) and Arabic (RTL). It auto-detects your page language or can be set manually.',
-    'lang-en-header':'🇬🇧 English Interface (LTR)',
-    'sec5-tag':'Easy Integration','sec5-h2':'Add to Any Website in 2 Minutes',
-    'sec5-lead':'One script tag is all it takes. Works with every framework, CMS, and hosting platform.',
-    'step1-h3':'Copy the Script','step1-p':'Download accessibility-widget.js and host it on your server, or reference it from a CDN.',
-    'step2-h3':'Add Config (Optional)','step2-p':'Set your preferred language, position, primary color, and which features to enable using a simple config object.',
-    'step3-h3':'Paste Before &lt;/body&gt;','step3-p':'Drop the script tag into your HTML layout file. The widget loads automatically on every page.',
-    'cta-h2':'Ready to Make Your Website Accessible?',
-    'cta-p':'Configure your widget, generate an embed code, and go live today.',
-    'cta-btn':'Open Admin Panel →',
-    'footer-p1':'♿ <strong>Insijam</strong> v1.0.0 &mdash; Bilingual Accessibility Widget for Any Website',
-    'footer-p2':'Supports Arabic &amp; English &bull; Works on HTML, PHP, .NET, Java, React, Angular, Vue, WordPress, Shopify, Drupal',
-    'banner':'🧪 This is a <strong>live demo</strong> — the Accessibility Widget is active on this page. Click the <strong>♿ button</strong> in the bottom-right corner to try it! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">Open Admin Panel →</a>',
-  },
-  ar: {
-    'brand-name':'♿ انسجام',
-    'nav-features':'الميزات','nav-profiles':'الملفات الشخصية','nav-content':'محتوى تجريبي',
-    'nav-integration':'التكامل','nav-docs':'التوثيق','nav-cta':'لوحة الإدارة','lang-toggle':'🌐 EN',
-    'hero-badge':'🌍 دعم ثنائي اللغة: العربية والإنجليزية',
-    'hero-h1':'اجعل كل موقع ويب<br>متاحاً للجميع',
-    'hero-p':'أداة إمكانية وصول خفيفة الوزن وجاهزة للتضمين، تعمل على أي موقع ويب. أضفها في دقائق. مكّن الملايين.',
-    'hero-btn1':'جرّب الأداة أدناه ↓','hero-btn2':'لوحة التحكم',
-    'sec1-tag':'الميزات الأساسية','sec1-h2':'كل احتياجات إمكانية الوصول، مُغطّاة',
-    'sec1-lead':'٢٣ ميزة إمكانية وصول مدمجة في ٤ فئات، مع ٦ ملفات شخصية بنقرة واحدة لأكثر متطلبات إمكانية الوصول شيوعاً.',
-    'f1-h3':'تحكم في الخطوط والنصوص','f1-p':'تغيير حجم النص من ١١٠٪ إلى ١٧٠٪، التبديل إلى خطوط مناسبة أو صديقة لعسر القراءة، ضبط ارتفاع السطر والتباعد بين الأحرف والمحاذاة.',
-    'f2-h3':'أوضاع التباين والألوان','f2-p':'تباين عالٍ، وضع داكن، وضع فاتح، تدرج رمادي، عكس الألوان، وتلطيف الألوان — تُطبَّق فوراً على كامل الصفحة.',
-    'f3-h3':'التحسينات البصرية','f3-p':'تمييز الروابط، تمييز العناوين، مؤشر كبير، ومؤشرات بصرية تسهّل التنقل لضعاف البصر.',
-    'f4-h3':'أدوات القراءة','f4-p':'قناع القراءة (شريط التركيز)، مرشد القراءة (خط المؤشر)، وضع التركيز لتقليل المشتتات، وإيقاف جميع رسوم الصفحة المتحركة.',
-    'f5-h3':'لوحة المفاتيح والتنقل','f5-p':'مؤشرات تركيز محسّنة، زر "انتقل إلى المحتوى"، وتحسين التنقل بمفتاح Tab للمستخدمين الذين يعتمدون على لوحة المفاتيح.',
-    'f6-h3':'تحويل النص إلى كلام','f6-p':'قراءة الصفحة بأكملها بصوت عالٍ عبر Web Speech API بالعربية أو الإنجليزية. يدعم الإيقاف والتشغيل وتحديد الصوت.',
-    'f7-h3':'العربية والإنجليزية','f7-p':'دعم كامل لـ RTL وLTR. التبديل بين واجهتي العربية والإنجليزية بنقرة واحدة. يكتشف تلقائياً لغة الصفحة.',
-    'f8-h3':'حفظ الإعدادات','f8-p':'يتم حفظ تفضيلات المستخدم في localStorage واستعادتها تلقائياً في كل زيارة مستقبلية. لا حاجة لحساب.',
-    'f9-h3':'بدون مكتبات خارجية','f9-p':'ملف JavaScript واحد، بدون مكتبات أو إطارات عمل. يعمل على HTML وPHP وWordPress وReact وAngular وVue وShopify والمزيد.',
-    'sec2-tag':'الملفات الشخصية','sec2-h2':'إعدادات مسبقة بنقرة واحدة للاحتياجات الشائعة',
-    'sec2-lead':'تطبّق الملفات الشخصية إعدادات إمكانية وصول متعددة دفعة واحدة، مما يسهّل البدء دون ضبط كل خيار على حدة.',
-    'p1-h3':'ضعاف البصر','p1-p':'نص كبير، تباين عالٍ، تمييز الروابط، مؤشر كبير، وتفعيل التنقل بلوحة المفاتيح.',
-    'p2-h3':'رؤية منخفضة','p2-p':'أقصى حجم للخط، خط مقروء، ارتفاع سطر موسّع، تباين عالٍ، وتمييز العناوين.',
-    'p3-h3':'دعم عسر القراءة','p3-p':'خط OpenDyslexic، زيادة المسافة بين الأحرف، ارتفاع سطر أكبر، محاذاة النص لليسار، وتمييز الروابط.',
-    'p4-h3':'الحماية من النوبات','p4-p':'إيقاف جميع الرسوم المتحركة، تلطيف الألوان، وفرض الوضع الفاتح لتقليل الوميض والمحفزات البصرية.',
-    'p5-h3':'الدعم المعرفي','p5-p':'خط واضح مقروء، وضع التركيز لتقليل المشتتات، مرشد القراءة، بدون رسوم متحركة، محاذاة النص.',
-    'p6-h3':'التنقل بلوحة المفاتيح','p6-p':'إطارات تركيز محسّنة، زر "انتقل إلى المحتوى"، وتمييز الروابط للتصفح الكامل بلوحة المفاتيح.',
-    'sec3-tag':'جرّب الآن','sec3-h2':'محتوى صفحة تجريبية',
-    'sec3-lead':'المقال أدناه محتوى صفحة حقيقي. استخدم أداة إمكانية الوصول (زر ♿) لتجربة الإعدادات المختلفة ومشاهدة تأثيرها.',
-    'article-h1':'أهمية إمكانية الوصول للويب',
-    'sec4-tag':'الدعم الثنائي للغة','sec4-h2':'العربية والإنجليزية — مدعومتان بالكامل',
-    'sec4-lead':'تتبدّل واجهة الأداة بسلاسة بين الإنجليزية (LTR) والعربية (RTL). تكتشف تلقائياً لغة الصفحة أو يمكن تعيينها يدوياً.',
-    'lang-en-header':'🇬🇧 English Interface (LTR)',
-    'sec5-tag':'تكامل سهل','sec5-h2':'أضفه إلى أي موقع في دقيقتين',
-    'sec5-lead':'كل ما تحتاجه وسم script واحد. يعمل مع كل إطار عمل ونظام إدارة محتوى ومنصة استضافة.',
-    'step1-h3':'انسخ السكريبت','step1-p':'نزّل accessibility-widget.js واستضفه على خادمك، أو استخدمه من CDN.',
-    'step2-h3':'أضف الإعداد (اختياري)','step2-p':'حدد اللغة والموضع واللون الرئيسي والميزات المراد تفعيلها باستخدام كائن إعداد بسيط.',
-    'step3-h3':'الصقه قبل &lt;/body&gt;','step3-p':'ضع وسم script في ملف HTML الخاص بك. ستُحمّل الأداة تلقائياً في كل صفحة.',
-    'cta-h2':'هل أنت مستعد لجعل موقعك متاحاً للجميع؟',
-    'cta-p':'اضبط الأداة، أنشئ كود التضمين، وابدأ اليوم.',
-    'cta-btn':'فتح لوحة الإدارة ←',
-    'footer-p1':'♿ <strong>انسجام</strong> v1.0.0 &mdash; أداة إمكانية وصول ثنائية اللغة لأي موقع',
-    'footer-p2':'تدعم العربية والإنجليزية &bull; تعمل على HTML وPHP وJava وReact وAngular وVue وWordPress وShopify وDrupal',
-    'banner':'🧪 هذا <strong>عرض تجريبي مباشر</strong> — أداة إمكانية الوصول نشطة على هذه الصفحة. انقر على زر <strong>♿</strong> في أسفل يسار الصفحة لتجربتها! &nbsp;|&nbsp; <a href="saas/dashboard/login.html">فتح لوحة الإدارة ←</a>',
-  }
+const FEATURES_DATA = [
+  { icon: 'Type',     en: { t: 'Typography',           d: 'Resize text, swap to readable or dyslexia-friendly fonts, adjust spacing and line-height.',     tools: ['Text size', 'Spacing', 'Readable', 'Dyslexia', 'Mono'] }, ar: { t: 'الطباعة',                d: 'تكبير النص، تبديل الخط، ضبط التباعد وارتفاع السطر.',                                tools: ['حجم النص', 'تباعد', 'قابل للقراءة', 'عسر القراءة', 'أحادي'] } },
+  { icon: 'Eye',      en: { t: 'Vision',               d: 'High-contrast modes, color inversion, link highlighting and saturation control.',                tools: ['High contrast', 'Invert', 'Highlight links', 'Desaturate'] }, ar: { t: 'الرؤية',           d: 'وضع التباين العالي، عكس الألوان، إبراز الروابط، والتحكم في التشبع.',                tools: ['تباين عالٍ', 'عكس الألوان', 'إبراز الروابط', 'تخفيف الألوان'] } },
+  { icon: 'Cursor',   en: { t: 'Pointer & motion',     d: 'Big cursor, reading guide, and a motion pause for vestibular sensitivities.',                    tools: ['Big cursor', 'Reading guide', 'Pause motion'] }, ar: { t: 'المؤشر والحركة',          d: 'مؤشر كبير، دليل القراءة، وإيقاف الحركة لذوي الحساسية الدهليزية.',                  tools: ['مؤشر كبير', 'دليل القراءة', 'إيقاف الحركة'] } },
+  { icon: 'Mic',      en: { t: 'Read aloud',           d: 'Built-in text-to-speech using the browser Web Speech API — Arabic and English voices.',          tools: ['TTS EN', 'TTS AR', 'Pause', 'Resume'] }, ar: { t: 'قراءة بصوت عالٍ',           d: 'تحويل النص إلى كلام عبر Web Speech API — أصوات عربية وإنجليزية.',                  tools: ['TTS EN', 'TTS AR', 'إيقاف', 'استئناف'] } },
+  { icon: 'Globe',    en: { t: 'Bilingual, RTL native',d: 'Switches direction and language for Arabic visitors. Auto-detects page language.',                tools: ['EN', 'AR', 'RTL', 'Auto'] }, ar: { t: 'ثنائي اللغة، RTL أصلي',                                                   d: 'يبدّل الاتجاه واللغة تلقائياً للزوار العرب. يكتشف لغة الصفحة.',                       tools: ['EN', 'AR', 'RTL', 'تلقائي'] } },
+  { icon: 'Shield',   en: { t: 'Compliance, audited',  d: 'Continuous WCAG 2.2 AA conformance — exportable VPATs, monthly compliance certificate.',          tools: ['WCAG 2.2', 'ADA', 'EAA', 'Section 508'] }, ar: { t: 'الامتثال، مُدقَّق',                                                                d: 'توافق مستمر مع WCAG 2.2 AA — تصدير VPAT وشهادة امتثال شهرية.',                      tools: ['WCAG 2.2', 'ADA', 'EAA', 'Section 508'] } },
+];
+
+const COMPLIANCE_DATA = [
+  { code: 'WCAG 2.2', label: 'AA · AAA partial',        en: 'Level AA conformant; 47/50 AAA criteria met.',          ar: 'متوافق مع المستوى AA؛ تم تحقيق 47 من 50 معيار AAA.' },
+  { code: 'ADA',      label: 'Title III',                en: 'Reasonable-accommodation framework for U.S. websites.', ar: 'إطار التيسيرات المعقولة للمواقع الأمريكية.' },
+  { code: 'EAA',      label: 'EN 301 549',               en: 'European Accessibility Act, in force June 2025.',       ar: 'قانون إمكانية الوصول الأوروبي، نافذ في يونيو 2025.' },
+  { code: 'SDAIA',    label: 'KSA Vision 2030',          en: 'Saudi Digital Accessibility standard.',                 ar: 'معيار الوصول الرقمي السعودي.' },
+  { code: 'Section 508', label: 'U.S. Federal',          en: 'Procurement-grade accessibility for U.S. agencies.',    ar: 'إمكانية وصول للتوريد للوكالات الأمريكية.' },
+  { code: 'AODA',     label: 'Ontario',                  en: 'Accessibility for Ontarians with Disabilities Act.',    ar: 'قانون أونتاريو لإمكانية وصول ذوي الإعاقة.' },
+];
+
+const INSTALL_STEPS = {
+  en: [
+    { t: 'Copy the script',   d: 'One small file. Drop the script tag before </body> on every page.' },
+    { t: 'Configure license', d: 'Paste your license key from the admin panel. The widget validates against our server.' },
+    { t: 'Done',              d: 'Every visitor sees the panel; their preferences persist across visits.' },
+  ],
+  ar: [
+    { t: 'انسخ السكريبت',     d: 'ملف واحد. ضع وسم السكريبت قبل </body> في كل صفحة.' },
+    { t: 'اضبط الترخيص',      d: 'الصق مفتاح الترخيص من لوحة الإدارة. تتحقّق الأداة من خادمنا.' },
+    { t: 'انتهيت',            d: 'يرى كل زائر اللوحة؛ تُحفظ تفضيلاته بين الزيارات.' },
+  ],
 };
 
-function applyDemoLang(lang) {
-  const t = DEMO_I18N[lang];
+const ICONS = {
+  Type:    '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V5h16v2"/><path d="M9 5v14"/><path d="M15 5v14"/><path d="M7 19h4"/><path d="M13 19h4"/></svg>',
+  Eye:     '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  Cursor:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l6 18 2.5-7.5L21 11z"/></svg>',
+  Mic:     '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></svg>',
+  Globe:   '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>',
+  Shield:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  Check:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l5 5L20 6"/></svg>',
+};
+
+const I18N = {
+  en: {
+    'brand': 'Insijam',
+    'nav-features': 'Features', 'nav-try': 'Try it', 'nav-compliance': 'Compliance',
+    'nav-install': 'Install', 'nav-docs': 'Documentation',
+    'cta-start': 'Get started',
+    'hero-eyebrow': 'Insijam · إنسجام',
+    'hero-lede': 'One small script makes any website conform to WCAG 2.2 and reach every visitor — no rewrites, no developers required. One minute to install.',
+    'hero-btn1-text': 'Try it on this page',
+    'hero-btn2': 'See how it works',
+    'hero-langs': 'Arabic + English',
+    'demo-h': 'Your website',
+    'demo-p': 'Click the accessibility button in the bottom-right and watch this page change live.',
+    'demo-pill-contrast': 'Contrast',
+    'demo-active': 'Widget active on this page',
+    'feat-eyebrow': '01 — Features',
+    'feat-title': 'Twenty-three tools. Six profiles. Zero code.',
+    'feat-sub': 'Every tool flips on with one click. Visitor preferences persist across sessions automatically.',
+    'try-eyebrow': '02 — Try it',
+    'try-title': "This isn't a screenshot.",
+    'try-sub': 'Open the accessibility button in the bottom-right corner. Every toggle below applies to this real page in real time.',
+    'article-meta': 'Sample article · 4 min read',
+    'article-h':  'Accessibility is a right, not a feature.',
+    'article-p1': "About 1.3 billion people live with a disability. When your site is accessible, you're not just avoiding legal risk — you're welcoming a large audience that would have otherwise quietly left.",
+    'article-h2': 'What Insijam audits',
+    'art-li1': 'Color contrast (WCAG 1.4.3)',
+    'art-li2': 'Heading and landmark structure',
+    'art-li3': 'Image alt text',
+    'art-li4': 'Keyboard focus order',
+    'art-li5': 'Form labels and errors',
+    'article-p2': 'Try it now: enlarge the text, switch to a readable font, or enable high contrast. Every adjustment applies live to this entire page.',
+    'article-h3': 'Why every site needs it',
+    'article-p3': 'Beyond compliance with the ADA, WCAG 2.1, Section 508, and EN 301 549, accessible sites rank better in search, load faster, and convert more users — while reducing legal exposure.',
+    'article-h4': 'Bilingual by birth',
+    'article-p4': 'Arabic is right-to-left. Insijam handles directionality, glyph rendering, and culturally appropriate layouts without configuration.',
+    'quote': '"Insijam closed 94% of our accessibility complaints in the first month." — Layla Othman, Web Lead at Aramco Digital',
+    'aside-eyebrow': 'How to try',
+    'aside-h':  'Open the panel.',
+    'aside-p':  'Click the accessibility button at the bottom-right. The widget runs on this page right now — every toggle is live.',
+    'aside-1':  'Six one-click profiles',
+    'aside-2':  'Bilingual EN / AR interface',
+    'aside-3':  'Saved preferences across visits',
+    'aside-4':  'Read-aloud in your language',
+    'aside-cta':'Open Admin Panel',
+    'comp-eyebrow': '03 — Compliance',
+    'comp-title':   'Conformant with every standard that matters.',
+    'comp-tick':    'Audited',
+    'install-eyebrow': '04 — Install',
+    'install-title':   'Three minutes. One line.',
+    'install-copy':    'Copy',
+    'install-copied':  '✓ Copied',
+    'bi-eyebrow': '05 — Bilingual',
+    'bi-title':   'Bilingual by birth. RTL and LTR, not as an afterthought.',
+    'cta-title': 'Bring your site into harmony.',
+    'cta-sub':   '14-day free trial. No card required. 3-minute install.',
+    'cta-trial-text': 'Start free trial',
+    'cta-talk':  'Read the docs',
+    'foot-tagline':   'Digital harmony for everyone.',
+    'foot-product':   'Product',
+    'foot-compliance':'Compliance',
+    'foot-company':   'Company',
+    'foot-admin':     'Admin Panel',
+    'foot-about':     'About',
+    'foot-contact':   'Contact',
+    'foot-privacy':   'Privacy',
+    'foot-made':      'Made in harmony · Riyadh & Dubai',
+    'banner-html':    'Live demo — click the accessibility button (bottom-right) to try every feature on this page. <a href="/dashboard/login.html">Open Admin Panel →</a>',
+    'lang-toggle':    'العربية',
+    'hero-title-html':'The web, <em>in harmony</em><br>with every human.',
+  },
+  ar: {
+    'brand': 'إنسجام',
+    'nav-features': 'الميزات', 'nav-try': 'جرّب الآن', 'nav-compliance': 'الامتثال',
+    'nav-install': 'التثبيت', 'nav-docs': 'التوثيق',
+    'cta-start': 'ابدأ الآن',
+    'hero-eyebrow': 'إنسجام · انسجام رقمي',
+    'hero-lede': 'سكربت صغير واحد يجعل أي موقع متوافقًا مع معايير WCAG 2.2 ومتاحًا لكل زائر — لا حاجة لإعادة كتابة الشيفرة ولا لمطورين. دقيقة واحدة فقط للتثبيت.',
+    'hero-btn1-text': 'جرّب على هذه الصفحة',
+    'hero-btn2': 'كيف يعمل',
+    'hero-langs': 'العربية والإنجليزية',
+    'demo-h': 'موقعك الإلكتروني',
+    'demo-p': 'انقر على زر إمكانية الوصول في الأسفل وشاهد هذه الصفحة تتغيّر فورًا.',
+    'demo-pill-contrast': 'تباين',
+    'demo-active': 'الأداة نشطة على هذه الصفحة',
+    'feat-eyebrow': '٠١ — الميزات',
+    'feat-title': 'ثلاث وعشرون أداة. ست ملفات. صفر شيفرة.',
+    'feat-sub': 'كل أداة تعمل بنقرة واحدة. تُحفظ تفضيلات الزائر تلقائيًا في كل زيارة.',
+    'try-eyebrow': '٠٢ — جرّب الآن',
+    'try-title': 'هذه ليست لقطة شاشة.',
+    'try-sub': 'افتح زر إمكانية الوصول في أسفل الصفحة. كل مفتاح أدناه يُطبَّق على هذه الصفحة الحقيقية فورًا.',
+    'article-meta': 'مقالة تجريبية · ٤ دقائق قراءة',
+    'article-h':  'إمكانية الوصول حقّ، لا ميزة.',
+    'article-p1': 'يعيش حوالي ١٫٣ مليار إنسان مع نوع من الإعاقة. حين يكون موقعك متاحًا، فأنت لا تتجنّب الخطر القانوني فحسب — أنت تُرحّب بشريحة كبيرة من العملاء كانوا سيغادرون بصمت.',
+    'article-h2': 'ما الذي يفحصه إنسجام',
+    'art-li1': 'تباين الألوان (WCAG 1.4.3)',
+    'art-li2': 'هيكلة العناوين والمعالم',
+    'art-li3': 'النص البديل للصور',
+    'art-li4': 'تركيز لوحة المفاتيح',
+    'art-li5': 'تسميات النماذج وأخطاؤها',
+    'article-p2': 'جرّب الآن: كبّر النص، فعّل الخط القارئ، أو شغّل التباين العالي. كل تعديل يُطبَّق فورًا على هذه الصفحة كاملة.',
+    'article-h3': 'لماذا يحتاج كل موقع لذلك',
+    'article-p3': 'بعد الامتثال للـ ADA و WCAG 2.1 و Section 508 و EN 301 549، تظهر المواقع المتاحة بنتائج أفضل في البحث، تتحمل أسرع، وتحوّل عددًا أكبر من المستخدمين — مع تقليل التعرض القانوني.',
+    'article-h4': 'ثنائية اللغة بالفطرة',
+    'article-p4': 'العربية تُكتب من اليمين لليسار. يعالج إنسجام الاتجاه ورسم الحروف والتخطيطات الملائمة ثقافيًا دون أي إعداد.',
+    'quote': '«إنسجام أوقف ٩٤٪ من شكاوى الوصول لدينا في أول شهر.» — ليلى عثمان، رئيسة الويب في أرامكو الرقمية',
+    'aside-eyebrow': 'كيف تجرّب',
+    'aside-h':  'افتح اللوحة.',
+    'aside-p':  'انقر زر إمكانية الوصول في الأسفل. الأداة تعمل على هذه الصفحة الآن — كل مفتاح حيّ.',
+    'aside-1':  'ست ملفات بنقرة واحدة',
+    'aside-2':  'واجهة عربية وإنجليزية',
+    'aside-3':  'حفظ التفضيلات بين الزيارات',
+    'aside-4':  'قراءة بصوت عالٍ بلغتك',
+    'aside-cta':'فتح لوحة الإدارة',
+    'comp-eyebrow': '٠٣ — الامتثال',
+    'comp-title':   'متوافق مع كل المعايير التي تهم.',
+    'comp-tick':    'مُدقَّق',
+    'install-eyebrow': '٠٤ — التثبيت',
+    'install-title':   'ثلاث دقائق. سطر واحد.',
+    'install-copy':    'انسخ',
+    'install-copied':  '✓ تم النسخ',
+    'bi-eyebrow': '٠٥ — ثنائي اللغة',
+    'bi-title':   'ثنائي اللغة بالفطرة. RTL و LTR، ليس بشكل لاحق.',
+    'cta-title': 'اجعل موقعك في انسجام.',
+    'cta-sub':   'تجربة مجانية ١٤ يومًا. لا بطاقة ائتمان. تثبيت في ٣ دقائق.',
+    'cta-trial-text': 'ابدأ التجربة المجانية',
+    'cta-talk':  'اقرأ التوثيق',
+    'foot-tagline':   'انسجام رقمي للجميع.',
+    'foot-product':   'المنتج',
+    'foot-compliance':'الامتثال',
+    'foot-company':   'الشركة',
+    'foot-admin':     'لوحة الإدارة',
+    'foot-about':     'من نحن',
+    'foot-contact':   'تواصل',
+    'foot-privacy':   'الخصوصية',
+    'foot-made':      'مصنوع بانسجام ',
+    'banner-html':    'عرض حيّ — انقر زر إمكانية الوصول في الأسفل لتجربة كل ميزة على هذه الصفحة. <a href="/dashboard/login.html">فتح لوحة الإدارة ←</a>',
+    'lang-toggle':    'EN',
+    'hero-title-html':'الويب، <em>منسجم</em><br>مع كل إنسان.',
+  },
+};
+
+function renderFeatures(lang) {
+  const grid = document.getElementById('features-grid');
+  if (!grid) return;
+  grid.innerHTML = FEATURES_DATA.map((f, i) => {
+    const t = f[lang];
+    return `
+      <article class="feature">
+        <div class="feature-num">${String(i + 1).padStart(2, '0')}</div>
+        <div class="feature-icon" aria-hidden="true">${ICONS[f.icon]}</div>
+        <h3 class="feature-title">${t.t}</h3>
+        <p class="feature-desc">${t.d}</p>
+        <ul class="feature-tools">${t.tools.map(x => `<li>${x}</li>`).join('')}</ul>
+      </article>`;
+  }).join('');
+}
+
+function renderCompliance(lang) {
+  const grid = document.getElementById('compliance-grid');
+  if (!grid) return;
+  const tickLabel = I18N[lang]['comp-tick'];
+  grid.innerHTML = COMPLIANCE_DATA.map(c => `
+    <div class="compliance-card">
+      <div class="compliance-code">${c.code}</div>
+      <div class="compliance-label">${c.label}</div>
+      <p class="compliance-body">${c[lang]}</p>
+      <div class="compliance-tick">${ICONS.Check} ${tickLabel}</div>
+    </div>`).join('');
+}
+
+function renderInstallSteps(lang) {
+  const ol = document.getElementById('install-steps');
+  if (!ol) return;
+  ol.innerHTML = INSTALL_STEPS[lang].map((s, i) => `
+    <li>
+      <span class="install-num">${String(i + 1).padStart(2, '0')}</span>
+      <div>
+        <div class="install-step-t">${s.t}</div>
+        <div class="install-step-d">${s.d}</div>
+      </div>
+    </li>`).join('');
+}
+
+function applyLang(lang) {
+  const dict = I18N[lang];
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-  // Brand
-  const brand = document.getElementById('nav-brand');
-  if (brand) brand.textContent = t['brand-name'];
-
-  // Nav
-  ['features','profiles','content','integration','docs'].forEach(k => {
-    const el = document.getElementById('nav-' + k);
-    if (el) el.textContent = t['nav-' + k];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key]) el.textContent = dict[key];
   });
-  const navCta = document.getElementById('nav-cta');
-  if (navCta) navCta.textContent = t['nav-cta'];
-  const lt = document.getElementById('lang-toggle');
-  if (lt) lt.textContent = t['lang-toggle'];
 
-  // Hero
-  const heroBadge = document.querySelector('.hero-badge');
-  if (heroBadge) heroBadge.textContent = t['hero-badge'];
-  const heroH1 = document.querySelector('.hero h1');
-  if (heroH1) heroH1.innerHTML = t['hero-h1'];
-  const heroP = document.querySelector('.hero > p');
-  if (heroP) heroP.textContent = t['hero-p'];
-  const heroBtns = document.querySelectorAll('.hero-actions a');
-  if (heroBtns[0]) heroBtns[0].textContent = t['hero-btn1'];
-  if (heroBtns[1]) heroBtns[1].textContent = t['hero-btn2'];
+  // Special-case rich HTML
+  const heroTitle = document.getElementById('hero-title');
+  if (heroTitle) heroTitle.innerHTML = dict['hero-title-html'];
 
-  // Features section
-  const featSec = document.querySelector('#features');
-  if (featSec) {
-    featSec.querySelector('.section-tag').textContent = t['sec1-tag'];
-    featSec.querySelector('h2').textContent = t['sec1-h2'];
-    featSec.querySelector('.section-lead').textContent = t['sec1-lead'];
-    featSec.querySelectorAll('.feature-card').forEach((card, i) => {
-      const k = 'f' + (i + 1);
-      const h3 = card.querySelector('h3'); const p = card.querySelector('p');
-      if (h3 && t[k+'-h3']) h3.textContent = t[k+'-h3'];
-      if (p  && t[k+'-p'])  p.textContent  = t[k+'-p'];
-    });
-  }
-
-  // Profiles section
-  const profileSec = document.querySelector('#profiles');
-  if (profileSec) {
-    profileSec.querySelector('.section-tag').textContent = t['sec2-tag'];
-    profileSec.querySelector('h2').textContent = t['sec2-h2'];
-    profileSec.querySelector('.section-lead').textContent = t['sec2-lead'];
-    profileSec.querySelectorAll('.profile-card').forEach((card, i) => {
-      const k = 'p' + (i + 1);
-      const h3 = card.querySelector('h3'); const p = card.querySelector('p');
-      if (h3 && t[k+'-h3']) h3.textContent = t[k+'-h3'];
-      if (p  && t[k+'-p'])  p.textContent  = t[k+'-p'];
-    });
-  }
-
-  // Content section
-  const contentSec = document.querySelector('#content');
-  if (contentSec) {
-    contentSec.querySelector('.section-tag').textContent = t['sec3-tag'];
-    contentSec.querySelector('h2').textContent = t['sec3-h2'];
-    contentSec.querySelector('.section-lead').textContent = t['sec3-lead'];
-    const artH1 = document.querySelector('#main h1');
-    if (artH1) artH1.textContent = t['article-h1'];
-  }
-
-  // Bilingual section
-  const biSec = document.querySelector('#bilingual');
-  if (biSec) {
-    biSec.querySelector('.section-tag').textContent = t['sec4-tag'];
-    biSec.querySelector('h2').textContent = t['sec4-h2'];
-    biSec.querySelector('.section-lead').textContent = t['sec4-lead'];
-    const lcHeaders = biSec.querySelectorAll('.lang-card-header');
-    if (lcHeaders[0]) lcHeaders[0].textContent = t['lang-en-header'];
-  }
-
-  // Integration section
-  const integSec = document.querySelector('#integration');
-  if (integSec) {
-    integSec.querySelector('.section-tag').textContent = t['sec5-tag'];
-    integSec.querySelector('h2').textContent = t['sec5-h2'];
-    integSec.querySelector('.section-lead').textContent = t['sec5-lead'];
-    integSec.querySelectorAll('.step').forEach((step, i) => {
-      const k = 'step' + (i + 1);
-      const h3 = step.querySelector('h3'); const p = step.querySelector('p');
-      if (h3 && t[k+'-h3']) h3.innerHTML = t[k+'-h3'];
-      if (p  && t[k+'-p'])  p.textContent = t[k+'-p'];
-    });
-  }
-
-  // CTA
-  const ctaSec = document.querySelector('.cta-section');
-  if (ctaSec) {
-    const h2 = ctaSec.querySelector('h2'); const p = ctaSec.querySelector('p');
-    const btn = ctaSec.querySelector('.btn-white');
-    if (h2) h2.textContent = t['cta-h2'];
-    if (p)  p.textContent  = t['cta-p'];
-    if (btn) btn.textContent = t['cta-btn'];
-  }
-
-  // Banner
   const banner = document.getElementById('demo-banner');
-  if (banner) banner.innerHTML = t['banner'];
+  if (banner) banner.innerHTML = dict['banner-html'];
 
-  // Footer
-  const footerPs = document.querySelectorAll('footer p');
-  if (footerPs[0]) footerPs[0].innerHTML = t['footer-p1'];
-  if (footerPs[1]) footerPs[1].innerHTML = t['footer-p2'];
+  const quote = document.getElementById('quote-text');
+  if (quote) {
+    const q = dict['quote'];
+    const dashIdx = q.lastIndexOf('—');
+    if (dashIdx > 0) {
+      quote.textContent = q.slice(0, dashIdx).trim();
+      const cite = document.querySelector('.tryit-sample blockquote cite');
+      if (cite) cite.textContent = '— ' + q.slice(dashIdx + 1).trim();
+    } else {
+      quote.textContent = q;
+    }
+  }
+
+  // Buttons that contain icons + text need partial replacement
+  const heroBtn1 = document.querySelector('[data-i18n="hero-btn1"]');
+  if (heroBtn1) {
+    const icon = heroBtn1.querySelector('svg');
+    heroBtn1.textContent = dict['hero-btn1-text'];
+    if (icon) heroBtn1.appendChild(icon);
+  }
+  const ctaTrial = document.querySelector('[data-i18n="cta-trial"]');
+  if (ctaTrial) {
+    const icon = ctaTrial.querySelector('svg');
+    ctaTrial.textContent = dict['cta-trial-text'];
+    if (icon) ctaTrial.appendChild(icon);
+  }
+
+  // Lang toggle button label
+  const ltText = document.getElementById('lang-toggle-text');
+  if (ltText) ltText.textContent = dict['lang-toggle'];
+
+  renderFeatures(lang);
+  renderCompliance(lang);
+  renderInstallSteps(lang);
 
   localStorage.setItem('aw_ui_lang', lang);
 }
 
-function toggleLang() {
-  applyDemoLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
-}
+document.getElementById('lang-toggle').addEventListener('click', () => {
+  applyLang(document.documentElement.lang === 'ar' ? 'en' : 'ar');
+});
 
-// Apply saved or default language
-applyDemoLang(localStorage.getItem('aw_ui_lang') || 'en');
+// Hamburger menu toggle (≤880px)
+const burgerBtn  = document.getElementById('nav-burger');
+const mobileNav  = document.getElementById('nav-mobile');
+function setMenuOpen(open) {
+  burgerBtn.classList.toggle('is-open', open);
+  mobileNav.classList.toggle('is-open', open);
+  burgerBtn.setAttribute('aria-expanded', String(open));
+}
+burgerBtn.addEventListener('click', () => {
+  setMenuOpen(!mobileNav.classList.contains('is-open'));
+});
+// Close the menu after clicking any link inside
+mobileNav.addEventListener('click', (e) => {
+  if (e.target.closest('a')) setMenuOpen(false);
+});
+// Close on Escape and on resize back to desktop
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenuOpen(false); });
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 880) setMenuOpen(false);
+});
+
+// Copy install snippet
+document.getElementById('install-copy').addEventListener('click', (e) => {
+  const code = document.getElementById('install-snippet').textContent;
+  navigator.clipboard?.writeText(code);
+  const lang = document.documentElement.lang === 'ar' ? 'ar' : 'en';
+  e.currentTarget.textContent = I18N[lang]['install-copied'];
+  setTimeout(() => { e.currentTarget.textContent = I18N[lang]['install-copy']; }, 1600);
+});
+
+// Boot
+applyLang(localStorage.getItem('aw_ui_lang') || 'en');
 </script>
 
 </body>

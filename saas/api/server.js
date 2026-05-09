@@ -46,34 +46,298 @@ const IS_PROD      = process.env.NODE_ENV === 'production';
 const BCRYPT_ROUNDS = 12;
 
 // ─────────────────────────────────────────────
-// Dashboard & Admin — served BEFORE helmet so
-// inline scripts are not blocked by CSP
+// Security headers — applied to ALL responses including static HTML.
+// CSP allows inline scripts/styles because the dashboard ships its
+// JS/CSS inline; everything else (frame, MIME, HSTS, etc.) is enforced.
+// ─────────────────────────────────────────────
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      'default-src':     ["'self'"],
+      'script-src':      ["'self'", "'unsafe-inline'", 'https://unpkg.com'],
+      // Allow inline event handlers (onclick="...", onchange="..., etc.) — the
+      // dashboard uses them throughout. Without this, Helmet's default
+      // `script-src-attr 'none'` silently disables every button on the page.
+      'script-src-attr': ["'unsafe-inline'"],
+      'style-src':       ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      'style-src-attr':  ["'unsafe-inline'"],
+      'font-src':        ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      'img-src':         ["'self'", 'data:', 'https:'],
+      'connect-src':     ["'self'"],
+      'frame-ancestors': ["'self'"],
+      'object-src':      ["'none'"],
+      'base-uri':        ["'self'"],
+    },
+  },
+  // Allow PDFs and images to be opened cross-origin from customer sites
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  crossOriginEmbedderPolicy: false,
+  // The widget gate at /accessibility-widget.js verifies the Referer host
+  // matches the registered license domain. Helmet's default `no-referrer`
+  // would strip that header entirely and break every page that embeds the
+  // widget. `strict-origin-when-cross-origin` sends the full URL on
+  // same-origin requests and only the origin on cross-origin — enough for
+  // the gate, no path/query leak.
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  hsts: IS_PROD ? { maxAge: 15552000, includeSubDomains: true, preload: false } : false,
+}));
+app.use(express.json({ limit: '100kb' })); // bound JSON body size to mitigate DoS
+
+// ─────────────────────────────────────────────
+// Static pages — served after helmet so security headers are present
 // ─────────────────────────────────────────────
 app.use('/dashboard', express.static(path.join(__dirname, '../dashboard')));
-app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, '../dashboard/index.html')));
+app.get('/dashboard',             (req, res) => res.sendFile(path.join(__dirname, '../dashboard/index.html')));
+app.get('/dashboard/login.html',  (req, res) => res.sendFile(path.join(__dirname, '../dashboard/login.html')));
+app.get('/dashboard/index.html',  (req, res) => res.sendFile(path.join(__dirname, '../dashboard/index.html')));
 app.use('/admin', express.static(path.join(__dirname, '../admin')));
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, '../admin/index.html')));
+app.get('/admin',            (req, res) => res.sendFile(path.join(__dirname, '../admin/index.html')));
+app.get('/admin/index.html', (req, res) => res.sendFile(path.join(__dirname, '../admin/index.html')));
 app.use('/docs', express.static(path.join(__dirname, '../docs')));
-app.get('/docs', (req, res) => res.sendFile(path.join(__dirname, '../docs/index.html')));
+app.get('/docs',             (req, res) => res.sendFile(path.join(__dirname, '../docs/index.html')));
+app.get('/docs/index.html',  (req, res) => res.sendFile(path.join(__dirname, '../docs/index.html')));
 
-// Demo page + widget script (root-level files)
+// Demo page + features docs + its PDFs (root-level files).
+// NOTE: /accessibility-widget.js is intentionally NOT a static file route — it's
+// served by a gated handler later in this file that requires a valid licenseKey
+// and matching domain, and returns minified JS so the source isn't trivially
+// readable.
 app.get('/demo', (req, res) => res.sendFile(path.join(__dirname, '../../demo.html')));
-app.get('/accessibility-widget.js', (req, res) => res.sendFile(path.join(__dirname, '../../accessibility-widget.js')));
+app.get('/features-docs.html', (req, res) => res.sendFile(path.join(__dirname, '../../features-docs.html')));
+app.get('/Insijam-Features-EN.pdf', (req, res) => res.sendFile(path.join(__dirname, '../../Insijam-Features-EN.pdf')));
+app.get('/Insijam-Features-AR.pdf', (req, res) => res.sendFile(path.join(__dirname, '../../Insijam-Features-AR.pdf')));
 
 // ─────────────────────────────────────────────
-// Middleware
+// Widget JS — gated download
 // ─────────────────────────────────────────────
-app.use(helmet());
-app.use(express.json());
+//
+// The widget JavaScript is a paid asset. We protect it with two layers:
+//
+//   1. **Download gate**: the request must include either a valid `?key=` query
+//      (or `licenseKey` body for sendBeacon-style POSTs we don't actually use).
+//      The key must exist in the licenses table, be `active`, and the request's
+//      Referer/Origin must match the registered domain. Otherwise → 403.
+//
+//   2. **Minification**: the source file is minified once at startup with terser.
+//      Identifiers are mangled and comments stripped, so a casual viewer in
+//      DevTools won't see any of the original variable names or in-source
+//      explanatory comments.
+//
+// True secrecy is impossible for code that runs in a browser — anyone with
+// DevTools can step through the script. These layers raise the bar significantly:
+// the file can't be downloaded by a curl/scraper without an active license + the
+// right domain, and once delivered, the minified output is meaningfully harder
+// to read than the original. Combined with the runtime /api/v1/validate check,
+// even leaked source can't activate features without a working subscription.
+const fs     = require('fs');
+const terser = require('terser');
+const WIDGET_SRC_PATH = path.join(__dirname, '../../accessibility-widget.js');
+let WIDGET_JS_MIN = null;       // populated at startup
+let WIDGET_JS_MIN_TIME = 0;
+let WIDGET_JS_ETAG = null;
 
+async function loadAndMinifyWidget() {
+  const src = fs.readFileSync(WIDGET_SRC_PATH, 'utf8');
+  try {
+    const result = await terser.minify(src, {
+      compress: {
+        passes: 2,
+        drop_console: false,    // keep console.warn / console.error for license errors
+        pure_funcs: [],
+      },
+      mangle: {
+        properties: false,      // don't rename DOM props or our public window globals
+      },
+      format: {
+        comments: false,        // strip ALL comments incl. legal banner; we own this
+        beautify: false,
+      },
+      sourceMap: false,
+    });
+    if (!result || !result.code) throw new Error('terser returned empty output');
+    WIDGET_JS_MIN = result.code;
+    WIDGET_JS_MIN_TIME = Date.now();
+    WIDGET_JS_ETAG = '"' + crypto.createHash('sha256').update(WIDGET_JS_MIN).digest('hex').slice(0, 32) + '"';
+    console.log(`[widget] minified ${src.length} → ${WIDGET_JS_MIN.length} bytes (${Math.round(WIDGET_JS_MIN.length * 100 / src.length)}%)`);
+  } catch (e) {
+    console.error('[widget] minification failed; serving original source:', e.message);
+    WIDGET_JS_MIN = src;
+    WIDGET_JS_MIN_TIME = Date.now();
+    WIDGET_JS_ETAG = '"' + crypto.createHash('sha256').update(src).digest('hex').slice(0, 32) + '"';
+  }
+}
+
+// Watch the source file in development so edits hot-reload without restart.
+fs.watchFile(WIDGET_SRC_PATH, { interval: 2000 }, () => {
+  console.log('[widget] source changed — re-minifying');
+  loadAndMinifyWidget().catch(err => console.error('[widget] reload failed:', err.message));
+});
+
+// Helper: extract the requesting site's hostname (Origin or Referer).
+function requestDomain(req) {
+  const o = req.headers['origin'];
+  const r = req.headers['referer'];
+  if (o && o !== 'null') return normalizeDomain(o);
+  if (r) return normalizeDomain(r);
+  return null;
+}
+
+// JS payload that any failed gate response returns INSTEAD of plain text,
+// so the browser actually executes it and the visitor sees a banner explaining
+// why the widget didn't load. No widget code is leaked — only the inline
+// banner. We send 200 (browsers ignore script bodies on non-2xx responses).
+// Use JSON.stringify to safely embed user-supplied strings into the JS payload —
+// it handles all JS string escapes (quotes, newlines, unicode) correctly. The
+// previous version used a regex literal that contained real Unicode line
+// separators (U+2028) and broke parsing.
+function widgetErrorBootstrap(opts) {
+  const title  = JSON.stringify(opts.title  || "Accessibility tool unavailable");
+  const msg    = JSON.stringify(opts.message || "License is not active. Please renew your Insijam subscription to restore accessibility on this site.");
+  const reason = JSON.stringify(opts.reason  || "inactive");
+  // Build the bootstrap as a single line of valid JS. All strings are double-quoted
+  // and all user input is interpolated via JSON.stringify, so it survives any payload.
+  return [
+    '/* Insijam license gate */(function(){try{',
+    'if(window.__insijam_notice_shown)return;window.__insijam_notice_shown=1;',
+    'console.warn("[Insijam] Accessibility widget did not load — "+' + reason + '+". "+' + msg + ');',
+    'var attach=function(){',
+    '  if(document.getElementById("aw-license-notice"))return;',
+    '  var d=document.createElement("div");d.id="aw-license-notice";d.setAttribute("role","status");',
+    '  d.style.cssText="position:fixed;left:0;right:0;bottom:0;z-index:2147483646;background:#1e293b;color:#e2e8f0;padding:14px 20px;font:13px/1.5 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Tahoma,sans-serif;display:flex;align-items:center;gap:12px;box-shadow:0 -4px 24px rgba(0,0,0,.3)";',
+    '  var ic=document.createElement("div");ic.textContent="\u26a0";ic.style.cssText="font-size:20px;flex-shrink:0";',
+    '  var tx=document.createElement("div");tx.style.cssText="flex:1;line-height:1.5";',
+    '  var t=document.createElement("div");t.style.cssText="font-weight:700;font-size:14px;margin-bottom:2px";t.textContent=' + title + ';',
+    '  var m=document.createElement("div");m.style.cssText="color:#94a3b8;font-size:12px";m.textContent=' + msg + ';',
+    '  tx.appendChild(t);tx.appendChild(m);',
+    '  var x=document.createElement("button");x.setAttribute("aria-label","Dismiss");x.textContent="\u00d7";',
+    '  x.style.cssText="background:none;border:0;color:#94a3b8;cursor:pointer;font-size:22px;line-height:1;padding:2px 6px;flex-shrink:0";',
+    '  x.onclick=function(){d.parentNode&&d.parentNode.removeChild(d)};',
+    '  d.appendChild(ic);d.appendChild(tx);d.appendChild(x);',
+    '  (document.body||document.documentElement).appendChild(d);',
+    '};',
+    'if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",attach);else attach();',
+    '}catch(e){}})();',
+  ].join("\n");
+}
+function sendErrorBanner(res, opts) {
+  res.status(200);
+  res.set({
+    'Content-Type':           'application/javascript; charset=utf-8',
+    'Cache-Control':          'no-store, max-age=0', // recheck immediately so a renewed license restores service
+    'X-Content-Type-Options': 'nosniff',
+    'X-Insijam-License':       opts.reason || 'inactive', // visible in DevTools for debugging
+  });
+  res.send(widgetErrorBootstrap(opts));
+}
+
+// The actual gated route. Must come before any catch-all and AFTER `normalizeDomain`
+// is defined. We allow CORS from any origin since this is loaded cross-site.
+app.get('/accessibility-widget.js', cors({ origin: true, methods: ['GET'] }), async (req, res) => {
+  if (!WIDGET_JS_MIN) {
+    return sendErrorBanner(res, {
+      reason: 'warmup',
+      title: 'Accessibility tool unavailable',
+      message: 'Service is starting up. Please retry in a moment.',
+    });
+  }
+
+  const key = (req.query.key || '').toString().trim();
+  if (!key) {
+    return sendErrorBanner(res, {
+      reason: 'no_key',
+      title: 'Accessibility tool not configured',
+      message: 'No license key was supplied in the embed code. Please update your installation snippet.',
+    });
+  }
+  if (key.length > 100 || !/^[A-Z0-9-]+$/i.test(key)) {
+    return sendErrorBanner(res, {
+      reason: 'bad_key_format',
+      title: 'Accessibility tool license invalid',
+      message: 'The license key format is not recognised. Please copy it again from your Insijam dashboard.',
+    });
+  }
+
+  // Look up license, verify status + domain
+  let license;
+  try {
+    license = await licenses.findByKey(key);
+  } catch (_) {
+    return sendErrorBanner(res, {
+      reason: 'service_error',
+      title: 'Accessibility tool temporarily unavailable',
+      message: 'License verification service did not respond. Please retry shortly.',
+    });
+  }
+  if (!license) {
+    return sendErrorBanner(res, {
+      reason: 'unknown_key',
+      title: 'Accessibility tool license invalid',
+      message: 'This license key is not recognised. Please verify it in your Insijam dashboard.',
+    });
+  }
+  if (license.status !== 'active') {
+    return sendErrorBanner(res, {
+      reason: license.status, // 'suspended' or 'expired'
+      title: license.status === 'expired' ? 'Accessibility tool subscription expired' : 'Accessibility tool license suspended',
+      message: license.status === 'expired'
+        ? 'Your Insijam license is not active. Please renew it to restore accessibility on this site.'
+        : 'Your Insijam license has been suspended. Please contact support to reactivate it.',
+    });
+  }
+
+  // Domain binding — Referer/Origin host must match registered domain.
+  // We allow scripts loaded directly (no Referer) ONLY in non-prod for testing.
+  const reqDom = requestDomain(req);
+  const licDom = normalizeDomain(license.domain);
+  const domainOk =
+    (!reqDom && !IS_PROD) ||
+    (reqDom && (reqDom === licDom || reqDom.endsWith('.' + licDom)));
+  if (!domainOk) {
+    return sendErrorBanner(res, {
+      reason: 'domain_mismatch',
+      title: 'Accessibility tool license invalid',
+      message: `This license is registered for ${licDom}, not ${reqDom || 'this domain'}. Please contact your account admin.`,
+    });
+  }
+
+  // ETag / 304 short-circuit so browsers don't re-download on every page nav.
+  if (req.headers['if-none-match'] === WIDGET_JS_ETAG) {
+    return res.status(304).end();
+  }
+
+  // Short browser cache so revoked licenses stop working within minutes —
+  // the in-page runtime /validate call still catches revocations on the
+  // next page load regardless.
+  res.set({
+    'Content-Type':           'application/javascript; charset=utf-8',
+    'Cache-Control':          'private, max-age=300, must-revalidate',
+    'ETag':                    WIDGET_JS_ETAG,
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy':        'strict-origin-when-cross-origin',
+  });
+  res.send(WIDGET_JS_MIN);
+});
+
+// Allowed origins for the dashboard / admin / auth API. The /validate endpoint
+// has its own open CORS (for embedded widgets on customer sites).
+//
+// In production, set ALLOWED_ORIGINS env var to a comma-separated list:
+//   ALLOWED_ORIGINS=https://insijam.ipioneersco.com,https://app.insijam.io
+//
+// Regexes anchor on the full origin (scheme+host) — the trailing $ ensures
+// `https://attacker.com/insijam.io` cannot match.
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim())
-  : [
-      'http://localhost:3000', 'http://localhost:3001',
-      'http://127.0.0.1:3000', 'http://127.0.0.1:3001',
-      'http://127.0.0.1:5500', 'http://localhost:5500',
-      /\.insijam\.io$/,
-    ];
+  : IS_PROD
+    ? [/^https:\/\/(?:[a-z0-9-]+\.)*insijam\.ipioneersco\.com$/, /^https:\/\/(?:[a-z0-9-]+\.)*insijam\.io$/]
+    : [
+        'http://localhost:3000', 'http://localhost:3001',
+        'http://127.0.0.1:3000', 'http://127.0.0.1:3001',
+        'http://127.0.0.1:5500', 'http://localhost:5500',
+        /^https:\/\/(?:[a-z0-9-]+\.)*insijam\.ipioneersco\.com$/,
+        /^https:\/\/(?:[a-z0-9-]+\.)*insijam\.io$/,
+      ];
 
 // Open CORS for /api/v1/validate: it is called by the widget embedded on
 // customer websites, so any origin must reach it. Authorization is
@@ -85,13 +349,14 @@ const openCors = cors({
 });
 
 // Restricted CORS for every other route (dashboard, admin, auth).
+// IMPORTANT: a missing Origin header is NOT a cross-origin request — browsers
+// don't send Origin for top-level GET navigations. Letting these through is
+// safe because they're same-origin page loads; CORS only matters for XHR.
+// Refusing them would trigger the global error handler and return 500 to a
+// user who simply opened /dashboard/login.html in their address bar.
 const restrictedCors = cors({
   origin: (origin, cb) => {
-    if (!origin) {
-      return IS_PROD
-        ? cb(new Error('Not allowed by CORS'), false)
-        : cb(null, true);
-    }
+    if (!origin) return cb(null, true); // top-level navigation, fine
     const ok = allowedOrigins.some(o => o instanceof RegExp ? o.test(origin) : o === origin);
     cb(ok ? null : new Error('Not allowed by CORS'), ok);
   },
@@ -99,9 +364,13 @@ const restrictedCors = cors({
   allowedHeaders: ['Content-Type','Authorization'],
 });
 
-// Route dispatcher: validate uses open CORS, everything else restricted.
+// Route dispatcher: validate + track use open CORS (called by widgets on
+// customer sites), everything else restricted. Static HTML / JS / PDF
+// served above this dispatcher are NEVER subject to CORS.
 app.use((req, res, next) => {
   if (req.path.startsWith('/api/v1/validate')) return openCors(req, res, next);
+  if (req.path.startsWith('/api/v1/track'))    return openCors(req, res, next);
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) return next();
   return restrictedCors(req, res, next);
 });
 
@@ -117,7 +386,10 @@ const authLimiter = rateLimit({
   message: { error: 'Too many attempts, please try again in 15 minutes.' },
 });
 
-app.use('/api/v1/validate', rateLimit({ windowMs: 60_000, max: 60, standardHeaders: true, legacyHeaders: false }));
+app.use('/api/v1/validate', rateLimit({ windowMs: 60_000, max: 60,  standardHeaders: true, legacyHeaders: false }));
+// /track receives small batches from end-user browsers — generous limit per IP since
+// many users behind one NAT may share an IP. Per-license bucket below also caps abuse.
+app.use('/api/v1/track',    rateLimit({ windowMs: 60_000, max: 600, standardHeaders: true, legacyHeaders: false }));
 app.use('/api/',            rateLimit({ windowMs: 60_000, max: 300, standardHeaders: true, legacyHeaders: false }));
 
 // Wrap async route handlers — catches thrown errors and passes to error middleware
@@ -191,14 +463,22 @@ function isValidEmail(email) {
 
 function validatePassword(pw) {
   if (!pw || typeof pw !== 'string') return 'Password is required';
-  if (pw.length < 8)                 return 'Password must be at least 8 characters';
-  if (!/[A-Za-z]/.test(pw))          return 'Password must contain at least one letter';
-  if (!/[0-9]/.test(pw))             return 'Password must contain at least one number';
+  if (pw.length < 10)                return 'Password must be at least 10 characters';
+  if (pw.length > 128)               return 'Password is too long (max 128 characters)';
+  if (!/[a-z]/.test(pw))             return 'Password must contain a lowercase letter';
+  if (!/[A-Z]/.test(pw))             return 'Password must contain an uppercase letter';
+  if (!/[0-9]/.test(pw))             return 'Password must contain a number';
+  if (!/[^A-Za-z0-9]/.test(pw))      return 'Password must contain a symbol';
   return null;
 }
 
 function isValidDomain(d) {
-  return typeof d === 'string' && d.length > 0 && d.length <= 253;
+  if (typeof d !== 'string') return false;
+  if (d.length === 0 || d.length > 253) return false;
+  // hostname per RFC1035: labels of letters/digits/hyphens, dot-separated, TLD ≥ 2 chars
+  return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(
+    d.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '')
+  );
 }
 
 function isValidHexColor(c) {
@@ -238,7 +518,12 @@ function adminMiddleware(req, res, next) {
 // Routes — Health
 // ─────────────────────────────────────────────
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', version: '2.0.0', db: 'mysql', time: new Date().toISOString() });
+  // Avoid exposing version + DB type to unauthenticated clients in production
+  // — those help fingerprint vulnerabilities. Internal monitoring should use
+  // the AdminKey header to get full info.
+  const isAdmin = (req.headers.authorization || '').replace('AdminKey ', '').trim() === ADMIN_SECRET;
+  if (isAdmin) return res.json({ status: 'ok', version: '2.0.0', db: 'mysql', time: new Date().toISOString() });
+  res.json({ status: 'ok' });
 });
 
 // ─────────────────────────────────────────────
@@ -276,12 +561,21 @@ app.post('/api/v1/auth/register', authLimiter, wrap(async (req, res) => {
   if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 255) {
     return res.status(400).json({ error: 'Name must be between 2 and 255 characters' });
   }
+  // Reject HTML control chars in user-shown fields to neutralize stored-XSS attempts.
+  if (/[<>\\\x00-\x1f\x7f]/.test(name) || (org && /[<>\\\x00-\x1f\x7f]/.test(String(org)))) {
+    return res.status(400).json({ error: 'Name or organization contains invalid characters' });
+  }
   if (!['starter','professional','enterprise'].includes(plan)) {
     return res.status(400).json({ error: 'Invalid plan' });
   }
 
   const existing = await customers.findByEmail(email.toLowerCase().trim());
-  if (existing) return res.status(409).json({ error: 'Email already registered' });
+  if (existing) {
+    // Avoid user-enumeration: return the same generic 400 the client would see for
+    // any other validation failure. The client tells users to log in if registration
+    // appears to "fail" with their existing email — never confirm or deny existence.
+    return res.status(400).json({ error: 'Unable to complete registration. If you already have an account, please log in.' });
+  }
 
   const id         = 'cust_' + uuidv4().replace(/-/g,'').substr(0, 10);
   const apiKey     = 'aw_live_sk_' + crypto.randomBytes(24).toString('hex');
@@ -382,6 +676,71 @@ app.post('/api/v1/validate', wrap(async (req, res) => {
 }));
 
 // ─────────────────────────────────────────────
+// Routes — Telemetry ingest (public, called by widget on customer sites)
+// ─────────────────────────────────────────────
+const ALLOWED_EVENT_TYPES = new Set([
+  'pageview',     // widget loaded on a page
+  'widget_open',  // user opened the panel
+  'feature_used', // user toggled a feature (feature = key, e.g. "highContrast")
+  'profile_used', // user activated a profile (feature = profile name)
+  'tts_used',     // user invoked text-to-speech
+]);
+const FEATURE_NAME_RE = /^[a-zA-Z][a-zA-Z0-9_]{0,40}$/; // safe, short
+
+app.post('/api/v1/track', wrap(async (req, res) => {
+  const { key, events } = req.body || {};
+  if (!key || typeof key !== 'string' || key.length > 100) {
+    return res.status(400).json({ error: 'missing or invalid key' });
+  }
+  if (!Array.isArray(events) || events.length === 0) {
+    return res.status(400).json({ error: 'events array required' });
+  }
+  if (events.length > 50) {
+    return res.status(400).json({ error: 'too many events in batch (max 50)' });
+  }
+
+  // Verify license + domain match (same logic as /validate, no DB write yet).
+  const license = await licenses.findByKey(key);
+  if (!license || license.status !== 'active') {
+    return res.status(403).json({ error: 'license invalid or inactive' });
+  }
+  let actualDomain = null;
+  const originHeader  = req.headers['origin'];
+  const refererHeader = req.headers['referer'];
+  if (originHeader && originHeader !== 'null') actualDomain = normalizeDomain(originHeader);
+  else if (refererHeader)                       actualDomain = normalizeDomain(refererHeader);
+  const licDomain = normalizeDomain(license.domain);
+  if (!actualDomain || (actualDomain !== licDomain && !actualDomain.endsWith('.' + licDomain))) {
+    return res.status(403).json({ error: 'domain mismatch' });
+  }
+
+  // Validate every event before bulk-inserting
+  const now = Math.floor(Date.now() / 1000);
+  const rows = [];
+  for (const e of events) {
+    if (!e || typeof e !== 'object') continue;
+    if (!ALLOWED_EVENT_TYPES.has(e.type)) continue;
+    let feature = null;
+    if (e.feature != null) {
+      const f = String(e.feature);
+      if (!FEATURE_NAME_RE.test(f)) continue; // reject anything weird
+      feature = f;
+    }
+    rows.push({
+      type: e.type,
+      licenseKey: key,
+      domain: actualDomain,
+      plan: license.plan,
+      feature,
+      ts: now,
+    });
+  }
+
+  if (rows.length) await analytics.insertBatch(rows);
+  res.json({ ok: true, accepted: rows.length });
+}));
+
+// ─────────────────────────────────────────────
 // Routes — Licenses (protected)
 // ─────────────────────────────────────────────
 app.get('/api/v1/licenses', authMiddleware, wrap(async (req, res) => {
@@ -393,7 +752,13 @@ app.post('/api/v1/licenses', authMiddleware, wrap(async (req, res) => {
   const { domain, name } = req.body || {};
   if (!domain) return res.status(400).json({ error: 'domain is required' });
   if (!isValidDomain(domain)) return res.status(400).json({ error: 'Invalid domain format' });
-  if (name && String(name).length > 255) return res.status(400).json({ error: 'Name too long (max 255 chars)' });
+  // Reject names that contain HTML control characters; keep allowable text broad
+  // enough for real labels in any language but block the chars used in XSS payloads.
+  if (name) {
+    const n = String(name);
+    if (n.length > 255) return res.status(400).json({ error: 'Name too long (max 255 chars)' });
+    if (/[<>\\\x00-\x1f\x7f]/.test(n)) return res.status(400).json({ error: 'Name contains invalid characters' });
+  }
 
   const sub = await subscriptions.findByCustomer(req.customer.id);
   if (!sub || sub.status === 'expired' || sub.status === 'suspended') {
@@ -433,12 +798,52 @@ app.delete('/api/v1/licenses/:key', authMiddleware, wrap(async (req, res) => {
 // Routes — Analytics (protected)
 // ─────────────────────────────────────────────
 app.get('/api/v1/analytics', authMiddleware, wrap(async (req, res) => {
-  const [total, byDom, recent] = await Promise.all([
-    analytics.totalByCustomer(req.customer.id),
-    analytics.byDomain(req.customer.id),
-    analytics.recentByCustomer(req.customer.id),
+  const cid = req.customer.id;
+  const [total, byDom, recent, topFeatures, topProfiles, pageviews, uniqueUsers, timeline, perLicense, eventCounts] = await Promise.all([
+    analytics.totalByCustomer(cid),
+    analytics.byDomain(cid),
+    analytics.recentByCustomer(cid),
+    analytics.topFeaturesByCustomer(cid),
+    analytics.topProfilesByCustomer(cid),
+    analytics.pageviewsByCustomer(cid),
+    analytics.uniqueUsersByCustomer(cid),
+    analytics.dailyTimelineByCustomer(cid, 14),
+    analytics.perLicenseByCustomer(cid),
+    analytics.eventCountsByCustomer(cid),
   ]);
-  res.json({ totalActivations: total, byDomain: byDom, recentEvents: recent });
+
+  // Pivot the type/count rows into a flat object, casting strings → numbers.
+  const counts = {};
+  for (const r of eventCounts) counts[r.type] = Number(r.n) || 0;
+  const widgetOpens  = counts.widget_open  || 0;
+  const featureUsed  = counts.feature_used || 0;
+  const profileUsed  = counts.profile_used || 0;
+  const ttsUsed      = counts.tts_used     || 0;
+  const interactions = featureUsed + profileUsed + ttsUsed;
+
+  // Avg widget opens per pageview — natural number (a visitor can open the
+  // panel multiple times in one pageview so this can be > 1.0). Honest about
+  // what it means; not a "rate" capped at 100%.
+  const opensPerPageview = pageviews > 0 ? +(widgetOpens / pageviews).toFixed(2) : 0;
+  // Avg interactions per opened panel session.
+  const adjustmentsPerOpen = widgetOpens > 0 ? +(interactions / widgetOpens).toFixed(1) : 0;
+
+  res.json({
+    totalActivations: total,
+    pageviews,
+    uniqueUsers,
+    widgetOpens,
+    interactions,
+    opensPerPageview,
+    adjustmentsPerOpen,
+    eventCounts: { widget_open: widgetOpens, feature_used: featureUsed, profile_used: profileUsed, tts_used: ttsUsed },
+    byDomain: byDom,
+    recentEvents: recent,
+    topFeatures,
+    topProfiles,
+    timeline,
+    perLicense,
+  });
 }));
 
 // ─────────────────────────────────────────────
@@ -523,7 +928,16 @@ app.get('/api/v1/account', authMiddleware, wrap(async (req, res) => {
 app.put('/api/v1/account', authMiddleware, wrap(async (req, res) => {
   const { name, org } = req.body || {};
   if (!name) return res.status(400).json({ error: 'name is required' });
-  await customers.update({ name, org: org || '', id: req.customer.id });
+  if (typeof name !== 'string' || name.trim().length < 2 || name.trim().length > 255) {
+    return res.status(400).json({ error: 'Name must be between 2 and 255 characters' });
+  }
+  if (org && (typeof org !== 'string' || String(org).length > 255)) {
+    return res.status(400).json({ error: 'Organization too long (max 255 characters)' });
+  }
+  if (/[<>\\\x00-\x1f\x7f]/.test(name) || (org && /[<>\\\x00-\x1f\x7f]/.test(String(org)))) {
+    return res.status(400).json({ error: 'Name or organization contains invalid characters' });
+  }
+  await customers.update({ name: name.trim(), org: org ? String(org).trim() : '', id: req.customer.id });
   const customer = await customers.findById(req.customer.id);
   res.json({ customer: safeCustomer(customer) });
 }));
@@ -718,6 +1132,9 @@ app.use((err, req, res, _next) => {
 // ─────────────────────────────────────────────
 // Start
 // ─────────────────────────────────────────────
+// Pre-warm the widget cache, then start listening
+loadAndMinifyWidget().catch(err => console.error('[widget] initial minify failed:', err.message));
+
 app.listen(PORT, () => {
   console.log('\n========================================');
   console.log('  Insijam API Server  v2.0');

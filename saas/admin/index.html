@@ -1366,7 +1366,17 @@ function applyAdminLang(lang) {
   if (navSections[2]) navSections[2].textContent = t['sidebar-insights'];
   const navItems = document.querySelectorAll('.nav-item');
   const navKeys = ['nav-dashboard','nav-orgs','nav-subs','nav-licenses','nav-analytics','nav-billing'];
-  navItems.forEach((item, i) => { if (t[navKeys[i]]) item.childNodes[1].textContent = ' ' + t[navKeys[i]]; });
+  navItems.forEach((item, i) => {
+    if (!t[navKeys[i]]) return;
+    // Rebuild the item: <span class="icon">…</span> + " label". Doing it this way
+    // is idempotent across language switches — previously we wrote the new label
+    // into childNodes[1] (the icon span), which left the original English text
+    // node siblings in place, so both languages rendered on top of each other.
+    const icon = item.querySelector('.icon');
+    while (item.firstChild) item.removeChild(item.firstChild);
+    if (icon) item.appendChild(icon);
+    item.appendChild(document.createTextNode(' ' + t[navKeys[i]]));
+  });
   s('.sidebar-footer .name', 'admin-name');
   s('.sidebar-footer .role', 'admin-role');
 

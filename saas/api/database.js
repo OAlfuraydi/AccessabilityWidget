@@ -182,16 +182,100 @@ const analytics = {
       SUM(type = 'validate')   AS validations
     FROM analytics`),
 
-  recentAll: (limit = 100) => q(`
-    SELECT a.*, l.domain AS license_domain
-    FROM analytics a
-    LEFT JOIN licenses l ON a.license_key = l.\`key\`
-    ORDER BY a.ts DESC LIMIT ?`, [limit]),
+  // mysql2's pool.execute() (prepared statements) rejects `?` for LIMIT —
+  // the bind reports "Incorrect arguments to mysqld_stmt_execute". Inline a
+  // validated integer instead so this stays safe.
+  recentAll: (limit = 100) => {
+    const n = Math.max(1, Math.min(1000, parseInt(limit, 10) || 100));
+    return q(`
+      SELECT a.*, l.domain AS license_domain
+      FROM analytics a
+      LEFT JOIN licenses l ON a.license_key = l.\`key\`
+      ORDER BY a.ts DESC LIMIT ${n}`);
+  },
 
   topDomains: () => q(`
     SELECT domain, COUNT(*) AS count FROM analytics
     WHERE type = 'activation' AND domain IS NOT NULL
     GROUP BY domain ORDER BY count DESC LIMIT 20`),
+
+  // ── Per-customer aggregations driven by widget telemetry ──
+
+  /** Top features used across this customer's licenses. Returns [{feature, count}, ...]. */
+  topFeaturesByCustomer: (customerId) => q(`
+    SELECT a.feature, COUNT(*) AS count FROM analytics a
+    JOIN licenses l ON a.license_key = l.\`key\`
+    WHERE l.customer_id = ? AND a.type = 'feature_used' AND a.feature IS NOT NULL
+    GROUP BY a.feature ORDER BY count DESC LIMIT 30`, [customerId]),
+
+  /** Top accessibility profiles activated. Returns [{feature, count}, ...]. */
+  topProfilesByCustomer: (customerId) => q(`
+    SELECT a.feature, COUNT(*) AS count FROM analytics a
+    JOIN licenses l ON a.license_key = l.\`key\`
+    WHERE l.customer_id = ? AND a.type = 'profile_used' AND a.feature IS NOT NULL
+    GROUP BY a.feature ORDER BY count DESC LIMIT 20`, [customerId]),
+
+  /** Page views (not validations) — one per pageview event. */
+  pageviewsByCustomer: (customerId) =>
+    q1(`SELECT COUNT(*) AS n FROM analytics a
+        JOIN licenses l ON a.license_key = l.\`key\`
+        WHERE l.customer_id = ? AND a.type = 'pageview'`, [customerId]).then(r => r ? r.n : 0),
+
+  /** All event counts in one query — cheaper than five separate scans. */
+  eventCountsByCustomer: (customerId) => q(`
+    SELECT a.type, COUNT(*) AS n FROM analytics a
+    JOIN licenses l ON a.license_key = l.\`key\`
+    WHERE l.customer_id = ?
+    GROUP BY a.type`, [customerId]),
+
+  /** Approximate unique users — count of distinct (license_key, day) pairs in pageviews
+   *  over the last 30 days. Without per-user IDs this is a reasonable proxy for "active users". */
+  uniqueUsersByCustomer: (customerId) =>
+    q1(`SELECT COUNT(DISTINCT CONCAT(license_key, ':', FLOOR(ts / 86400))) AS n
+        FROM analytics a JOIN licenses l ON a.license_key = l.\`key\`
+        WHERE l.customer_id = ? AND a.type = 'pageview'
+          AND a.ts >= UNIX_TIMESTAMP() - 30 * 86400`, [customerId]).then(r => r ? r.n : 0),
+
+  /** Daily timeline of events for the chart. `days` is inlined (validated int)
+   *  because pool.execute() can't bind `?` inside arithmetic on integer args. */
+  dailyTimelineByCustomer: (customerId, days = 14) => {
+    const n = Math.max(1, Math.min(365, parseInt(days, 10) || 14));
+    return q(`
+      SELECT FROM_UNIXTIME(FLOOR(ts / 86400) * 86400, '%Y-%m-%d') AS day,
+             SUM(type = 'pageview')      AS pageviews,
+             SUM(type = 'feature_used')  AS features,
+             SUM(type = 'profile_used')  AS profiles
+      FROM analytics a
+      JOIN licenses l ON a.license_key = l.\`key\`
+      WHERE l.customer_id = ?
+        AND a.ts >= UNIX_TIMESTAMP() - ${n} * 86400
+      GROUP BY day ORDER BY day ASC`, [customerId]);
+  },
+
+  /** Per-license breakdown: pageviews + activations + unique-users approx +
+   *  last-activity timestamp per site, joined via the licenses table so a
+   *  license with zero events still appears (with NULLs / 0). */
+  perLicenseByCustomer: (customerId) => q(`
+    SELECT l.\`key\` AS license_key,
+           SUM(a.type = 'pageview')    AS pageviews,
+           SUM(a.type = 'activation')  AS activations,
+           COUNT(DISTINCT CASE WHEN a.type = 'pageview' THEN CONCAT(l.\`key\`, ':', FLOOR(a.ts / 86400)) END) AS users,
+           MAX(a.ts) AS last_activity_ts
+    FROM licenses l
+    LEFT JOIN analytics a ON a.license_key = l.\`key\`
+    WHERE l.customer_id = ?
+    GROUP BY l.\`key\``, [customerId]),
+
+  /** Bulk insert events from the widget. Wraps in a single multi-row insert for speed. */
+  insertBatch: (rows) => {
+    if (!rows.length) return Promise.resolve({ affectedRows: 0 });
+    const placeholders = rows.map(() => '(?, ?, ?, ?, ?, ?)').join(',');
+    const params = [];
+    for (const r of rows) {
+      params.push(r.type, r.licenseKey || null, r.domain || null, r.plan || null, r.feature || null, r.ts);
+    }
+    return q(`INSERT INTO analytics (type, license_key, domain, plan, feature, ts) VALUES ${placeholders}`, params);
+  },
 };
 
 // ─────────────────────────────────────────────
