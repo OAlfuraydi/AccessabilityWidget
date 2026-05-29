@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Insijam — Customer Dashboard</title>
+  <!-- Insijam brand fonts: Fraunces serif (titles), Inter Tight (UI),
+       JetBrains Mono (eyebrows/labels), Cairo (Arabic). Matches demo page. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <!-- ── Auth gate (synchronous, runs before any HTML below renders) ── -->
   <!-- Without this, users without a token see the dashboard briefly before
        window.onload redirects them. The body is hidden until the gate passes. -->
@@ -34,14 +39,40 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --primary: #2563EB; --primary-hover: #1d4ed8;
-      --bg: #f1f5f9; --surface: #fff;
-      --border: #e2e8f0; --text: #1e293b; --muted: #64748b;
-      --success: #059669; --danger: #dc2626; --warn: #d97706;
-      --sidebar: #0f172a; --sidebar-text: #94a3b8;
-      --radius: 12px;
+      /* Insijam brand palette — matches the marketing site (purple/indigo accent) */
+      --primary: #5B4FE8; --primary-hover: #4338CA; --primary-soft: #E8E5FB;
+      --bg: #F5F5F8; --surface: #FFFFFF;
+      --border: #E4E4EA; --text: #0E0E14; --text-2: #2A2A33; --muted: #5A5A66;
+      --success: #1F7A4A; --danger: #B91C1C; --warn: #8A5A00;
+      --sidebar: #0E0E14; --sidebar-text: #9999A6;
+      --radius: 10px;
+      /* Brand typography */
+      --serif: "Fraunces", "Times New Roman", serif;
+      --sans:  "Inter Tight", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --mono:  "JetBrains Mono", ui-monospace, monospace;
+      --arabic:"Cairo", "Tahoma", sans-serif;
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; min-height: 100vh; }
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+    html[dir="rtl"] body { font-family: var(--arabic); }
+    /* Section / page titles use the same Fraunces serif as the marketing site */
+    h1, h2, h3, .topbar-title, .card-title, .sb-brand-name {
+      font-family: var(--serif); font-weight: 500; letter-spacing: -0.01em;
+    }
+    html[dir="rtl"] :is(h1, h2, h3, .topbar-title, .card-title, .sb-brand-name) {
+      font-family: var(--arabic); letter-spacing: 0;
+    }
+    /* Eyebrows / table-headers / small labels: monospace uppercase like the marketing site */
+    .sb-section, .sb-brand-ver, thead th, .stat-label, .badge {
+      font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    html[dir="rtl"] :is(.sb-section, thead th, .stat-label) { font-family: var(--arabic); letter-spacing: 0; }
 
     /* ── Layout ── */
     .layout { display: flex; min-height: 100vh; }
@@ -62,10 +93,10 @@
     .sb-brand-ver  { font-size: 10px; color: #475569; }
 
     .sb-user { padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; }
-    .sb-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg,#7c3aed,#2563EB); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+    .sb-avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #8B82F2, #5B4FE8); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 14px; flex-shrink: 0; }
     .sb-user-name { font-size: 13px; font-weight: 600; color: #e2e8f0; line-height: 1.2; }
     .sb-user-plan { font-size: 10px; color: #475569; }
-    .sb-badge { background: #1d4ed8; color: #bfdbfe; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; margin-left: auto; }
+    .sb-badge { background: var(--primary); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; margin-left: auto; font-family: var(--mono); letter-spacing: 0.08em; }
 
     .sb-section { padding: 12px 20px 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #334155; }
     .sb-nav-item {
@@ -75,7 +106,7 @@
       text-decoration: none; font-size: 13px; font-weight: 500;
     }
     .sb-nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
-    .sb-nav-item.active { background: rgba(37,99,235,0.15); color: #fff; border-left-color: var(--primary); }
+    .sb-nav-item.active { background: rgba(91,79,232,0.18); color: #fff; border-left-color: var(--primary); }
     .sb-nav-item .icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
     .sb-nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 10px; }
 
@@ -123,7 +154,7 @@
 
     .badge { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px; text-transform: uppercase; }
     .badge-green  { background: #dcfce7; color: #15803d; }
-    .badge-blue   { background: #dbeafe; color: #1d4ed8; }
+    .badge-blue   { background: var(--primary-soft); color: var(--primary); }
     .badge-red    { background: #fee2e2; color: #dc2626; }
     .badge-orange { background: #fed7aa; color: #c2410c; }
     .badge-gray   { background: #f1f5f9; color: #475569; }
@@ -133,7 +164,7 @@
       width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px;
       font-size: 13px; color: var(--text); background: #fff; font-family: inherit;
     }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(91,79,232,0.15); }
     label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #374151; }
     .form-group { margin-bottom: 16px; }
     .form-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
@@ -451,8 +482,8 @@
                   <div class="form-group">
                     <label>Primary Color</label>
                     <div class="color-picker-row">
-                      <input type="color" id="cfg-color" value="#2563EB" oninput="updatePreview()">
-                      <input type="text" id="cfg-color-hex" value="#2563EB" style="flex:1" oninput="syncColor()">
+                      <input type="color" id="cfg-color" value="#5B4FE8" oninput="updatePreview()">
+                      <input type="text" id="cfg-color-hex" value="#5B4FE8" style="flex:1" oninput="syncColor()">
                     </div>
                   </div>
                   <div class="form-group">
@@ -520,7 +551,7 @@
                     <div style="height:10px;background:#e2e8f0;border-radius:4px;width:80%"></div>
                   </div>
                   <!-- Simulated trigger -->
-                  <div id="preview-trigger" style="position:absolute;bottom:16px;right:16px;width:48px;height:48px;border-radius:50%;background:#2563EB;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 4px 16px rgba(37,99,235,0.4);cursor:pointer;transition:all 0.2s" onclick="togglePreviewPanel()">♿</div>
+                  <div id="preview-trigger" style="position:absolute;bottom:16px;right:16px;width:48px;height:48px;border-radius:50%;background:#5B4FE8;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;box-shadow:0 4px 16px rgba(91,79,232,0.45);cursor:pointer;transition:all 0.2s" onclick="togglePreviewPanel()">♿</div>
                   <!-- Simulated panel -->
                   <div id="preview-panel" style="position:absolute;bottom:72px;right:16px;width:200px;background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:14px;display:none;font-size:11px">
                     <div style="font-weight:700;margin-bottom:10px;font-size:12px">Accessibility</div>
@@ -871,7 +902,8 @@ const PROFILE_LABEL = {
   dyslexia: '📖 Dyslexia Support', seizureSafe: '🛡️ Seizure Safe',
   cognitive: '🧠 Cognitive Support', keyboard: '⌨️ Keyboard Nav',
 };
-const CHART_PALETTE = ['#2563EB','#7c3aed','#0891b2','#059669','#d97706','#dc2626','#be185d','#0f766e'];
+// Insijam palette — purple/indigo first so the top bar reflects brand identity.
+const CHART_PALETTE = ['#5B4FE8','#8B82F2','#0F6E6A','#2A4FB8','#5A6B2E','#B91C1C','#8A5A00','#1F7A4A'];
 
 // ── Stats panels populated from /api/v1/analytics ─────────────────────────────
 function populateAnalyticsStats() {
@@ -1275,7 +1307,7 @@ function setAllFeatures(val) {
 }
 
 function updateSnippet() {
-  const color  = document.getElementById('cfg-color')?.value || '#2563EB';
+  const color  = document.getElementById('cfg-color')?.value || '#5B4FE8';
   const lang   = document.getElementById('cfg-lang')?.value  || 'auto';
   const pos    = document.getElementById('cfg-position')?.value || 'bottom-right';
   const icon   = document.getElementById('cfg-icon-custom')?.value || selectedIcon || '♿';
@@ -1304,7 +1336,7 @@ function copySnippet() {
 }
 
 async function saveConfig() {
-  const color  = document.getElementById('cfg-color')?.value || '#2563EB';
+  const color  = document.getElementById('cfg-color')?.value || '#5B4FE8';
   const lang   = document.getElementById('cfg-lang')?.value  || 'auto';
   const pos    = document.getElementById('cfg-position')?.value || 'bottom-right';
   const icon   = document.getElementById('cfg-icon-custom')?.value || selectedIcon || '♿';
@@ -1418,13 +1450,13 @@ function buildTimelineChart() {
     const total = d.pv + d.ix;
     const tip = `${d.label} · ${d.pv} pageview${d.pv === 1 ? '' : 's'} · ${d.ix} interaction${d.ix === 1 ? '' : 's'}`;
     return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:1px;height:100%;min-width:8px" title="${esc(tip)}">
-      <div style="background:#7c3aed;height:${ixH}%;border-radius:2px 2px 0 0;min-height:${d.ix > 0 ? '2px' : '0'}"></div>
-      <div style="background:#2563EB;height:${pvH}%;border-radius:${d.ix > 0 ? '0' : '2px 2px 0 0'};min-height:${d.pv > 0 ? '2px' : '0'}"></div>
+      <div style="background:#8B82F2;height:${ixH}%;border-radius:2px 2px 0 0;min-height:${d.ix > 0 ? '2px' : '0'}"></div>
+      <div style="background:#5B4FE8;height:${pvH}%;border-radius:${d.ix > 0 ? '0' : '2px 2px 0 0'};min-height:${d.pv > 0 ? '2px' : '0'}"></div>
     </div>`;
   }).join('') +
     `<div style="position:absolute;right:0;top:0;display:flex;gap:14px;font-size:10px;color:var(--muted);font-family:monospace">
-      <span><span style="display:inline-block;width:8px;height:8px;background:#2563EB;border-radius:2px;margin-right:4px"></span>pageviews</span>
-      <span><span style="display:inline-block;width:8px;height:8px;background:#7c3aed;border-radius:2px;margin-right:4px"></span>interactions</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:#5B4FE8;border-radius:2px;margin-right:4px"></span>pageviews</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:#8B82F2;border-radius:2px;margin-right:4px"></span>interactions</span>
     </div>`;
   // Axis labels — only show first, middle, last to avoid clutter
   axis.innerHTML = `<span>${esc(days[0].label)}</span><span>${esc(days[7].label)}</span><span>${esc(days[13].label)}</span>`;

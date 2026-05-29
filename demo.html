@@ -8,7 +8,7 @@
 <title>Insijam — Web accessibility, in harmony</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
     --paper: #FFFFFF;
@@ -27,7 +27,7 @@
     --serif: "Fraunces", "Times New Roman", serif;
     --sans: "Inter Tight", system-ui, -apple-system, sans-serif;
     --mono: "JetBrains Mono", ui-monospace, monospace;
-    --arabic: "IBM Plex Sans Arabic", "Noto Naskh Arabic", "Tahoma", sans-serif;
+    --arabic: "Cairo", "Tahoma", sans-serif;
 
     --radius: 4px;
     --radius-lg: 10px;
@@ -339,7 +339,7 @@
 
   /* TRY IT */
   .tryit { background: var(--paper-2); border-top: 1px solid var(--paper-3); }
-  .tryit-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: clamp(32px, 4vw, 64px); align-items: start; }
+  .tryit-grid { display: block; }
   .tryit-sample {
     background: var(--paper);
     border: 1px solid var(--paper-3);
@@ -762,8 +762,7 @@
     </div>
 
     <div class="tryit-grid">
-      <article class="tryit-sample" aria-label="Sample article">
-        <div class="tryit-sample-eyebrow" data-i18n="article-meta">Sample article · 4 min read</div>
+      <article class="tryit-sample">
         <h3 data-i18n="article-h">Accessibility is a right, not a feature.</h3>
         <p data-i18n="article-p1">About 1.3 billion people live with a disability. When your site is accessible, you're not just avoiding legal risk — you're welcoming a large audience that would have otherwise quietly left.</p>
         <h4 data-i18n="article-h2">What Insijam audits</h4>
@@ -785,20 +784,6 @@
         </blockquote>
       </article>
 
-      <aside>
-        <div class="tryit-aside-card">
-          <span class="eyebrow" data-i18n="aside-eyebrow">How to try</span>
-          <h4 data-i18n="aside-h">Open the panel.</h4>
-          <p data-i18n="aside-p">Click the accessibility button at the bottom-right. The widget runs on this page right now — every toggle is live.</p>
-          <ul class="tryit-aside-list">
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-1">Six one-click profiles</span></li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-2">Bilingual EN / AR interface</span></li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-3">Saved preferences across visits</span></li>
-            <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12l5 5L20 6"/></svg> <span data-i18n="aside-4">Read-aloud in your language</span></li>
-          </ul>
-          <a href="/dashboard/login.html" class="btn btn--accent" style="margin-top:22px" data-i18n="aside-cta">Open Admin Panel</a>
-        </div>
-      </aside>
     </div>
   </div>
 </section>

@@ -827,10 +827,22 @@
     }
 
     /* Focus mode */
-    body.aw-focus-mode * { opacity: 0.3 !important; transition: opacity 0.15s !important; }
-    body.aw-focus-mode *:hover { opacity: 1 !important; }
+    /* Focus mode: dim everything, restore the section the user is interacting with.
+       Originally used :hover, but touch devices never fire :hover — that left every
+       element at 0.3 opacity on phones, making the page unreadable (which is the
+       cognitive-profile bug Insijam users hit on mobile). Now triggered by:
+       - desktop: hover (unchanged)
+       - mobile/keyboard: focus-within on any focusable ancestor
+       - the element actually being tapped (:active) and its parents
+       Plus a "tap to highlight" handler in JS adds .aw-focus-target to the
+       most-recently-touched section so it stays bright after the tap ends.   */
+    body.aw-focus-mode *:not(.aw-focus-target) { opacity: 0.45 !important; transition: opacity 0.15s !important; }
+    body.aw-focus-mode *:hover, body.aw-focus-mode *:focus-within,
+    body.aw-focus-mode *:active, body.aw-focus-mode .aw-focus-target,
+    body.aw-focus-mode .aw-focus-target * { opacity: 1 !important; }
     body.aw-focus-mode #aw-panel, body.aw-focus-mode #aw-panel *,
-    body.aw-focus-mode #aw-trigger { opacity: 1 !important; }
+    body.aw-focus-mode #aw-backdrop, body.aw-focus-mode #aw-trigger,
+    body.aw-focus-mode #aw-license-notice, body.aw-focus-mode #aw-license-notice * { opacity: 1 !important; }
 
     /* Pause animations */
     body.aw-pause-anim *, body.aw-pause-anim *::before, body.aw-pause-anim *::after {
@@ -1701,6 +1713,35 @@
       }
     }
 
+    // ── Focus-mode tap handler ───────────────────
+    // On touch devices :hover never fires, so a CSS-only focus mode dims the
+    // whole page and never restores anything. This handler walks up from the
+    // tap target to find the nearest readable block (p, li, h*, blockquote)
+    // and marks it as .aw-focus-target so the CSS rule keeps it bright.
+    _installFocusModeTapHandler() {
+      if (this._focusTapHandler) return;
+      const BLOCKS = 'p, li, h1, h2, h3, h4, h5, h6, blockquote, article, section, td, th, dt, dd, figcaption, .feature, .compliance-card, .tryit-sample, .bilingual-card';
+      this._focusTapHandler = (e) => {
+        const t = e.target;
+        if (!t || t.closest('#aw-root')) return; // ignore widget UI itself
+        const block = t.closest(BLOCKS);
+        if (!block) return;
+        // Clear previous target, mark new
+        document.querySelectorAll('.aw-focus-target').forEach(el => el.classList.remove('aw-focus-target'));
+        block.classList.add('aw-focus-target');
+      };
+      document.addEventListener('click', this._focusTapHandler, true);
+      document.addEventListener('touchstart', this._focusTapHandler, { capture: true, passive: true });
+    }
+
+    _removeFocusModeTapHandler() {
+      if (!this._focusTapHandler) return;
+      document.removeEventListener('click', this._focusTapHandler, true);
+      document.removeEventListener('touchstart', this._focusTapHandler, { capture: true });
+      this._focusTapHandler = null;
+      document.querySelectorAll('.aw-focus-target').forEach(el => el.classList.remove('aw-focus-target'));
+    }
+
     // ── Apply all states ─────────────────────────
     _applyAll() {
       this._applyFontSize();
@@ -1738,6 +1779,14 @@
 
       if (classMap[key]) {
         body.classList.toggle(classMap[key], !!val);
+      }
+
+      // Focus mode on touch devices — :hover never fires, so the CSS rule alone
+      // leaves the whole page dimmed. Install a tap handler that marks the
+      // tapped paragraph/heading/list-item as .aw-focus-target so it stays bright.
+      if (key === 'focusMode') {
+        if (val) this._installFocusModeTapHandler();
+        else     this._removeFocusModeTapHandler();
       }
 
       // All 6 color modes are mutually exclusive — enabling one disables the rest.
